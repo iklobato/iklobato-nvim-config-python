@@ -3,6 +3,8 @@ vim.opt.shiftwidth = 4
 vim.opt.tabstop = 4
 vim.opt.expandtab = true
 
+vim.opt.relativenumber = true
+vim.opt.number = true
 
 -- Bootstrap lazy
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
@@ -32,3 +34,11 @@ require("lazy").setup("plugins", {
 -- These modules are not loaded by lazy
 require("core.options")
 require("core.keymaps")
+
+local keymap = vim.keymap
+
+-- Move betweens splits using alt + arrows
+vim.api.nvim_set_keymap('n', '<A-Up>', '<C-w><Up>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<A-Down>', '<C-w><Down>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<A-Left>', '<C-w><Left>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<A-Right>', '<C-w><Right>', { noremap = true, silent = true })
