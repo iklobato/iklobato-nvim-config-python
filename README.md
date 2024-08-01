@@ -49,17 +49,6 @@ Telescope           | LSP document symbols   | List LSP document symbols using T
 Telescope           | LSP incoming calls     | List LSP incoming calls using Telescope     | fi       | "F"ind "I"ncoming calls
 Telescope           | Treesitter methods     | Find Treesitter methods using Telescope     | fm       | "F"ind "M"ethods
 Git-blame           | Toggle git blame        | Toggle Git blame view                       | gb       | "G"it "B"lame
-Harpoon             | Add file to Harpoon    | Add the current file to Harpoon             | ha       | "H"arpoon "A"dd
-Harpoon             | Toggle Harpoon menu    | Toggle the Harpoon quick menu               | hh       | "H"arpoon "H"ide/show menu
-Harpoon             | Navigate to file 1     | Navigate to the 1st file in Harpoon         | h1       | "H"arpoon file "1"
-Harpoon             | Navigate to file 2     | Navigate to the 2nd file in Harpoon         | h2       | "H"arpoon file "2"
-Harpoon             | Navigate to file 3     | Navigate to the 3rd file in Harpoon         | h3       | "H"arpoon file "3"
-Harpoon             | Navigate to file 4     | Navigate to the 4th file in Harpoon         | h4       | "H"arpoon file "4"
-Harpoon             | Navigate to file 5     | Navigate to the 5th file in Harpoon         | h5       | "H"arpoon file "5"
-Harpoon             | Navigate to file 6     | Navigate to the 6th file in Harpoon         | h6       | "H"arpoon file "6"
-Harpoon             | Navigate to file 7     | Navigate to the 7th file in Harpoon         | h7       | "H"arpoon file "7"
-Harpoon             | Navigate to file 8     | Navigate to the 8th file in Harpoon         | h8       | "H"arpoon file "8"
-Harpoon             | Navigate to file 9     | Navigate to the 9th file in Harpoon         | h9       | "H"arpoon file "9"
 Vim REST Console    | Run REST query         | Run a REST query using Vim REST Console     | xr       | "X"ecute "R"EST query
 LSP                 | Hover                  | Show hover information from LSP             | gg       | "G"et "G"eneral hover
 LSP                 | Go to definition       | Go to LSP definition                        | gd       | "G"o to "D"efinition
