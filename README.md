@@ -13,6 +13,9 @@ General Keymaps     | Save and quit           | Save the current file and quit V
 General Keymaps     | Quit without saving    | Quit Vim without saving                     | qq       | "Q"uit without saving
 General Keymaps     | Save                   | Save the current file                       | ww       | "W"rite "W"rite
 General Keymaps     | Open URL under cursor  | Open the URL under the cursor               | gx       | "G"oto e"X"ternal URL
+
+Plugin Name         | Feature                | Description                                 | Shortcut | Mnemonic
+--------------------|------------------------|---------------------------------------------|----------|---------
 Split Window        | Split window vertically| Split the window vertically                 | sv       | "S"plit "V"ertically
 Split Window        | Split window horizontally| Split the window horizontally             | sh       | "S"plit "H"orizontally
 Split Window        | Equal width splits     | Make split windows equal width              | se       | "S"ame "E"qual width
@@ -21,25 +24,43 @@ Split Window        | Shorten window height  | Make the split window height shor
 Split Window        | Increase window height | Make the split window height taller         | sk       | "S"tretch "K"eep taller
 Split Window        | Increase window width  | Make the split window width bigger          | sl       | "S"tretch "L"onger width
 Split Window        | Decrease window width  | Make the split window width smaller         | sh       | "S"hrink width
+
+Plugin Name         | Feature                | Description                                 | Shortcut | Mnemonic
+--------------------|------------------------|---------------------------------------------|----------|---------
 Tab Management      | Open new tab           | Open a new tab                              | to       | "T"ab "O"pen
 Tab Management      | Close a tab            | Close the current tab                       | tx       | "T"ab e"X"it
 Tab Management      | Next tab               | Switch to the next tab                      | tn       | "T"ab "N"ext
 Tab Management      | Previous tab           | Switch to the previous tab                  | tp       | "T"ab "P"revious
+
+Plugin Name         | Feature                | Description                                 | Shortcut | Mnemonic
+--------------------|------------------------|---------------------------------------------|----------|---------
 Diff                | Put diff               | Put diff from current to other              | cc       | "C"ompare "C"hanges
 Diff                | Get diff from left     | Get diff from the left (local)              | cj       | "C"ompare "J"ump left
 Diff                | Get diff from right    | Get diff from the right (remote)            | ck       | "C"ompare "K"eep right
 Diff                | Next diff hunk         | Move to the next diff hunk                  | cn       | "C"ompare "N"ext hunk
 Diff                | Previous diff hunk     | Move to the previous diff hunk              | cp       | "C"ompare "P"revious hunk
+
+Plugin Name         | Feature                | Description                                 | Shortcut | Mnemonic
+--------------------|------------------------|---------------------------------------------|----------|---------
 Quickfix            | Open quickfix list     | Open the quickfix list                      | qo       | "Q"uickfix "O"pen
 Quickfix            | Jump to first item     | Jump to the first item in the quickfix list | qf       | "Q"uickfix "F"irst
 Quickfix            | Jump to next item      | Jump to the next item in the quickfix list  | qn       | "Q"uickfix "N"ext
 Quickfix            | Jump to previous item  | Jump to the previous item in the quickfix list| qp      | "Q"uickfix "P"revious
 Quickfix            | Jump to last item      | Jump to the last item in the quickfix list  | ql       | "Q"uickfix "L"ast
 Quickfix            | Close quickfix list    | Close the quickfix list                     | qc       | "Q"uickfix "C"lose
+
+Plugin Name         | Feature                | Description                                 | Shortcut | Mnemonic
+--------------------|------------------------|---------------------------------------------|----------|---------
 Vim-maximizer       | Toggle maximize tab    | Toggle maximizing the current tab           | sm       | "S"ize "M"aximize
+
+Plugin Name         | Feature                | Description                                 | Shortcut | Mnemonic
+--------------------|------------------------|---------------------------------------------|----------|---------
 Nvim-tree           | Toggle file explorer   | Toggle the file explorer                    | ee       | "E"xplorer "E"nable
 Nvim-tree           | Focus file explorer    | Focus on the file explorer                  | er       | "E"xplorer "R"e-focus
 Nvim-tree           | Find file in explorer  | Find the file in the file explorer           | ef       | "E"xplorer "F"ind
+
+Plugin Name         | Feature                | Description                                 | Shortcut | Mnemonic
+--------------------|------------------------|---------------------------------------------|----------|---------
 Telescope           | Find files             | Find files using Telescope                  | ff       | "F"ind "F"iles
 Telescope           | Live grep              | Search text in files using Telescope        | fg       | "F"ind "G"rep
 Telescope           | Buffers                | List open buffers using Telescope           | fb       | "F"ind "B"uffers
@@ -48,19 +69,17 @@ Telescope           | Current buffer fuzzy find| Fuzzy find text in the current 
 Telescope           | LSP document symbols   | List LSP document symbols using Telescope   | fo       | "F"ind "O"bjects
 Telescope           | LSP incoming calls     | List LSP incoming calls using Telescope     | fi       | "F"ind "I"ncoming calls
 Telescope           | Treesitter methods     | Find Treesitter methods using Telescope     | fm       | "F"ind "M"ethods
+
+Plugin Name         | Feature                | Description                                 | Shortcut | Mnemonic
+--------------------|------------------------|---------------------------------------------|----------|---------
 Git-blame           | Toggle git blame        | Toggle Git blame view                       | gb       | "G"it "B"lame
-Harpoon             | Add file to Harpoon    | Add the current file to Harpoon             | ha       | "H"arpoon "A"dd
-Harpoon             | Toggle Harpoon menu    | Toggle the Harpoon quick menu               | hh       | "H"arpoon "H"ide/show menu
-Harpoon             | Navigate to file 1     | Navigate to the 1st file in Harpoon         | h1       | "H"arpoon file "1"
-Harpoon             | Navigate to file 2     | Navigate to the 2nd file in Harpoon         | h2       | "H"arpoon file "2"
-Harpoon             | Navigate to file 3     | Navigate to the 3rd file in Harpoon         | h3       | "H"arpoon file "3"
-Harpoon             | Navigate to file 4     | Navigate to the 4th file in Harpoon         | h4       | "H"arpoon file "4"
-Harpoon             | Navigate to file 5     | Navigate to the 5th file in Harpoon         | h5       | "H"arpoon file "5"
-Harpoon             | Navigate to file 6     | Navigate to the 6th file in Harpoon         | h6       | "H"arpoon file "6"
-Harpoon             | Navigate to file 7     | Navigate to the 7th file in Harpoon         | h7       | "H"arpoon file "7"
-Harpoon             | Navigate to file 8     | Navigate to the 8th file in Harpoon         | h8       | "H"arpoon file "8"
-Harpoon             | Navigate to file 9     | Navigate to the 9th file in Harpoon         | h9       | "H"arpoon file "9"
+
+Plugin Name         | Feature                | Description                                 | Shortcut | Mnemonic
+--------------------|------------------------|---------------------------------------------|----------|---------
 Vim REST Console    | Run REST query         | Run a REST query using Vim REST Console     | xr       | "X"ecute "R"EST query
+
+Plugin Name         | Feature                | Description                                 | Shortcut | Mnemonic
+--------------------|------------------------|---------------------------------------------|----------|---------
 LSP                 | Hover                  | Show hover information from LSP             | gg       | "G"et "G"eneral hover
 LSP                 | Go to definition       | Go to LSP definition                        | gd       | "G"o to "D"efinition
 LSP                 | Go to declaration      | Go to LSP declaration                       | gD       | "G"o to "D"eclaration
@@ -76,6 +95,9 @@ LSP                 | Go to previous diagnostic| Go to previous diagnostic      
 LSP                 | Go to next diagnostic  | Go to next diagnostic                       | gn       | "G"o "N"ext diagnostic
 LSP                 | Document symbols       | Show document symbols using LSP             | tr       | "T"ag "R"eference
 LSP                 | Autocomplete           | Trigger autocomplete using LSP              | <C-Space>| "C"trl "Space"
+
+Plugin Name         | Feature                | Description                                 | Shortcut | Mnemonic
+--------------------|------------------------|---------------------------------------------|----------|---------
 Debugging           | Toggle breakpoint      | Toggle a breakpoint in debugging            | bb       | "B"reakpoint "B"oth on/off
 Debugging           | Set conditional breakpoint| Set a conditional breakpoint in debugging | bc       | "B"reakpoint "C"onditional
 Debugging           | Set log point          | Set a log point in debugging                | bl       | "B"reakpoint "L"og

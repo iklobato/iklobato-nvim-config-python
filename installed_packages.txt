@@ -1,0 +1,23 @@
+Homebrew packages:
+azure-cli: Microsoft Azure CLI 2.0
+cloudflared: Cloudflare Tunnel client (formerly Argo Tunnel)
+git-delta: Syntax-highlighting pager for git and diff output
+ipython: Interactive computing in Python
+lazygit: A simple terminal UI for git commands, written in Go
+jq: Lightweight and flexible command-line JSON processor
+kind: Run local Kubernetes cluster in Docker
+lazydocker: Lazier way to manage everything docker
+neovim: Ambitious Vim-fork focused on extensibility and agility
+nmap: Port scanning utility for large networks
+node: Platform built on V8 to build network applications
+openjdk: Development kit for the Java programming language
+pstree: Show ps output as a tree
+ripgrep: Search tool like grep and The Silver Searcher
+sqlmap: Penetration testing for SQL injection and database servers
+tidy-html5: Granddaddy of HTML tools, with support for modern standards
+tmux: Terminal multiplexer
+tor: Anonymizing overlay network for TCP
+tree: Display directories as trees (with optional color/HTML output)
+zlib: General-purpose lossless data-compression library
+zsh: UNIX shell (command interpreter)
+zsh-syntax-highlighting: Fish shell like syntax highlighting for zsh
