@@ -16,8 +16,8 @@ keymap.set("n", "<leader>se", "<C-w>=") -- make split windows equal width
 keymap.set("n", "<leader>sx", ":close<CR>") -- close split window
 keymap.set("n", "<leader>sj", "<C-w>-") -- make split window height shorter
 keymap.set("n", "<leader>sk", "<C-w>+") -- make split windows height taller
-keymap.set("n", "<leader>sl", "<C-w>>5") -- make split windows width bigger 
-keymap.set("n", "<leader>sh", "<C-w><5") -- make split windows width smaller
+keymap.set("n", "<leader>sl", "<C-w>>") -- make split windows width bigger 
+keymap.set("n", "<leader>sh", "<C-w><") -- make split windows width smaller
 
 -- Tab management
 keymap.set("n", "<leader>to", ":tabnew<CR>") -- open a new tab
@@ -61,19 +61,6 @@ keymap.set('n', '<leader>fm', function() require('telescope.builtin').treesitter
 -- Git-blame
 keymap.set("n", "<leader>gb", ":GitBlameToggle<CR>") -- toggle git blame
 
--- Harpoon
-keymap.set("n", "<leader>ha", require("harpoon.mark").add_file)
-keymap.set("n", "<leader>hh", require("harpoon.ui").toggle_quick_menu)
-keymap.set("n", "<leader>h1", function() require("harpoon.ui").nav_file(1) end)
-keymap.set("n", "<leader>h2", function() require("harpoon.ui").nav_file(2) end)
-keymap.set("n", "<leader>h3", function() require("harpoon.ui").nav_file(3) end)
-keymap.set("n", "<leader>h4", function() require("harpoon.ui").nav_file(4) end)
-keymap.set("n", "<leader>h5", function() require("harpoon.ui").nav_file(5) end)
-keymap.set("n", "<leader>h6", function() require("harpoon.ui").nav_file(6) end)
-keymap.set("n", "<leader>h7", function() require("harpoon.ui").nav_file(7) end)
-keymap.set("n", "<leader>h8", function() require("harpoon.ui").nav_file(8) end)
-keymap.set("n", "<leader>h9", function() require("harpoon.ui").nav_file(9) end)
-
 -- Vim REST Console
 keymap.set("n", "<leader>xr", ":call VrcQuery()<CR>") -- Run REST query
 
@@ -114,4 +101,16 @@ keymap.set("n", '<leader>d?', function() local widgets = require "dap.ui.widgets
 keymap.set("n", '<leader>df', '<cmd>Telescope dap frames<cr>')
 keymap.set("n", '<leader>dh', '<cmd>Telescope dap commands<cr>')
 keymap.set("n", '<leader>de', function() require('telescope.builtin').diagnostics({default_text=":E:"}) end)
+
+-- Window navigation
+keymap.set('n', '<A-Up>', '<C-w>k', { noremap = true, silent = true })
+keymap.set('n', '<A-Down>', '<C-w>j', { noremap = true, silent = true })
+keymap.set('n', '<A-Left>', '<C-w>h', { noremap = true, silent = true })
+keymap.set('n', '<A-Right>', '<C-w>l', { noremap = true, silent = true })
+
+-- Window movement with hjkl
+keymap.set('n', '<C-w>h', '<C-w>h', { noremap = true, silent = true })
+keymap.set('n', '<C-w>j', '<C-w>j', { noremap = true, silent = true })
+keymap.set('n', '<C-w>k', '<C-w>k', { noremap = true, silent = true })
+keymap.set('n', '<C-w>l', '<C-w>l', { noremap = true, silent = true })
 

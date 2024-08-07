@@ -24,16 +24,17 @@ return {
     require('mason-lspconfig').setup({
       -- Install these LSPs automatically
       ensure_installed = {
-        -- 'bashls', -- requires npm to be installed
-        -- 'cssls', -- requires npm to be installed
-        -- 'html', -- requires npm to be installed
+        'bashls', -- requires npm to be installed
+        'cssls', -- requires npm to be installed
+        'html', -- requires npm to be installed
         'lua_ls',
-        -- 'jsonls', -- requires npm to be installed
+        'jsonls', -- requires npm to be installed
         'lemminx',
         'marksman',
         'quick_lint_js',
-        -- 'tsserver', -- requires npm to be installed
-        -- 'yamlls', -- requires npm to be installed
+        'pyright',
+        'tsserver', -- requires npm to be installed
+        'yamlls', -- requires npm to be installed
       }
     })
 
