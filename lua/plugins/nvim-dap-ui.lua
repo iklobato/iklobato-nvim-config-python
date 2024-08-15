@@ -1,17 +1,11 @@
--- Debugging Support
 return {
-  -- https://github.com/rcarriga/nvim-dap-ui
   'rcarriga/nvim-dap-ui',
   event = 'VeryLazy',
   dependencies = {
-    -- https://github.com/mfussenegger/nvim-dap
     'mfussenegger/nvim-dap',
-    -- https://github.com/nvim-neotest/nvim-nio
     'nvim-neotest/nvim-nio',
-    -- https://github.com/theHamsta/nvim-dap-virtual-text
-    'theHamsta/nvim-dap-virtual-text', -- inline variable text while debugging
-    -- https://github.com/nvim-telescope/telescope-dap.nvim
-    'nvim-telescope/telescope-dap.nvim', -- telescope integration with dap
+    'theHamsta/nvim-dap-virtual-text',
+    'nvim-telescope/telescope-dap.nvim',
   },
   opts = {
     controls = {
@@ -46,33 +40,18 @@ return {
     layouts = {
       {
         elements = {
-          {
-            id = "scopes",
-            size = 0.50
-          },
-          {
-            id = "stacks",
-            size = 0.30
-          },
-          {
-            id = "watches",
-            size = 0.10
-          },
-          {
-            id = "breakpoints",
-            size = 0.10
-          }
+          { id = "scopes", size = 0.50 },
+          { id = "stacks", size = 0.30 },
+          { id = "watches", size = 0.10 },
+          { id = "breakpoints", size = 0.10 }
         },
         size = 40,
-        position = "left", -- Can be "left" or "right"
+        position = "left",
       },
       {
-        elements = {
-          "repl",
-          "console",
-        },
+        elements = { "repl", "console" },
         size = 10,
-        position = "bottom", -- Can be "bottom" or "top"
+        position = "bottom",
       }
     },
     mappings = {
@@ -88,31 +67,95 @@ return {
       max_value_lines = 100
     }
   },
-  config = function (_, opts)
+  config = function(_, opts)
     local dap = require('dap')
-    require('dapui').setup(opts)
+    local dapui = require('dapui')
+    dapui.setup(opts)
 
     dap.listeners.after.event_initialized["dapui_config"] = function()
-      require('dapui').open()
+      dapui.open()
     end
-
     dap.listeners.before.event_terminated["dapui_config"] = function()
-      -- Commented to prevent DAP UI from closing when unit tests finish
-      -- require('dapui').close()
+      -- Uncomment to close DAP UI automatically
+      -- dapui.close()
     end
-
     dap.listeners.before.event_exited["dapui_config"] = function()
-      -- Commented to prevent DAP UI from closing when unit tests finish
-      -- require('dapui').close()
+      -- Uncomment to close DAP UI automatically
+      -- dapui.close()
+    end
+    
+    local function get_env_vars()
+      local variables = {}
+      for k, v in pairs(vim.fn.environ()) do
+        variables[k] = v
+      end
+      return variables
+    end
+    
+    -- Python DAP Configuration
+    local pythonPath = function()
+      local cwd = vim.loop.cwd()
+      if vim.fn.executable(cwd .. '.venv/bin/python') == 1 then
+        return cwd .. '.venv/bin/python'
+      else
+        return 'python'
+      end
     end
 
-    -- Add dap configurations based on your language/adapter settings
-    -- https://github.com/mfussenegger/nvim-dap/wiki/Debug-Adapter-installation
-    -- dap.configurations.xxxxxxxxxx = {
-    --   {
-    --   },
-    -- }
+    dap.adapters.python = {
+      type = 'executable',
+      command = pythonPath(),
+      args = {'-m', 'debugpy.adapter'}
+    }
 
+    dap.configurations.python = {
+      {
+        type = 'python',
+        request = 'launch',
+        name = "Launch file",
+        program = "${file}",
+        pythonPath = pythonPath,
+        env = get_env_vars(),
+      },
+      {
+        type = 'python',
+        request = 'launch',
+        name = 'DAP Django',
+        program = vim.loop.cwd() .. '/manage.py',
+        args = {'runserver', '--noreload'},
+        justMyCode = true,
+        django = true,
+        console = "integratedTerminal",
+        env = get_env_vars(),
+
+      },
+      {
+        type = 'python',
+        request = 'attach',
+        name = 'Attach remote',
+        env = get_env_vars(),
+        connect = function()
+          return { host = '127.0.0.1', port = 5678 }
+        end
+      },
+      {
+        type = 'python',
+        request = 'launch',
+        name = 'Launch file with arguments',
+        program = '${file}',
+        args = function()
+          local args_string = vim.fn.input('Arguments: ')
+          return vim.split(args_string, " +")
+        end,
+        console = "integratedTerminal",
+        env = get_env_vars(),
+        pythonPath = pythonPath
+      }
+    }
+
+    vim.api.nvim_create_autocmd({"DirChanged"}, {
+      callback = function() set_python_dap() end,
+    })
   end
 }
 
