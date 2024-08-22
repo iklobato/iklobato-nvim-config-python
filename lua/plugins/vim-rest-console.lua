@@ -10,5 +10,6 @@ return {
     vim.g.vrc_auto_format_response_patterns = {
       json = 'jq',
     }
+    vim.g.vrc_horizontal_split = 1
   end
 }

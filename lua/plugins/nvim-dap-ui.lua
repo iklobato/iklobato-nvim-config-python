@@ -50,8 +50,8 @@ return {
       },
       {
         elements = { "repl", "console" },
-        size = 10,
-        position = "bottom",
+        size = 100,
+        position = "right",
       }
     },
     mappings = {
@@ -115,7 +115,6 @@ return {
         name = "Launch file",
         program = "${file}",
         pythonPath = pythonPath,
-        env = get_env_vars(),
       },
       {
         type = 'python',
@@ -126,14 +125,12 @@ return {
         justMyCode = true,
         django = true,
         console = "integratedTerminal",
-        env = get_env_vars(),
 
       },
       {
         type = 'python',
         request = 'attach',
         name = 'Attach remote',
-        env = get_env_vars(),
         connect = function()
           return { host = '127.0.0.1', port = 5678 }
         end
@@ -148,7 +145,6 @@ return {
           return vim.split(args_string, " +")
         end,
         console = "integratedTerminal",
-        env = get_env_vars(),
         pythonPath = pythonPath
       }
     }
