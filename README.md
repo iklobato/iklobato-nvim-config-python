@@ -1,118 +1,126 @@
-# My python nvim configuration
+# Neovim Python Configuration Guide
 
-### Installation
-```sh
- curl -s https://raw.githubusercontent.com/iklobato/iklobato-nvim-config-python/install.sh | bash
- ```
+## Quick Installation
 
+```bash
+curl -s https://raw.githubusercontent.com/iklobato/iklobato-nvim-config-python/install.sh | bash
+```
 
-## Neovim Configuration Features
-Plugin Name         | Feature                | Description                                 | Shortcut | Mnemonic
---------------------|------------------------|---------------------------------------------|----------|---------
-General Keymaps     | Save and quit           | Save the current file and quit Vim          | wq       | "W"rite and "Q"uit
-General Keymaps     | Quit without saving    | Quit Vim without saving                     | qq       | "Q"uit without saving
-General Keymaps     | Save                   | Save the current file                       | ww       | "W"rite "W"rite
-General Keymaps     | Open URL under cursor  | Open the URL under the cursor               | gx       | "G"oto e"X"ternal URL
+## Keybinding Reference
 
-Plugin Name         | Feature                | Description                                 | Shortcut | Mnemonic
---------------------|------------------------|---------------------------------------------|----------|---------
-Split Window        | Split window vertically| Split the window vertically                 | sv       | "S"plit "V"ertically
-Split Window        | Split window horizontally| Split the window horizontally             | sh       | "S"plit "H"orizontally
-Split Window        | Equal width splits     | Make split windows equal width              | se       | "S"ame "E"qual width
-Split Window        | Close split window     | Close the current split window              | sx       | "S"plit "X"terminate
-Split Window        | Shorten window height  | Make the split window height shorter        | sj       | "S"hort "J"ump height
-Split Window        | Increase window height | Make the split window height taller         | sk       | "S"tretch "K"eep taller
-Split Window        | Increase window width  | Make the split window width bigger          | sl       | "S"tretch "L"onger width
-Split Window        | Decrease window width  | Make the split window width smaller         | sh       | "S"hrink width
+### Essential Commands
+| Shortcut | Description | Mnemonic |
+|----------|-------------|----------|
+| `wq` | Save and quit | "**W**rite and **Q**uit" |
+| `qq` | Quit without saving | "**Q**uit **Q**uickly" |
+| `ww` | Save current file | "**W**rite **W**rite" |
+| `gx` | Open URL under cursor | "**G**oto e**X**ternal URL" |
 
-Plugin Name         | Feature                | Description                                 | Shortcut | Mnemonic
---------------------|------------------------|---------------------------------------------|----------|---------
-Tab Management      | Open new tab           | Open a new tab                              | to       | "T"ab "O"pen
-Tab Management      | Close a tab            | Close the current tab                       | tx       | "T"ab e"X"it
-Tab Management      | Next tab               | Switch to the next tab                      | tn       | "T"ab "N"ext
-Tab Management      | Previous tab           | Switch to the previous tab                  | tp       | "T"ab "P"revious
+### Window Management
+| Shortcut | Description | Mnemonic |
+|----------|-------------|----------|
+| `sv` | Split window vertically | "**S**plit **V**ertically" |
+| `sh` | Split window horizontally | "**S**plit **H**orizontally" |
+| `se` | Make splits equal width | "**S**plit **E**qual" |
+| `sx` | Close current split | "**S**plit e**X**it" |
+| `sj` | Decrease window height | "**S**horten **J**ump" |
+| `sk` | Increase window height | "**S**tretch **K**eep" |
+| `sl` | Increase window width | "**S**tretch **L**onger" |
+| `sm` | Toggle maximize window | "**S**ize **M**aximize" |
 
-Plugin Name         | Feature                | Description                                 | Shortcut | Mnemonic
---------------------|------------------------|---------------------------------------------|----------|---------
-Diff                | Put diff               | Put diff from current to other              | cc       | "C"ompare "C"hanges
-Diff                | Get diff from left     | Get diff from the left (local)              | cj       | "C"ompare "J"ump left
-Diff                | Get diff from right    | Get diff from the right (remote)            | ck       | "C"ompare "K"eep right
-Diff                | Next diff hunk         | Move to the next diff hunk                  | cn       | "C"ompare "N"ext hunk
-Diff                | Previous diff hunk     | Move to the previous diff hunk              | cp       | "C"ompare "P"revious hunk
+### Tab Management
+| Shortcut | Description | Mnemonic |
+|----------|-------------|----------|
+| `to` | Open new tab | "**T**ab **O**pen" |
+| `tx` | Close current tab | "**T**ab e**X**it" |
+| `tn` | Next tab | "**T**ab **N**ext" |
+| `tp` | Previous tab | "**T**ab **P**revious" |
 
-Plugin Name         | Feature                | Description                                 | Shortcut | Mnemonic
---------------------|------------------------|---------------------------------------------|----------|---------
-Quickfix            | Open quickfix list     | Open the quickfix list                      | qo       | "Q"uickfix "O"pen
-Quickfix            | Jump to first item     | Jump to the first item in the quickfix list | qf       | "Q"uickfix "F"irst
-Quickfix            | Jump to next item      | Jump to the next item in the quickfix list  | qn       | "Q"uickfix "N"ext
-Quickfix            | Jump to previous item  | Jump to the previous item in the quickfix list| qp      | "Q"uickfix "P"revious
-Quickfix            | Jump to last item      | Jump to the last item in the quickfix list  | ql       | "Q"uickfix "L"ast
-Quickfix            | Close quickfix list    | Close the quickfix list                     | qc       | "Q"uickfix "C"lose
+### File Navigation
+| Shortcut | Description | Mnemonic |
+|----------|-------------|----------|
+| `ee` | Toggle file explorer | "**E**xplorer **E**nable" |
+| `er` | Focus file explorer | "**E**xplorer **R**e-focus" |
+| `ef` | Find file in explorer | "**E**xplorer **F**ind" |
 
-Plugin Name         | Feature                | Description                                 | Shortcut | Mnemonic
---------------------|------------------------|---------------------------------------------|----------|---------
-Vim-maximizer       | Toggle maximize tab    | Toggle maximizing the current tab           | sm       | "S"ize "M"aximize
+### Search and Find
+| Shortcut | Description | Mnemonic |
+|----------|-------------|----------|
+| `ff` | Find files | "**F**ind **F**iles" |
+| `fg` | Live grep | "**F**ind **G**rep" |
+| `fb` | List buffers | "**F**ind **B**uffers" |
+| `fh` | Search help tags | "**F**ind **H**elp" |
+| `fs` | Fuzzy find in buffer | "**F**uzzy **S**earch" |
+| `fo` | List LSP symbols | "**F**ind **O**bjects" |
+| `fi` | List incoming calls | "**F**ind **I**ncoming" |
+| `fm` | Find methods | "**F**ind **M**ethods" |
 
-Plugin Name         | Feature                | Description                                 | Shortcut | Mnemonic
---------------------|------------------------|---------------------------------------------|----------|---------
-Nvim-tree           | Toggle file explorer   | Toggle the file explorer                    | ee       | "E"xplorer "E"nable
-Nvim-tree           | Focus file explorer    | Focus on the file explorer                  | er       | "E"xplorer "R"e-focus
-Nvim-tree           | Find file in explorer  | Find the file in the file explorer           | ef       | "E"xplorer "F"ind
+### Git Integration
+| Shortcut | Description | Mnemonic |
+|----------|-------------|----------|
+| `gb` | Toggle git blame | "**G**it **B**lame" |
 
-Plugin Name         | Feature                | Description                                 | Shortcut | Mnemonic
---------------------|------------------------|---------------------------------------------|----------|---------
-Telescope           | Find files             | Find files using Telescope                  | ff       | "F"ind "F"iles
-Telescope           | Live grep              | Search text in files using Telescope        | fg       | "F"ind "G"rep
-Telescope           | Buffers                | List open buffers using Telescope           | fb       | "F"ind "B"uffers
-Telescope           | Help tags              | Search help tags using Telescope            | fh       | "F"ind "H"elp tags
-Telescope           | Current buffer fuzzy find| Fuzzy find text in the current buffer     | fs       | "F"uzzy "S"earch
-Telescope           | LSP document symbols   | List LSP document symbols using Telescope   | fo       | "F"ind "O"bjects
-Telescope           | LSP incoming calls     | List LSP incoming calls using Telescope     | fi       | "F"ind "I"ncoming calls
-Telescope           | Treesitter methods     | Find Treesitter methods using Telescope     | fm       | "F"ind "M"ethods
+### LSP Features
+| Shortcut | Description | Mnemonic |
+|----------|-------------|----------|
+| `gg` | Show hover info | "**G**et **G**eneral" |
+| `gd` | Go to definition | "**G**o **D**efinition" |
+| `gD` | Go to declaration | "**G**o **D**eclaration" |
+| `gi` | Go to implementation | "**G**o **I**mplementation" |
+| `gt` | Go to type definition | "**G**o **T**ype" |
+| `gr` | Find references | "**G**o **R**eferences" |
+| `gs` | Show signature help | "**G**et **S**ignature" |
+| `rr` | Rename symbol | "**R**e**R**ename" |
+| `gf` | Format code | "**G**o **F**ormat" |
+| `ga` | Code action | "**G**o **A**ction" |
+| `gl` | Open diagnostics | "**G**et **L**ast" |
+| `gp` | Previous diagnostic | "**G**o **P**revious" |
+| `gn` | Next diagnostic | "**G**o **N**ext" |
+| `tr` | Show document symbols | "**T**ag **R**eference" |
+| `<C-Space>` | Trigger autocomplete | "**C**trl **Space**" |
 
-Plugin Name         | Feature                | Description                                 | Shortcut | Mnemonic
---------------------|------------------------|---------------------------------------------|----------|---------
-Git-blame           | Toggle git blame        | Toggle Git blame view                       | gb       | "G"it "B"lame
+### Debugging
+| Shortcut | Description | Mnemonic |
+|----------|-------------|----------|
+| `bb` | Toggle breakpoint | "**B**reakpoint **B**oth" |
+| `bc` | Set conditional breakpoint | "**B**reakpoint **C**onditional" |
+| `bl` | Set log point | "**B**reakpoint **L**og" |
+| `br` | Clear all breakpoints | "**B**reakpoint **R**emove" |
+| `ba` | List breakpoints | "**B**reakpoints **A**ll" |
+| `dc` | Continue debugging | "**D**ebug **C**ontinue" |
+| `dj` | Step over | "**D**ebug **J**ump" |
+| `dk` | Step into | "**D**ebug **K**eep" |
+| `do` | Step out | "**D**ebug **O**ut" |
+| `dd` | Disconnect debugger | "**D**ebug **D**isconnect" |
+| `dt` | Terminate debugging | "**D**ebug **T**erminate" |
+| `dr` | Toggle REPL | "**D**ebug **R**EPL" |
+| `dl` | Run last debug session | "**D**ebug **L**ast" |
+| `di` | Debug info (hover) | "**D**ebug **I**nfo" |
+| `d?` | Show scopes | "**D**ebug **?**scopes" |
+| `df` | List debug frames | "**D**ebug **F**rames" |
+| `dh` | List debug commands | "**D**ebug **H**elp" |
+| `de` | List diagnostics | "**D**ebug **E**rrors" |
 
-Plugin Name         | Feature                | Description                                 | Shortcut | Mnemonic
---------------------|------------------------|---------------------------------------------|----------|---------
-Vim REST Console    | Run REST query         | Run a REST query using Vim REST Console     | xr       | "X"ecute "R"EST query
+### Diff Operations
+| Shortcut | Description | Mnemonic |
+|----------|-------------|----------|
+| `cc` | Put diff | "**C**ompare **C**hanges" |
+| `cj` | Get diff from left | "**C**ompare **J**ump left" |
+| `ck` | Get diff from right | "**C**ompare **K**eep right" |
+| `cn` | Next diff hunk | "**C**ompare **N**ext" |
+| `cp` | Previous diff hunk | "**C**ompare **P**revious" |
 
-Plugin Name         | Feature                | Description                                 | Shortcut | Mnemonic
---------------------|------------------------|---------------------------------------------|----------|---------
-LSP                 | Hover                  | Show hover information from LSP             | gg       | "G"et "G"eneral hover
-LSP                 | Go to definition       | Go to LSP definition                        | gd       | "G"o to "D"efinition
-LSP                 | Go to declaration      | Go to LSP declaration                       | gD       | "G"o to "D"eclaration
-LSP                 | Go to implementation   | Go to LSP implementation                    | gi       | "G"o to "I"mplementation
-LSP                 | Go to type definition  | Go to LSP type definition                   | gt       | "G"o to "T"ype definition
-LSP                 | Go to references       | Go to LSP references                        | gr       | "G"o to "R"eferences
-LSP                 | Signature help         | Show LSP signature help                     | gs       | "G"et "S"ignature help
-LSP                 | Rename                 | Rename symbol using LSP                     | rr       | "R"e"R"ename
-LSP                 | Format                 | Format code using LSP                       | gf       | "G"o "F"ormat
-LSP                 | Code action            | Perform LSP code action                     | ga       | "G"o "A"ction
-LSP                 | Open diagnostics       | Open diagnostic float window                | gl       | "G"et "L"ast diagnostics
-LSP                 | Go to previous diagnostic| Go to previous diagnostic                   | gp       | "G"o "P"revious diagnostic
-LSP                 | Go to next diagnostic  | Go to next diagnostic                       | gn       | "G"o "N"ext diagnostic
-LSP                 | Document symbols       | Show document symbols using LSP             | tr       | "T"ag "R"eference
-LSP                 | Autocomplete           | Trigger autocomplete using LSP              | <C-Space>| "C"trl "Space"
+### Quickfix List
+| Shortcut | Description | Mnemonic |
+|----------|-------------|----------|
+| `qo` | Open quickfix list | "**Q**uickfix **O**pen" |
+| `qf` | Jump to first item | "**Q**uickfix **F**irst" |
+| `qn` | Jump to next item | "**Q**uickfix **N**ext" |
+| `qp` | Jump to previous item | "**Q**uickfix **P**revious" |
+| `ql` | Jump to last item | "**Q**uickfix **L**ast" |
+| `qc` | Close quickfix list | "**Q**uickfix **C**lose" |
 
-Plugin Name         | Feature                | Description                                 | Shortcut | Mnemonic
---------------------|------------------------|---------------------------------------------|----------|---------
-Debugging           | Toggle breakpoint      | Toggle a breakpoint in debugging            | bb       | "B"reakpoint "B"oth on/off
-Debugging           | Set conditional breakpoint| Set a conditional breakpoint in debugging | bc       | "B"reakpoint "C"onditional
-Debugging           | Set log point          | Set a log point in debugging                | bl       | "B"reakpoint "L"og
-Debugging           | Clear breakpoints      | Clear all breakpoints                       | br       | "B"reakpoint "R"emove
-Debugging           | List breakpoints       | List all breakpoints                        | ba       | "B"reakpoints "A"ll
-Debugging           | Continue debugging     | Continue debugging                          | dc       | "D"ebug "C"ontinue
-Debugging           | Step over              | Step over in debugging                      | dj       | "D"ebug "J"ump over
-Debugging           | Step into              | Step into in debugging                      | dk       | "D"ebug "K"eep in
-Debugging           | Step out               | Step out in debugging                       | do       | "D"ebug "O"ut
-Debugging           | Disconnect debugging   | Disconnect from the debugger and close UI   | dd       | "D"ebug "D"isconnect
-Debugging           | Terminate debugging    | Terminate the debugger and close UI         | dt       | "D"ebug "T"erminate
-Debugging           | Toggle REPL            | Toggle the REPL console                     | dr       | "D"ebug "R"epl
-Debugging           | Run last debug session | Run the last debug session                  | dl       | "D"ebug "L"ast
-Debugging           | Hover widgets          | Hover over debugging widgets                | di       | "D"ebug "I"nfo
-Debugging           | Show scopes            | Show scopes in a centered float             | d?       | "D"ebug "?"scopes
-Debugging           | List debug frames      | List debug frames using Telescope           | df       | "D"ebug "F"rames
-Debugging           | List debug commands    | List debug commands using Telescope         | dh       | "D"ebug "H"elp commands
-Debugging           | List diagnostics       | List diagnostics using Telescope            | de       | "D"ebug "E"rrors
+### REST Client
+| Shortcut | Description | Mnemonic |
+|----------|-------------|----------|
+| `xr` | Run REST query | "e**X**ecute **R**EST" |
