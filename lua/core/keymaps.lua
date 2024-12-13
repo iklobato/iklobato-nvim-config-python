@@ -5,7 +5,7 @@ local keymap = vim.keymap
 
 -- General keymaps
 keymap.set("n", "<leader>wq", ":wq<CR>") -- save and quit
-keymap.set("n", "<leader>qq", ":q!<CR>") -- quit without saving
+keymap.set("n", "<leader>qq", ":wqa<CR>") -- quit without saving
 keymap.set("n", "<leader>ww", ":w<CR>") -- save
 keymap.set("n", "gx", ":!open <c-r><c-a><CR>") -- open URL under cursor
 
@@ -103,10 +103,21 @@ keymap.set("n", '<leader>dh', '<cmd>Telescope dap commands<cr>')
 keymap.set("n", '<leader>de', function() require('telescope.builtin').diagnostics({default_text=":E:"}) end)
 
 -- Window navigation
-keymap.set('n', '<A-Up>', '<C-w>k', { noremap = true, silent = true })
-keymap.set('n', '<A-Down>', '<C-w>j', { noremap = true, silent = true })
-keymap.set('n', '<A-Left>', '<C-w>h', { noremap = true, silent = true })
-keymap.set('n', '<A-Right>', '<C-w>l', { noremap = true, silent = true })
+-- Option + Command + arrows/hjkl for window navigation
+keymap.set('n', '˙', '<C-w>h')     -- Option + Command + h
+keymap.set('n', '∆', '<C-w>j')     -- Option + Command + j
+keymap.set('n', '˚', '<C-w>k')     -- Option + Command + k
+keymap.set('n', '¬', '<C-w>l')     -- Option + Command + l
+
+keymap.set('n', '<D-M-Left>', '<C-w>h')   -- Option + Command + Left
+keymap.set('n', '<D-M-Down>', '<C-w>j')   -- Option + Command + Down
+keymap.set('n', '<D-M-Up>', '<C-w>k')     -- Option + Command + Up
+keymap.set('n', '<D-M-Right>', '<C-w>l')  -- Option + Command + Right
+
+-- keymap.set('n', '<A-Up>', '<C-w>k', { noremap = true, silent = true })
+-- keymap.set('n', '<A-Down>', '<C-w>j', { noremap = true, silent = true })
+-- keymap.set('n', '<A-Left>', '<C-w>h', { noremap = true, silent = true })
+-- keymap.set('n', '<A-Right>', '<C-w>l', { noremap = true, silent = true })
 
 -- Window movement with hjkl
 keymap.set('n', '<C-w>h', '<C-w>h', { noremap = true, silent = true })
