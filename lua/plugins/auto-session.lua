@@ -1,38 +1,62 @@
 return {
-    "rmagatti/auto-session",
+    'rmagatti/auto-session',
     config = function()
-        require("auto-session").setup({
+        require('auto-session').setup({
             log_level = "error",
-            auto_session_enable_last_session = false,
-            auto_session_root_dir = vim.fn.stdpath("data").."/sessions/",
-            auto_session_enabled = true,
-            auto_save_enabled = true,
-            auto_restore_enabled = true,
-            auto_session_use_git_branch = true,
-            auto_session_create_enabled = true,
-            root_dir = vim.fn.getcwd(),
-            -- Add these hooks to ensure proper directory handling
-            pre_save_cmds = {
-                function()
-                    -- Save current directory before saving session
-                    vim.g.auto_session_last_dir = vim.fn.getcwd()
+            enabled = true,
+            auto_save = true,
+            auto_restore = true,
+            auto_create = true,
+            
+            root_dir = vim.fn.stdpath("data") .. "/sessions/",
+            auto_restore_last_session = false,
+            use_git_branch = true,
+            
+            cwd_change_handling = {
+                restore_upcoming_session = true,
+                pre_cwd_changed_hook = nil,
+                post_cwd_changed_hook = function()
+                    pcall(function()
+                        require('nvim-tree.api').tree.reload()
+                    end)
                 end,
             },
+            
+            allowed_dirs = nil,
+            suppressed_dirs = nil,
+            
+            bypass_save_filetypes = { "NvimTree" },
+            close_unsupported_windows = true,
+            args_allow_files_auto_save = true,
+            
+            pre_save_cmds = {
+                function()
+                    pcall(function()
+                        require('nvim-tree.api').tree.close()
+                    end)
+                end,
+            },
+            
             post_restore_cmds = {
                 function()
-                    -- Change to the directory where the session was saved
-                    if vim.g.auto_session_last_dir then
-                        vim.cmd('cd ' .. vim.g.auto_session_last_dir)
-                    end
-                    -- Reset Telescope and other plugins to use current directory
-                    vim.cmd('silent! lcd .')
+                    pcall(function()
+                        require('nvim-tree.api').tree.open()
+                    end)
                 end,
             },
         })
 
-        -- Optional: Add a command to manually save session
-        vim.api.nvim_create_user_command('SaveSession', function()
-            require('auto-session').SaveSession()
-        end, {})
+        -- Add keymaps with proper error checking
+        local status_ok, session_lens = pcall(require, "auto-session.session-lens")
+        if status_ok then
+            vim.keymap.set('n', '<leader>ss', function()
+                session_lens.search_session()
+            end, {desc = 'Search sessions'})
+        end
+
+        local auto_session = require('auto-session')
+        vim.keymap.set('n', '<leader>sd', function()
+            auto_session.DeleteSession()  -- Note the capital D in DeleteSession
+        end, {desc = 'Delete session'})
     end
 }

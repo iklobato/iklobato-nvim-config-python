@@ -24,7 +24,7 @@ return {
                 'marksman',
                 'quick_lint_js',
                 'pyright',
-                'tsserver',
+                -- 'tsserver',
                 'yamlls',
                 'eslint',
                 'omnisharp',
