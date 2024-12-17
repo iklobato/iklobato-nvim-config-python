@@ -5,7 +5,7 @@ local keymap = vim.keymap
 
 -- General keymaps
 keymap.set("n", "<leader>wq", ":wq<CR>") -- save and quit
-keymap.set("n", "<leader>qq", ":wqa<CR>") -- quit without saving
+keymap.set("n", "<leader>qq", ":q!<CR>") -- quit without saving
 keymap.set("n", "<leader>ww", ":w<CR>") -- save
 keymap.set("n", "gx", ":!open <c-r><c-a><CR>") -- open URL under cursor
 
@@ -49,39 +49,43 @@ keymap.set("n", "<leader>er", ":NvimTreeFocus<CR>") -- toggle focus to file expl
 keymap.set("n", "<leader>ef", ":NvimTreeFindFile<CR>") -- find file in file explorer
 
 -- Telescope
-keymap.set('n', '<leader>ff', require('telescope.builtin').find_files, {})
-keymap.set('n', '<leader>fg', require('telescope.builtin').live_grep, {})
-keymap.set('n', '<leader>fb', require('telescope.builtin').buffers, {})
-keymap.set('n', '<leader>fh', require('telescope.builtin').help_tags, {})
-keymap.set('n', '<leader>fs', require('telescope.builtin').current_buffer_fuzzy_find, {})
-keymap.set('n', '<leader>fo', require('telescope.builtin').lsp_document_symbols, {})
-keymap.set('n', '<leader>fi', require('telescope.builtin').lsp_incoming_calls, {})
-keymap.set('n', '<leader>fr', '<cmd>Telescope oldfiles<CR>', {})
-keymap.set('n', '<leader>fm', function() require('telescope.builtin').treesitter({default_text=":method:"}) end)
+keymap.set('n', '<leader>ff', require('telescope.builtin').find_files, {}) -- find files
+keymap.set('n', '<leader>fg', require('telescope.builtin').live_grep, {}) -- find text
+keymap.set('n', '<leader>fb', require('telescope.builtin').buffers, {}) -- find buffers
+keymap.set('n', '<leader>fh', require('telescope.builtin').help_tags, {}) -- find help
+keymap.set('n', '<leader>fs', require('telescope.builtin').current_buffer_fuzzy_find, {}) -- find in current buffer
+keymap.set('n', '<leader>fo', require('telescope.builtin').lsp_document_symbols, {}) -- find symbols
+keymap.set('n', '<leader>fi', require('telescope.builtin').lsp_incoming_calls, {}) -- find incoming calls
+keymap.set('n', '<leader>fr', '<cmd>Telescope oldfiles<CR>', {}) -- find recent files
+keymap.set('n', '<leader>fm', function() require('telescope.builtin').treesitter({default_text=":method:"}) end) -- find methods
 
 -- Git-blame
 keymap.set("n", "<leader>gb", ":GitBlameToggle<CR>") -- toggle git blame
 
--- Vim REST Console
-keymap.set("n", "<leader>xr", ":call VrcQuery()<CR>") -- Run REST query
+-- Auto-session
+keymap.set('n', '<leader>ss', function() require('auto-session.session-lens').search_session() end) -- search sessions
+keymap.set('n', '<leader>sd', function() require('auto-session').DeleteSession() end) -- delete session
 
--- LSP
-keymap.set('n', '<leader>gg', '<cmd>lua vim.lsp.buf.hover()<CR>')
-keymap.set('n', '<leader>gd', '<cmd>lua vim.lsp.buf.definition()<CR>')
-keymap.set('n', '<leader>gD', '<cmd>lua vim.lsp.buf.declaration()<CR>')
-keymap.set('n', '<leader>gi', '<cmd>lua vim.lsp.buf.implementation()<CR>')
-keymap.set('n', '<leader>gt', '<cmd>lua vim.lsp.buf.type_definition()<CR>')
-keymap.set('n', '<leader>gr', '<cmd>lua vim.lsp.buf.references()<CR>')
-keymap.set('n', '<leader>gs', '<cmd>lua vim.lsp.buf.signature_help()<CR>')
-keymap.set('n', '<leader>rr', '<cmd>lua vim.lsp.buf.rename()<CR>')
-keymap.set('n', '<leader>gf', '<cmd>lua vim.lsp.buf.format({async = true})<CR>')
-keymap.set('v', '<leader>gf', '<cmd>lua vim.lsp.buf.format({async = true})<CR>')
-keymap.set('n', '<leader>ga', '<cmd>lua vim.lsp.buf.code_action()<CR>')
-keymap.set('n', '<leader>gl', '<cmd>lua vim.diagnostic.open_float()<CR>')
-keymap.set('n', '<leader>gp', '<cmd>lua vim.diagnostic.goto_prev()<CR>')
-keymap.set('n', '<leader>gn', '<cmd>lua vim.diagnostic.goto_next()<CR>')
-keymap.set('n', '<leader>tr', '<cmd>lua vim.lsp.buf.document_symbol()<CR>')
-keymap.set('i', '<C-Space>', '<cmd>lua vim.lsp.buf.completion()<CR>')
+-- LSP keymaps
+keymap.set('n', '<leader>e', vim.diagnostic.open_float)
+keymap.set('n', '[d', vim.diagnostic.goto_prev)
+keymap.set('n', ']d', vim.diagnostic.goto_next)
+keymap.set('n', '<leader>q', vim.diagnostic.setloclist)
+keymap.set('n', '<leader>gg', vim.lsp.buf.hover)
+keymap.set('n', '<leader>gd', vim.lsp.buf.definition)
+keymap.set('n', '<leader>gD', vim.lsp.buf.declaration)
+keymap.set('n', '<leader>gi', vim.lsp.buf.implementation)
+keymap.set('n', '<leader>gt', vim.lsp.buf.type_definition)
+keymap.set('n', '<leader>gr', vim.lsp.buf.references)
+keymap.set('n', '<leader>gs', vim.lsp.buf.signature_help)
+keymap.set('n', '<leader>rr', vim.lsp.buf.rename)
+keymap.set('n', '<leader>gf', function() vim.lsp.buf.format({async = true}) end)
+keymap.set('v', '<leader>gf', function() vim.lsp.buf.format({async = true}) end)
+keymap.set('n', '<leader>ga', vim.lsp.buf.code_action)
+keymap.set('n', '<leader>gl', vim.diagnostic.open_float)
+keymap.set('n', '<leader>gp', vim.diagnostic.goto_prev)
+keymap.set('n', '<leader>gn', vim.diagnostic.goto_next)
+keymap.set('n', '<leader>tr', vim.lsp.buf.document_symbol)
 
 -- Debugging
 keymap.set("n", "<leader>bb", "<cmd>lua require'dap'.toggle_breakpoint()<cr>")
@@ -103,26 +107,49 @@ keymap.set("n", '<leader>df', '<cmd>Telescope dap frames<cr>')
 keymap.set("n", '<leader>dh', '<cmd>Telescope dap commands<cr>')
 keymap.set("n", '<leader>de', function() require('telescope.builtin').diagnostics({default_text=":E:"}) end)
 
--- Window navigation
--- Option + Command + arrows/hjkl for window navigation
-keymap.set('n', '˙', '<C-w>h')     -- Option + Command + h
-keymap.set('n', '∆', '<C-w>j')     -- Option + Command + j
-keymap.set('n', '˚', '<C-w>k')     -- Option + Command + k
-keymap.set('n', '¬', '<C-w>l')     -- Option + Command + l
+-- Treesitter Selection
+keymap.set('n', '<C-Space>', ':TSHighlightCapturesUnderCursor<CR>') -- Show treesitter highlight groups
+keymap.set('n', '<leader>tp', ':TSPlaygroundToggle<CR>') -- Toggle Treesitter playground
 
-keymap.set('n', '<D-M-Left>', '<C-w>h')   -- Option + Command + Left
-keymap.set('n', '<D-M-Down>', '<C-w>j')   -- Option + Command + Down
-keymap.set('n', '<D-M-Up>', '<C-w>k')     -- Option + Command + Up
-keymap.set('n', '<D-M-Right>', '<C-w>l')  -- Option + Command + Right
+-- Indent-blankline
+keymap.set('n', '<leader>ti', ':IBLToggle<CR>') -- Toggle indent lines
 
--- keymap.set('n', '<A-Up>', '<C-w>k', { noremap = true, silent = true })
--- keymap.set('n', '<A-Down>', '<C-w>j', { noremap = true, silent = true })
--- keymap.set('n', '<A-Left>', '<C-w>h', { noremap = true, silent = true })
--- keymap.set('n', '<A-Right>', '<C-w>l', { noremap = true, silent = true })
+-- Buffer Navigation
+keymap.set('n', '<leader>bn', ':bnext<CR>') -- Next buffer
+keymap.set('n', '<leader>bp', ':bprevious<CR>') -- Previous buffer
+keymap.set('n', '<leader>bd', ':bdelete<CR>') -- Delete buffer
 
--- Window movement with hjkl
-keymap.set('n', '<C-w>h', '<C-w>h', { noremap = true, silent = true })
-keymap.set('n', '<C-w>j', '<C-w>j', { noremap = true, silent = true })
-keymap.set('n', '<C-w>k', '<C-w>k', { noremap = true, silent = true })
-keymap.set('n', '<C-w>l', '<C-w>l', { noremap = true, silent = true })
+-- REST Client
+keymap.set("n", "<leader>xr", ":call VrcQuery()<CR>") -- Run REST query
+keymap.set("n", "<leader>xj", ":call VrcJson()<CR>") -- Format as JSON
+
+-- Quick Search and Replace
+keymap.set("n", "<leader>S", ":%s/\\<<C-r><C-w>\\>/<C-r><C-w>/gI<Left><Left><Left>") -- Replace word under cursor
+keymap.set("n", "<leader>s", ":%s/\\<<C-r><C-w>\\>//gI<Left><Left><Left>") -- Search word under cursor
+
+-- Terminal
+keymap.set('n', '<leader>tt', ':terminal<CR>') -- Open terminal in new buffer
+keymap.set('t', '<Esc>', '<C-\\><C-n>') -- Exit terminal mode
+
+-- Code Folding
+keymap.set('n', '<leader>za', 'za') -- Toggle fold under cursor
+keymap.set('n', '<leader>zA', 'zA') -- Toggle all folds under cursor
+keymap.set('n', '<leader>zc', 'zc') -- Close fold under cursor
+keymap.set('n', '<leader>zo', 'zo') -- Open fold under cursor
+keymap.set('n', '<leader>zR', 'zR') -- Open all folds
+keymap.set('n', '<leader>zM', 'zM') -- Close all folds
+
+-- Database (vim-dadbod)
+keymap.set('n', '<leader>db', '<cmd>DBUIToggle<CR>', { desc = 'Toggle DB UI' })
+keymap.set('n', '<leader>dq', '<cmd>DBUIExecuteQuery<CR>', { desc = 'Execute query' })
+keymap.set('v', '<leader>dq', ':DBUIExecuteQuery<CR>', { desc = 'Execute selected query' })
+
+-- Center cursor on search movements
+keymap.set('n', '*', '*zz', { desc = 'Search word under cursor and center' })
+keymap.set('n', 'n', 'nzz', { desc = 'Next search result and center' })
+keymap.set('n', 'N', 'Nzz', { desc = 'Previous search result and center' })
+
+-- Center cursor on page movements
+keymap.set('n', '<C-d>', '<C-d>zz', { desc = 'Page down and center' })
+keymap.set('n', '<C-u>', '<C-u>zz', { desc = 'Page up and center' })
 
