@@ -21,11 +21,17 @@ return {
 
         -- Setup fidget for LSP progress
         require("fidget").setup({
-            text = {
-                spinner = "pipe",
+            notification = {
+                window = {
+                    winblend = 0,
+                },
             },
-            window = {
-                blend = 0,
+            progress = {
+                display = {
+                    render_limit = 16,
+                    done_ttl = 3,
+                    progress_ttl = math.huge,
+                },
             },
         })
 
