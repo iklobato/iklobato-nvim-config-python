@@ -26,8 +26,6 @@ return {
             suppressed_dirs = nil,
             
             bypass_save_filetypes = { "NvimTree" },
-            close_unsupported_windows = true,
-            args_allow_files_auto_save = true,
             
             pre_save_cmds = {
                 function()
@@ -44,6 +42,13 @@ return {
                     end)
                 end,
             },
+
+            -- Add session save hooks to handle multiple windows
+            session_lens = {
+                load_on_setup = true,
+                theme_conf = { border = true },
+                previewer = false,
+            },
         })
 
         -- Add keymaps with proper error checking
@@ -56,7 +61,7 @@ return {
 
         local auto_session = require('auto-session')
         vim.keymap.set('n', '<leader>sd', function()
-            auto_session.DeleteSession()  -- Note the capital D in DeleteSession
+            auto_session.DeleteSession()
         end, {desc = 'Delete session'})
     end
 }

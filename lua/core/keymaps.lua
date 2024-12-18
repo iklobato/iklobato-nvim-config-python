@@ -120,6 +120,10 @@ keymap.set('n', '<leader>bp', ':bprevious<CR>') -- Previous buffer
 keymap.set('n', '<leader>bd', ':bdelete<CR>') -- Delete buffer
 
 -- REST Client
+keymap.set("n", "<leader>rr", "<Plug>VrcRequestGet", { desc = 'Execute GET request' })
+keymap.set("n", "<leader>rp", "<Plug>VrcRequestPost", { desc = 'Execute POST request' })
+keymap.set("n", "<leader>ru", "<Plug>VrcRequestPut", { desc = 'Execute PUT request' })
+keymap.set("n", "<leader>rd", "<Plug>VrcRequestDelete", { desc = 'Execute DELETE request' })
 keymap.set("n", "<leader>xr", ":call VrcQuery()<CR>") -- Run REST query
 keymap.set("n", "<leader>xj", ":call VrcJson()<CR>") -- Format as JSON
 
