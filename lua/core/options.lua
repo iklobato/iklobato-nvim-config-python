@@ -20,6 +20,7 @@ opt.wrap = false
 -- Search Settings
 opt.ignorecase = true
 opt.smartcase = true
+opt.incsearch = true
 
 -- Cursor Line
 opt.cursorline = true
@@ -52,4 +53,17 @@ opt.mouse = ""
 opt.foldlevel = 20
 opt.foldmethod = "expr"
 opt.foldexpr = "nvim_treesitter#foldexpr()" -- Utilize Treesitter folds
+
+-- Custom VIM options
+vim.keymap.set('n', '}', '}zz', { noremap = true, silent = true })
+vim.keymap.set('n', '{', '{zz', { noremap = true, silent = true })
+
+-- Quality of Life configurations
+opt.scrolloff = 8                  -- Keep 8 lines above/below cursor
+opt.sidescrolloff = 8              -- Keep 8 columns left/right of cursor
+opt.timeoutlen = 300               -- Faster key sequence completion
+opt.updatetime = 300               -- Faster completion
+
+-- Disable swap files globally
+vim.opt.swapfile = false
 
