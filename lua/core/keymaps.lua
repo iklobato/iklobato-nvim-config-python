@@ -157,3 +157,54 @@ keymap.set('n', 'N', 'Nzz', { desc = 'Previous search result and center' })
 keymap.set('n', '<C-d>', '<C-d>zz', { desc = 'Page down and center' })
 keymap.set('n', '<C-u>', '<C-u>zz', { desc = 'Page up and center' })
 
+-- CodeCompanion keymaps
+-- Using 'a' prefix for AI-related commands (not used in your current setup)
+keymap.set("n", "<leader>aa", "<cmd>CodeCompanionActions<cr>", { desc = "Open CodeCompanion Actions" })
+keymap.set("v", "<leader>aa", "<cmd>CodeCompanionActions<cr>", { desc = "Open CodeCompanion Actions" })
+
+-- Chat buffer
+keymap.set("n", "<leader>ac", "<cmd>CodeCompanionChat Toggle<cr>", { desc = "Toggle CodeCompanion Chat" })
+keymap.set("v", "<leader>ac", "<cmd>CodeCompanionChat Toggle<cr>", { desc = "Toggle CodeCompanion Chat" })
+keymap.set("v", "<leader>as", "<cmd>CodeCompanionChat Add<cr>", { desc = "Add selection to chat" })
+
+-- Common operations using prompt library
+keymap.set("v", "<leader>ae", "", {
+  callback = function()
+    require("codecompanion").prompt("explain")
+  end,
+  desc = "Explain code"
+})
+
+keymap.set("v", "<leader>af", "", {
+  callback = function()
+    require("codecompanion").prompt("fix")
+  end,
+  desc = "Fix code"
+})
+
+keymap.set("v", "<leader>at", "", {
+  callback = function()
+    require("codecompanion").prompt("tests")
+  end,
+  desc = "Generate tests"
+})
+
+-- Quick commit message generation
+keymap.set("n", "<leader>am", "", {
+  callback = function()
+    require("codecompanion").prompt("commit")
+  end,
+  desc = "Generate commit message"
+})
+
+-- LSP-related AI help
+keymap.set("n", "<leader>al", "", {
+  callback = function()
+    require("codecompanion").prompt("lsp")
+  end,
+  desc = "Explain LSP error"
+})
+
+-- Command alias for quick access
+vim.cmd([[cab cc CodeCompanion]])
+
