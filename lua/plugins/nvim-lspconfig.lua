@@ -214,6 +214,15 @@ return {
                             reportOptionalSubscript = "warning",
                             reportPrivateImportUsage = "warning",
                         },
+                        -- Add these Django-specific settings
+                        extraPaths = {},
+                        stubPath = vim.fn.stdpath("data") .. "/mason/packages/django-stubs",
+                        django = {
+                            enabled = true,
+                        },
+                        typeCheckingMode = "off",  -- You can adjust this to "basic" if you want some type checking
+                        reportMissingImports = true,
+                        reportMissingTypeStubs = false
                     }
                 }
             }
