@@ -166,6 +166,17 @@ return {
       {
         type = 'python',
         request = 'launch',
+        name = 'Python: Current File',
+        program = '${file}',
+        pythonPath = get_python_path,
+        console = 'integratedTerminal',
+        cwd = '${workspaceFolder}',
+        stopOnEntry = false,
+        justMyCode = false,
+      },
+      {
+        type = 'python',
+        request = 'launch',
         name = 'Django: Run Server',
         program = '${workspaceFolder}/manage.py',
         args = { 'runserver', '--noreload' },
