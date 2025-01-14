@@ -45,13 +45,16 @@ return {
           { id = "watches", size = 0.10 },
           { id = "breakpoints", size = 0.10 }
         },
-        size = 40,
+        size = 0.25, -- 25% of screen width
         position = "left",
       },
       {
-        elements = { "repl", "console" },
-        size = 10,
-        position = "bottom",
+        elements = {
+          { id = "repl", size = 0.5 },
+          { id = "console", size = 0.5 }
+        },
+        size = 0.25, -- 25% of screen width
+        position = "right",
       }
     },
     mappings = {
