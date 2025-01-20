@@ -40,20 +40,20 @@ return {
     layouts = {
       {
         elements = {
-          { id = "scopes", size = 0.50 },
-          { id = "stacks", size = 0.30 },
-          { id = "watches", size = 0.10 },
-          { id = "breakpoints", size = 0.10 }
+          { id = "scopes", size = 0.50, wrap = false },
+          { id = "stacks", size = 0.30, wrap = false  },
+          { id = "watches", size = 0.10, wrap = false  },
+          { id = "breakpoints", size = 0.10, wrap = false  }
         },
-        size = 0.25, -- 25% of screen width
+        size = 0.25,
         position = "left",
       },
       {
         elements = {
-          { id = "repl", size = 0.5 },
-          { id = "console", size = 0.5 }
+          { id = "repl", size = 0.5, wrap = false },
+          { id = "console", size = 0.5, wrap = false }
         },
-        size = 0.25, -- 25% of screen width
+        size = 0.3,
         position = "right",
       }
     },
@@ -169,6 +169,25 @@ return {
       {
         type = 'python',
         request = 'launch',
+        name = 'Django: Rerun Last Command',
+        program = '${workspaceFolder}/manage.py',
+        args = function()
+            if last_django_command then
+                return last_django_command
+            else
+                print("No previous command found")
+                return {'help'}  -- fallback to help command
+            end
+        end,
+        pythonPath = get_python_path,
+        django = true,
+        justMyCode = false,
+        console = 'integratedTerminal',
+        env = get_django_env,
+      },
+      {
+        type = 'python',
+        request = 'launch',
         name = 'Python: Current File',
         program = '${file}',
         pythonPath = get_python_path,
@@ -223,23 +242,24 @@ return {
         env = get_django_env,
       },
       {
-        type = 'python',
-        request = 'launch',
-        name = 'Django: Custom Command',
-        program = '${workspaceFolder}/manage.py',
-        args = function()
-          local cmd = vim.fn.input('Management command: ')
-          local args = {}
-          for arg in cmd:gmatch("%S+") do
-            table.insert(args, arg)
-          end
-          return args
-        end,
-        pythonPath = get_python_path,
-        django = true,
-        justMyCode = false,
-        console = 'integratedTerminal',
-        env = get_django_env,
+          type = 'python',
+          request = 'launch',
+          name = 'Django: Custom Command',
+          program = '${workspaceFolder}/manage.py',
+          args = function()
+              local cmd = vim.fn.input('Management command: ')
+              local args = {}
+              for arg in cmd:gmatch("%S+") do
+                  table.insert(args, arg)
+              end
+              last_django_command = args  -- Store the command
+              return args
+          end,
+          pythonPath = get_python_path,
+          django = true,
+          justMyCode = false,
+          console = 'integratedTerminal',
+          env = get_django_env,
       }
     }
 
