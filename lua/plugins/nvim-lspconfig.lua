@@ -210,7 +210,7 @@ return {
                         completeFunctionParens = true,
                         diagnosticSeverityOverrides = {
                             reportGeneralTypeIssues = "warning",
-                            reportOptionalMemberAccess = "warning",
+                            reportOptionalMemberAccess = "none",
                             reportOptionalSubscript = "warning",
                             reportPrivateImportUsage = "warning",
                         },
