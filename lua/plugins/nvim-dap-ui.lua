@@ -1,6 +1,7 @@
 return {
   'rcarriga/nvim-dap-ui',
   event = 'VeryLazy',
+
   dependencies = {
     'mfussenegger/nvim-dap',
     'nvim-neotest/nvim-nio',
@@ -45,7 +46,7 @@ return {
           { id = "watches", size = 0.10, wrap = false  },
           { id = "breakpoints", size = 0.10, wrap = false  }
         },
-        size = 0.25,
+        size = math.floor(vim.o.columns * 0.25),
         position = "left",
       },
       {
@@ -53,7 +54,7 @@ return {
           { id = "repl", size = 0.5, wrap = false },
           { id = "console", size = 0.5, wrap = false }
         },
-        size = 0.3,
+        size = math.floor(vim.o.columns * 0.25),
         position = "right",
       }
     },
