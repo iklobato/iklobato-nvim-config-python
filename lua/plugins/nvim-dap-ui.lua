@@ -54,7 +54,7 @@ return {
           { id = "repl", size = 0.5, wrap = false },
           { id = "console", size = 0.5, wrap = false }
         },
-        size = math.floor(vim.o.columns * 0.25),
+        size = math.floor(vim.o.columns * 0.4),
         position = "right",
       }
     },
@@ -165,19 +165,23 @@ return {
       args = { '-m', 'debugpy.adapter' }
     }
 
+    -- Initialize last command storage
+local last_django_command = nil
+
     -- Django configurations
     dap.configurations.python = {
       {
         type = 'python',
         request = 'launch',
-        name = 'Django: Rerun Last Command',
+        name = '⏮️  DJANGO: Rerun Last Command',
         program = '${workspaceFolder}/manage.py',
         args = function()
             if last_django_command then
+                vim.notify("Rerunning command: " .. table.concat(last_django_command, " "), vim.log.levels.INFO)
                 return last_django_command
             else
-                print("No previous command found")
-                return {'help'}  -- fallback to help command
+                vim.notify("No previous command found. Please run a Django command first.", vim.log.levels.WARN)
+                return {'help'}
             end
         end,
         pythonPath = get_python_path,
@@ -189,7 +193,7 @@ return {
       {
         type = 'python',
         request = 'launch',
-        name = 'Python: Current File',
+        name = '🐍 PYTHON: Current File',
         program = '${file}',
         pythonPath = get_python_path,
         console = 'integratedTerminal',
@@ -200,7 +204,7 @@ return {
       {
         type = 'python',
         request = 'launch',
-        name = 'Django: Run Server',
+        name = '🌐 DJANGO: Run Server',
         program = '${workspaceFolder}/manage.py',
         args = { 'runserver', '--noreload' },
         pythonPath = get_python_path,
@@ -212,7 +216,7 @@ return {
       {
         type = 'python',
         request = 'launch',
-        name = 'Django: Run Tests',
+        name = '🧪 DJANGO: Run Tests',
         program = '${workspaceFolder}/manage.py',
         args = function()
           local test_path = vim.fn.input('Test path (empty for all): ')
@@ -222,6 +226,8 @@ return {
               table.insert(args, arg)
             end
           end
+          last_django_command = args
+          vim.notify("Test command stored: test " .. test_path, vim.log.levels.INFO)
           return args
         end,
         pythonPath = get_python_path,
@@ -233,7 +239,7 @@ return {
       {
         type = 'python',
         request = 'launch',
-        name = 'Django: Shell Plus',
+        name = '🔮 DJANGO: Shell Plus',
         program = '${workspaceFolder}/manage.py',
         args = {'shell_plus', '--ipython'},
         pythonPath = get_python_path,
@@ -243,24 +249,108 @@ return {
         env = get_django_env,
       },
       {
-          type = 'python',
-          request = 'launch',
-          name = 'Django: Custom Command',
-          program = '${workspaceFolder}/manage.py',
-          args = function()
-              local cmd = vim.fn.input('Management command: ')
-              local args = {}
-              for arg in cmd:gmatch("%S+") do
-                  table.insert(args, arg)
-              end
-              last_django_command = args  -- Store the command
-              return args
-          end,
-          pythonPath = get_python_path,
-          django = true,
-          justMyCode = false,
-          console = 'integratedTerminal',
-          env = get_django_env,
+        type = 'python',
+        request = 'launch',
+        name = '⚙️  DJANGO: Custom Command',
+        program = '${workspaceFolder}/manage.py',
+        args = function()
+          local cmd = vim.fn.input('Management command: ')
+          if cmd == "" then
+            vim.notify("Command cancelled", vim.log.levels.WARN)
+            return {'help'}
+          end
+          
+          local args = {}
+          for arg in cmd:gmatch("%S+") do
+            table.insert(args, arg)
+          end
+          
+          last_django_command = args
+          vim.notify("Command stored: " .. cmd, vim.log.levels.INFO)
+          return args
+        end,
+        pythonPath = get_python_path,
+        django = true,
+        justMyCode = false,
+        console = 'integratedTerminal',
+        env = get_django_env,
+      },
+      {
+        type = 'python',
+        request = 'launch',
+        name = '🎯 PYTEST: Run All Tests',
+        program = '-m',
+        args = {'pytest', '--verbose'},
+        pythonPath = get_python_path,
+        console = 'integratedTerminal',
+        cwd = '${workspaceFolder}',
+        justMyCode = false,
+      },
+      {
+        type = 'python',
+        request = 'launch',
+        name = '🔍 PYTEST: Current File',
+        program = '-m',
+        args = function()
+          return {
+            'pytest',
+            '${file}',
+            '--verbose'
+          }
+        end,
+        pythonPath = get_python_path,
+        console = 'integratedTerminal',
+        cwd = '${workspaceFolder}',
+        justMyCode = false,
+      },
+      {
+        type = 'python',
+        request = 'launch',
+        name = '🛠️ PYTEST: Custom Path/Args',
+        program = '-m',
+        args = function()
+          local args = {'pytest'}
+          
+          local test_path = vim.fn.input('Test path (empty for all): ')
+          if test_path ~= '' then
+            for arg in test_path:gmatch("%S+") do
+              table.insert(args, arg)
+            end
+          end
+          
+          local extra_args = vim.fn.input('Extra pytest arguments (e.g., -v -k "test_name"): ')
+          if extra_args ~= '' then
+            for arg in extra_args:gmatch("%S+") do
+              table.insert(args, arg)
+            end
+          end
+          
+          vim.notify("Running pytest with args: " .. table.concat(args, " "), vim.log.levels.INFO)
+          return args
+        end,
+        pythonPath = get_python_path,
+        console = 'integratedTerminal',
+        cwd = '${workspaceFolder}',
+        justMyCode = false,
+      },
+      {
+        type = 'python',
+        request = 'launch',
+        name = '🔬 PYTEST: Debug Test at Cursor',
+        program = '-m',
+        args = function()
+          local current_line = vim.api.nvim_win_get_cursor(0)[1]
+          local file_path = vim.fn.expand('%:p')
+          return {
+            'pytest',
+            file_path .. '::' .. current_line,
+            '--verbose'
+          }
+        end,
+        pythonPath = get_python_path,
+        console = 'integratedTerminal',
+        cwd = '${workspaceFolder}',
+        justMyCode = false,
       }
     }
 
