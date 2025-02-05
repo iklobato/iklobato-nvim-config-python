@@ -11,7 +11,6 @@ return {
         xml = 'xmllint --format -',
       }
       vim.g.vrc_horizontal_split = 1
-      -- vim.g.vrc_show_command = 1
       vim.g.vrc_debug = 0
       vim.g.vrc_elasticsearch_support = 1
       vim.g.vrc_curl_opts = {
@@ -28,9 +27,9 @@ return {
       vim.g.vrc_keepalt = 1
       vim.g.vrc_allow_get_request_body = 1
       vim.g.vrc_syntax_highlight_response = 1
-      vim.g.vrc_split_request_body = 1
-      vim.g.vrc_body_preprocessor = 'yaml2json | jq -c .'
-      vim.g.vrc_header_content_type = 'application/json; charset=utf-8'
+      vim.g.vrc_split_request_body = 0  -- Changed to 0
+      vim.g.vrc_trigger = ''  -- Empty trigger
+      vim.g.vrc_body_delimiter = ''  -- Empty delimiter
 
       vim.api.nvim_create_autocmd("FileType", {
         pattern = {"rest", "http"},
@@ -57,4 +56,3 @@ return {
     }
   }
 }
-
