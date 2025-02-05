@@ -6,11 +6,17 @@ return {
       'kristijanhusak/vim-dadbod-ui',
       'kristijanhusak/vim-dadbod-completion',
     },
-    opt = true,
+    cmd = {
+      'DBUI',
+      'DBUIToggle',
+      'DBUIAddConnection',
+      'DBUIFindBuffer',
+    },
     config = function()
       -- Database connections
       vim.g.dbs = {
-        default_postgres = 'postgresql://postgres:postgres@localhost:5432/wanna'
+        default_postgres = 'postgresql://postgres:postgres@localhost:5432/wanna',
+        default_ew = 'postgresql://postgres:postgres@localhost:5432/ew'
       }
 
       -- Core Settings
@@ -22,7 +28,7 @@ return {
       vim.g.db_ui_winwidth = math.floor(vim.o.columns * 0.2) -- 20% of screen width
       vim.g.db_ui_show_help = true
       
-      -- Prevent window conflicts
+      -- UI Settings
       vim.g.db_ui_use_nerd_fonts = true
       vim.g.db_ui_force_echo_notifications = true
       
@@ -37,18 +43,16 @@ return {
         }
       }
       
-      -- Query execution settings
+      -- Query Settings
       vim.g.db_ui_auto_execute_table_helpers = true
       vim.g.db_ui_show_database_icon = true
       
-      -- Results window height
+      -- Window Dimensions
       vim.g.db_ui_results_height = math.floor(vim.o.lines * 0.4) -- 40% of screen height
-      
-      -- Drawer settings with proportional width
       vim.g.db_ui_drawer_width = math.floor(vim.o.columns * 0.2) -- 20% of screen width
       vim.g.db_ui_drawer_persistent = true
       
-      -- Query result column widths
+      -- Column Widths
       vim.g.db_ui_columns_width = {
         bufnr = math.floor(vim.o.columns * 0.03),
         saved_query = math.floor(vim.o.columns * 0.15),
@@ -57,31 +61,48 @@ return {
         rows = math.floor(vim.o.columns * 0.07)
       }
       
-      -- Enhanced UI Settings
+      -- Enhanced Features
       vim.g.db_ui_use_nvim_notify = true
       vim.g.db_ui_auto_refresh_tables = true
       vim.g.db_ui_disable_info_notifications = 0
 
-      -- Custom function to open query in vertical split
+      -- Modified query window opening function to preserve existing windows
       local function open_query_vsplit()
-        -- Close any existing query window
-        vim.cmd('silent! bdelete DBOut')
+        -- Store current window
+        local current_win = vim.api.nvim_get_current_win()
         
-        -- Create vertical split
+        -- Find the rightmost window
+        local wins = vim.api.nvim_list_wins()
+        local rightmost_win = current_win
+        local max_x = 0
+        
+        for _, win in ipairs(wins) do
+          local win_config = vim.api.nvim_win_get_config(win)
+          local win_pos = vim.api.nvim_win_get_position(win)
+          if win_pos[2] > max_x and win_config.relative == '' then
+            max_x = win_pos[2]
+            rightmost_win = win
+          end
+        end
+        
+        -- Focus rightmost window and split
+        vim.api.nvim_set_current_win(rightmost_win)
         vim.cmd('vsplit')
-        -- Move to the right window
-        vim.cmd('wincmd l')
-        -- Set the width to 60% of screen
+        
+        -- Configure the new window
+        local new_win = vim.api.nvim_get_current_win()
         vim.cmd('vertical resize ' .. math.floor(vim.o.columns * 0.6))
         
-        -- Return true to indicate we handled the window creation
+        -- Return to original window
+        vim.api.nvim_set_current_win(current_win)
+        
         return true
       end
 
-      -- Improved Window Settings
+      -- Window Settings
       vim.g.db_ui_win_settings = {
         query = {
-          enable = false, -- Disable default floating window
+          enable = false,
         },
         drawer = {
           fixed = true,
@@ -91,14 +112,11 @@ return {
         }
       }
 
-      -- Register custom query window handler
       vim.g.db_ui_query_window = open_query_vsplit
 
       -- Window resize handler
       local function update_window_dimensions()
-        -- Update drawer width
         vim.g.db_ui_drawer_width = math.floor(vim.o.columns * 0.2)
-        -- Update column widths
         vim.g.db_ui_columns_width = {
           bufnr = math.floor(vim.o.columns * 0.03),
           saved_query = math.floor(vim.o.columns * 0.15),
@@ -107,7 +125,6 @@ return {
           rows = math.floor(vim.o.columns * 0.07)
         }
         
-        -- Resize any existing query windows
         vim.schedule(function()
           local wins = vim.api.nvim_list_wins()
           for _, win in ipairs(wins) do
@@ -120,23 +137,24 @@ return {
         end)
       end
 
-      -- Auto-setup for SQL files
+      -- Autocommands
       local autocmd = vim.api.nvim_create_autocmd
       
-      -- Add VimResized event handler
+      -- Window resize handler
       autocmd('VimResized', {
         pattern = '*',
         callback = update_window_dimensions
       })
 
-      -- SQL file type settings
+      -- SQL file settings
       autocmd('FileType', {
         pattern = {'sql', 'mysql', 'plsql', 'sqlite', 'pgsql'},
         callback = function()
           require('cmp').setup.buffer({
             sources = {
               { name = 'vim-dadbod-completion' },
-              { name = 'buffer' },
+              { name = 'nvim_lsp' },
+              { name = 'buffer' }
             },
           })
           
@@ -151,7 +169,6 @@ return {
         pattern = 'DBUIOpened',
         callback = function()
           vim.cmd('DBUIRefreshTable')
-          -- Update dimensions when DBUI is opened
           update_window_dimensions()
         end
       })
