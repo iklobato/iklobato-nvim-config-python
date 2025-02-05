@@ -1,13 +1,10 @@
 -- Fuzzy finder
 return {
-  -- https://github.com/nvim-telescope/telescope.nvim
   'nvim-telescope/telescope.nvim',
   lazy = true,
   dependencies = {
-    -- https://github.com/nvim-lua/plenary.nvim
     { 'nvim-lua/plenary.nvim' },
     {
-      -- https://github.com/nvim-telescope/telescope-fzf-native.nvim
       'nvim-telescope/telescope-fzf-native.nvim',
       build = 'make',
       cond = function()
@@ -27,6 +24,34 @@ return {
           reverse_directories = true
         }
       },
+      file_ignore_patterns = {}, -- Empty to not ignore any files
+      vimgrep_arguments = {
+        'rg',
+        '--color=never',
+        '--no-heading',
+        '--with-filename',
+        '--line-number',
+        '--column',
+        '--smart-case',
+        '--no-ignore',     -- Don't respect .gitignore
+        '--hidden',        -- Search hidden files
+        '--glob=!.git/*'   -- But still ignore .git directory
+      },
+    },
+    pickers = {
+      find_files = {
+        hidden = true,     -- Show hidden files
+        no_ignore = true,  -- Don't respect .gitignore
+      },
+      live_grep = {
+        additional_args = function()
+          return {
+            "--no-ignore",   -- Don't respect .gitignore
+            "--hidden",      -- Search hidden files
+            "--glob=!.git/*" -- But still ignore .git directory
+          }
+        end
+      }
     }
   }
 }
