@@ -1,12 +1,7 @@
--- Add, Change, Delete Surrounding Chars (["''"])
 return {
-    "kylechui/nvim-surround",
+    "echasnovski/mini.surround",
     version = "*",
-    event = "VeryLazy",
     config = function()
-        require("nvim-surround").setup({
-
-        })
-    end
+        require("mini.surround").setup({})
+    end,
 }
-
