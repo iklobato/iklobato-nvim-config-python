@@ -333,25 +333,6 @@ local last_django_command = nil
         cwd = '${workspaceFolder}',
         justMyCode = false,
       },
-      {
-        type = 'python',
-        request = 'launch',
-        name = '🔬 PYTEST: Debug Test at Cursor',
-        program = '-m',
-        args = function()
-          local current_line = vim.api.nvim_win_get_cursor(0)[1]
-          local file_path = vim.fn.expand('%:p')
-          return {
-            'pytest',
-            file_path .. '::' .. current_line,
-            '--verbose'
-          }
-        end,
-        pythonPath = get_python_path,
-        console = 'integratedTerminal',
-        cwd = '${workspaceFolder}',
-        justMyCode = false,
-      }
     }
 
     -- DAP UI event listeners
