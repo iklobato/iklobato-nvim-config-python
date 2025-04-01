@@ -55,8 +55,7 @@ opt.foldmethod = "expr"
 opt.foldexpr = "nvim_treesitter#foldexpr()" -- Utilize Treesitter folds
 
 -- Custom VIM options
-vim.keymap.set('n', '}', '}zz', { noremap = true, silent = true })
-vim.keymap.set('n', '{', '{zz', { noremap = true, silent = true })
+-- These keymaps are already defined in keymaps.lua, removing duplicate definitions
 
 -- Quality of Life configurations
 opt.scrolloff = 8                  -- Keep 8 lines above/below cursor

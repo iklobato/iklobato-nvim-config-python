@@ -105,7 +105,7 @@ return {
             }),
             formatting = {
                 format = function(entry, vim_item)
-                    vim_item.kind = string.format('%s %s', vim_item.kind, vim_item.kind)
+                    vim_item.kind = string.format('%s', vim_item.kind)
                     vim_item.menu = ({
                         nvim_lsp = "[LSP]",
                         luasnip = "[Snippet]",
