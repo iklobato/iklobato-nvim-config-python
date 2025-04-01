@@ -24,7 +24,10 @@ return {
           reverse_directories = true
         }
       },
-      file_ignore_patterns = {}, -- Empty to not ignore any files
+      file_ignore_patterns = {
+        ".git/",
+        "node_modules/"
+      },
       vimgrep_arguments = {
         'rg',
         '--color=never',
@@ -41,7 +44,7 @@ return {
     pickers = {
       find_files = {
         hidden = true,     -- Show hidden files
-        no_ignore = true,  -- Don't respect .gitignore
+        no_ignore = false, -- Do respect .gitignore by default
         file_ignore_patterns = {
           ".git/",
           "node_modules/"
@@ -50,7 +53,6 @@ return {
       live_grep = {
         additional_args = function()
           return {
-            "--no-ignore",   -- Don't respect .gitignore
             "--hidden",      -- Search hidden files
             "--glob=!.git/*" -- But still ignore .git directory
           }

@@ -15,7 +15,12 @@ return {
     ensure_installed = {
       'lua',
       'javascript',
-      'html'
+      'html',
+      'python',
+      'markdown',
+      'json',
+      'yaml',
+      'bash'
     },
   },
   config = function (_, opts)

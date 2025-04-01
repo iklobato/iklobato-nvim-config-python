@@ -12,7 +12,7 @@ if not vim.loop.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
--- Set leader key
+-- Set leader key (Only set here, not in keymaps.lua)
 vim.g.mapleader = " "
 
 -- Load plugins with lazy.nvim

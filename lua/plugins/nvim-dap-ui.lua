@@ -24,7 +24,7 @@ return {
         terminate = ""
       }
     },
-  element_mappings = {},
+    element_mappings = {},
     expand_lines = true,
     floating = {
       border = "single",
