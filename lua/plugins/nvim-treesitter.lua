@@ -9,10 +9,8 @@ return {
   },
   build = ':TSUpdate',
   opts = {
-    highlight = {
-      enable = true,
-    },
     indent = { enable = true },
+    highlight = { enable = true },
     auto_install = true, -- automatically install syntax support when entering new file type buffer
     ensure_installed = {
       'lua',

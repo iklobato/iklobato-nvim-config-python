@@ -42,6 +42,10 @@ return {
       find_files = {
         hidden = true,     -- Show hidden files
         no_ignore = true,  -- Don't respect .gitignore
+        file_ignore_patterns = {
+          ".git/",
+          "node_modules/"
+        }
       },
       live_grep = {
         additional_args = function()

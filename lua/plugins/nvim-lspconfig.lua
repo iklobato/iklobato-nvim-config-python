@@ -1,19 +1,18 @@
--- lua/plugins/nvim-lspconfig.lua
 return {
     "neovim/nvim-lspconfig",
     dependencies = {
-        "hrsh7th/nvim-cmp",        -- The main completion plugin
-        "hrsh7th/cmp-nvim-lsp",    -- LSP completion source
-        "hrsh7th/cmp-buffer",      -- Buffer completion source
-        "hrsh7th/cmp-path",        -- Path completion source
-        "hrsh7th/cmp-cmdline",     -- Command line completion
-        "L3MON4D3/LuaSnip",        -- Snippet engine
-        "saadparwaiz1/cmp_luasnip", -- Snippet completion source
-        "rafamadriz/friendly-snippets", -- Snippet collection
-        "williamboman/mason.nvim",  -- Package manager for LSP servers
+        "hrsh7th/nvim-cmp",        
+        "hrsh7th/cmp-nvim-lsp",    
+        "hrsh7th/cmp-buffer",      
+        "hrsh7th/cmp-path",        
+        "hrsh7th/cmp-cmdline",     
+        "L3MON4D3/LuaSnip",        
+        "saadparwaiz1/cmp_luasnip", 
+        "rafamadriz/friendly-snippets",
+        "williamboman/mason.nvim",  
         "williamboman/mason-lspconfig.nvim",
-        "j-hui/fidget.nvim",       -- LSP progress UI
-        "folke/neodev.nvim",       -- Additional Lua configuration
+        "j-hui/fidget.nvim",       
+        "folke/neodev.nvim",       
     },
     config = function()
         -- Setup Lua development
@@ -50,8 +49,8 @@ return {
         -- Setup Mason-LSPconfig
         require("mason-lspconfig").setup({
             ensure_installed = { 
-                "pyright",          -- Python language server
-                "ruff",         -- Python linter
+                "pyright",          
+                "ruff",         
             },
             automatic_installation = true,
         })
@@ -88,17 +87,6 @@ return {
                     select = true,
                     behavior = cmp.ConfirmBehavior.Replace 
                 }),
-                -- ["<Tab>"] = cmp.mapping(function(fallback)
-                --     if cmp.visible() then
-                --         cmp.select_next_item()
-                --     elseif luasnip.expand_or_jumpable() then
-                --         luasnip.expand_or_jump()
-                --     elseif has_words_before() then
-                --         cmp.complete()
-                --     else
-                --         fallback()
-                --     end
-                -- end, { "i", "s" }),
                 ["<S-Tab>"] = cmp.mapping(function(fallback)
                     if cmp.visible() then
                         cmp.select_prev_item()
@@ -117,9 +105,7 @@ return {
             }),
             formatting = {
                 format = function(entry, vim_item)
-                    -- Kind icons
-                    vim_item.kind = string.format('%s %s', vim_item.kind, vim_item.kind) -- This concatenates the icons with the name of the item kind
-                    -- Source
+                    vim_item.kind = string.format('%s %s', vim_item.kind, vim_item.kind)
                     vim_item.menu = ({
                         nvim_lsp = "[LSP]",
                         luasnip = "[Snippet]",
@@ -136,22 +122,13 @@ return {
             -- Enable completion triggered by <c-x><c-o>
             vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
 
-            -- Highlighting references
+            -- Modified highlighting setup using vim.cmd approach
             if client.server_capabilities.documentHighlightProvider then
-                vim.api.nvim_create_augroup("lsp_document_highlight", { clear = true })
-                vim.api.nvim_clear_autocmds { buffer = bufnr, group = "lsp_document_highlight" }
-                vim.api.nvim_create_autocmd("CursorHold", {
-                    callback = vim.lsp.buf.document_highlight,
-                    buffer = bufnr,
-                    group = "lsp_document_highlight",
-                    desc = "Document Highlight",
-                })
-                vim.api.nvim_create_autocmd("CursorMoved", {
-                    callback = vim.lsp.buf.clear_references,
-                    buffer = bufnr,
-                    group = "lsp_document_highlight",
-                    desc = "Clear All the References",
-                })
+                vim.cmd('augroup LspHighlight')
+                vim.cmd('autocmd! * <buffer>')
+                vim.cmd('autocmd CursorHold <buffer> lua vim.lsp.buf.document_highlight()')
+                vim.cmd('autocmd CursorMoved <buffer> lua vim.lsp.buf.clear_references()')
+                vim.cmd('augroup END')
             end
 
             -- Inlay hints
@@ -200,13 +177,21 @@ return {
         require('lspconfig').pyright.setup({
             capabilities = capabilities,
             on_attach = on_attach,
+            before_init = function(_, config)
+                config.settings.python.analysis.typeCheckingMode = "off"  -- Reduce memory usage
+            end,
+            cmd = {
+                "node",
+                "--max-old-space-size=4096",  -- Increase heap size to 4GB
+                vim.fn.stdpath("data") .. "/mason/bin/pyright-langserver",
+                "--stdio"
+            },
             settings = {
                 python = {
                     analysis = {
                         autoSearchPaths = true,
                         diagnosticMode = "workspace",
                         useLibraryCodeForTypes = true,
-                        typeCheckingMode = "basic",
                         completeFunctionParens = true,
                         diagnosticSeverityOverrides = {
                             reportGeneralTypeIssues = "warning",
@@ -214,15 +199,18 @@ return {
                             reportOptionalSubscript = "warning",
                             reportPrivateImportUsage = "warning",
                         },
-                        -- Add these Django-specific settings
                         extraPaths = {},
                         stubPath = vim.fn.stdpath("data") .. "/mason/packages/django-stubs",
                         django = {
                             enabled = true,
                         },
-                        typeCheckingMode = "off",  -- You can adjust this to "basic" if you want some type checking
+                        typeCheckingMode = "off",  -- Disable type checking to reduce memory usage
                         reportMissingImports = true,
-                        reportMissingTypeStubs = false
+                        reportMissingTypeStubs = false,
+                        -- Add memory optimization settings
+                        indexing = true,
+                        autoImportCompletions = true,
+                        maxAnalysisTimeInSeconds = 60,  -- Limit analysis time
                     }
                 }
             }
