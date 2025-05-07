@@ -50,7 +50,10 @@ return {
         require("mason-lspconfig").setup({
             ensure_installed = { 
                 "pyright",          
-                "ruff",         
+                "ruff",
+                "html",
+                "cssls",
+                "tsserver",
             },
             automatic_installation = true,
         })
@@ -225,6 +228,75 @@ return {
                     args = {},
                 }
             }
+        })
+
+        -- HTML LSP setup
+        require('lspconfig').html.setup({
+            capabilities = capabilities,
+            on_attach = on_attach,
+            filetypes = { "html", "htmldjango" },
+        })
+
+        -- CSS LSP setup
+        require('lspconfig').cssls.setup({
+            capabilities = capabilities,
+            on_attach = on_attach,
+            settings = {
+                css = {
+                    validate = true,
+                    lint = {
+                        unknownAtRules = "ignore"
+                    }
+                },
+                scss = {
+                    validate = true,
+                    lint = {
+                        unknownAtRules = "ignore"
+                    }
+                },
+                less = {
+                    validate = true,
+                    lint = {
+                        unknownAtRules = "ignore"
+                    }
+                }
+            }
+        })
+
+        -- JavaScript/TypeScript LSP setup
+        require('lspconfig').tsserver.setup({
+            capabilities = capabilities,
+            on_attach = on_attach,
+            filetypes = { "javascript", "javascriptreact", "javascript.jsx", "typescript", "typescriptreact", "typescript.tsx" },
+            root_dir = function(fname)
+                return require('lspconfig.util').find_git_ancestor(fname) or
+                    require('lspconfig.util').root_pattern("package.json", "tsconfig.json", "jsconfig.json")(fname) or
+                    vim.fn.getcwd()
+            end,
+            settings = {
+                javascript = {
+                    inlayHints = {
+                        includeInlayEnumMemberValueHints = true,
+                        includeInlayFunctionLikeReturnTypeHints = true,
+                        includeInlayFunctionParameterTypeHints = true,
+                        includeInlayParameterNameHints = "all",
+                        includeInlayParameterNameHintsWhenArgumentMatchesName = true,
+                        includeInlayPropertyDeclarationTypeHints = true,
+                        includeInlayVariableTypeHints = true,
+                    },
+                },
+                typescript = {
+                    inlayHints = {
+                        includeInlayEnumMemberValueHints = true,
+                        includeInlayFunctionLikeReturnTypeHints = true,
+                        includeInlayFunctionParameterTypeHints = true,
+                        includeInlayParameterNameHints = "all",
+                        includeInlayParameterNameHintsWhenArgumentMatchesName = true,
+                        includeInlayPropertyDeclarationTypeHints = true,
+                        includeInlayVariableTypeHints = true,
+                    },
+                },
+            },
         })
     end
 }
