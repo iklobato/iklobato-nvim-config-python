@@ -72,12 +72,25 @@ A modern Neovim configuration focused on Python/Django development with extensiv
 
 ## Configuration Structure
 
-- `init.lua`: Main configuration entry point
-- `lua/core/`: Core Neovim settings
-  - `options.lua`: General editor options
-  - `keymaps.lua`: Organized key mappings by functionality
-- `lua/plugins/`: Plugin-specific configurations
-- `ftplugin/`: Filetype-specific settings
+- `init.lua`: Main configuration entry point, loads core settings and plugins.
+- `lua/config/`: Core Neovim settings and general configurations.
+  - `options.lua`: General editor options.
+  - `keymaps.lua`: Organized key mappings by functionality.
+  - `autocmds.lua`: Autocommands for various behaviors.
+- `lua/plugins/`: Plugin-specific configurations, organized into subdirectories by category.
+  - `lua/plugins/completion/`: Configuration for completion plugins (e.g., `nvim-cmp`).
+  - `lua/plugins/ui/`: Configuration for UI-related plugins (e.g., `barbecue-nvim`, `lualine-nvim`, `nvim-tree`).
+  - `lua/plugins/utility/`: Configuration for general utility plugins (e.g., `auto-session`, `nvim-autopairs`).
+  - `lua/plugins/git/`: Configuration for Git integration plugins (e.g., `git-blame-nvim`).
+  - `lua/plugins/lsp/`: Configuration for LSP-related plugins (e.g., `nvim-lspconfig`, `nvim-dap-ui`).
+  - `lua/plugins/syntax/`: Configuration for syntax highlighting and parsing (e.g., `nvim-treesitter`).
+  - `lua/plugins/database/`: Configuration for database interaction plugins (e.g., `nvim-sql`, `vim-rest-console`).
+  - `lua/plugins/formatter/`: Configuration for code formatting plugins (e.g., `conform-nvim`).
+  - `lua/plugins/misc/`: Miscellaneous plugin configurations.
+- `lua/lsp/`: Individual Language Server Protocol (LSP) client configurations.
+- `lua/utils/`: Custom utility functions.
+- `scripts/`: Installation and utility scripts.
+- `ftplugin/`: Filetype-specific settings.
 
 ## Key Mappings
 
@@ -370,211 +383,261 @@ Enhanced syntax highlighting and code navigation.
 ## Common Workflows
 
 ### 1. Python/Django Development
-```
-1. Navigate project with <leader>ff (find files) and <leader>fg (find in files)
-2. Use <leader>gd to jump to definitions
-3. View errors with <leader>e and fix with <leader>ga (code actions)
-4. Format code with <leader>gf
-5. Set breakpoints with <leader>bb at interesting points
-6. Start debugging Django server with <leader>dc and select "DJANGO: Run Server"
-7. Step through code with <leader>dj (over) and <leader>dk (into)
-8. Inspect variables with <leader>di
-9. Generate tests with visual <leader>at on a function
-```
 
-#### Python Development with CodeCompanion
+This workflow guides you through a typical Python/Django development session, leveraging LSP, debugging, and AI assistance.
 
-##### Refactoring Django Views
-```
-1. Open your Django view file
-2. Select a view function in visual mode
-3. Press <leader>ac to open CodeCompanion chat
-4. Type: "Help me refactor this view to use class-based views"
-5. Review the suggested changes
-6. Copy the code with gy in chat buffer or apply directly
-```
+1.  **Navigate your project:**
+    *   Find files quickly: `<leader>ff` (Telescope Find Files)
+    *   Search for text across files: `<leader>fg` (Telescope Live Grep)
+    *   Switch between open buffers: `<leader>fb` (Telescope Find Buffers)
 
-##### Optimizing Database Queries
-```
-1. Select ORM queries in your Django code
-2. Press <leader>ac to open CodeCompanion chat
-3. Ask: "How can I optimize these database queries?"
-4. Get suggestions for prefetch_related, select_related, or query refactoring
-5. Apply the optimizations to your code
-```
+2.  **Code Navigation and Understanding:**
+    *   Jump to a definition: `<leader>gd` (Go to Definition)
+    *   Find all references to a symbol: `<leader>gr` (Find References)
+    *   View documentation for symbol under cursor: `<leader>gg` (Hover Documentation)
+    *   Explain a complex code block (Visual Mode): Select code, then `<leader>ae` (CodeCompanion Explain)
 
-##### Debugging Complex API Issues
-```
-1. When facing an API issue, select the relevant code
-2. Press <leader>ae to get an explanation
-3. If CodeCompanion identifies the issue, press <leader>af to fix it
-4. For deeper analysis, press <leader>ac and provide details like:
-   "The API returns status 500 when I send this payload"
-5. Get contextualized debugging steps and solutions
-```
+3.  **Fixing and Refactoring Code:**
+    *   View LSP diagnostics (errors/warnings): `<leader>e` or `<leader>gl` (Show Diagnostic Float)
+    *   Navigate between diagnostics: `[d` (Previous Diagnostic), `]d` (Next Diagnostic)
+    *   Apply code actions (e.g., fix imports, refactor): `<leader>ga` (Code Actions)
+    *   Format the current file: `<leader>gf` (Format Code)
+    *   Fix selected code (Visual Mode): Select code, then `<leader>af` (CodeCompanion Fix)
+    *   Generate tests for selected code (Visual Mode): Select code, then `<leader>at` (CodeCompanion Generate Tests)
+
+4.  **Debugging Django Applications:**
+    *   Set a breakpoint: Place cursor on line, then `<leader>bb` (Toggle Breakpoint)
+    *   Start debugging Django server: `<leader>dc` (Debug Control), then select "🌐 DJANGO: Run Server"
+    *   Step over code: `<leader>dj` (Step Over)
+    *   Step into a function: `<leader>dk` (Step Into)
+    *   Inspect variables: Place cursor on variable, then `<leader>di` (Show Variable Info)
+    *   Open debug REPL: `<leader>dr` (Toggle REPL)
+    *   Terminate debug session: `<leader>dt` (Terminate Debug Session)
+
+5.  **Leveraging AI Assistant (CodeCompanion):**
+    *   Open CodeCompanion actions menu: `<leader>aa` (Normal/Visual Mode)
+    *   Toggle CodeCompanion chat: `<leader>ac` (Normal Mode)
+    *   Explain LSP error under cursor: `<leader>al` (Explain LSP Error)
+    *   Generate commit message based on staged changes: `<leader>am` (Generate Commit Message)
+    *   Add current selection to active chat for context: `<leader>as` (Visual Mode)
+
+#### Example: Refactoring a Django View with AI Assistance
+
+1.  Open your Django `views.py` file.
+2.  Visually select a view function you want to refactor (e.g., `V` to start visual mode, then move cursor).
+3.  Press `<leader>ac` to open the CodeCompanion chat with the selected code as context.
+4.  In the chat buffer, type: `Help me refactor this view to use class-based views.`
+5.  Review the suggested changes provided by CodeCompanion.
+6.  Copy the code block from the chat using `gy` (yank last code block) or apply it directly if CodeCompanion supports it.
+
+#### Example: Optimizing Django Database Queries
+
+1.  Open a Django model or view file containing ORM queries.
+2.  Visually select the ORM query or a block of queries you want to optimize.
+3.  Press `<leader>ac` to open the CodeCompanion chat.
+4.  Ask: `How can I optimize these database queries? Consider prefetch_related and select_related.`
+5.  CodeCompanion will provide suggestions. Apply the optimizations to your code.
+
+#### Example: Debugging a Complex API Issue with AI
+
+1.  When encountering an API issue (e.g., a 500 error), open the relevant code file.
+2.  Visually select the code block suspected of causing the issue.
+3.  Press `<leader>ae` to get an explanation of the selected code from CodeCompanion.
+4.  If the explanation helps identify the problem, you can then press `<leader>af` to ask CodeCompanion to suggest a fix.
+5.  For deeper analysis, open the chat with `<leader>ac` and provide more context, e.g., `The API returns status 500 when I send this payload: { "data": "example" }`. CodeCompanion can then offer more targeted debugging steps or solutions.
 
 ### 2. Database Operations
-```
-1. Configure connection in db_ui/connections.json
-2. Open database UI with <leader>db
-3. Navigate tables and browse data
-4. Write custom query and execute with <leader>dq
-5. See results in the query window
-```
+
+This section outlines how to interact with your databases directly from Neovim using `vim-dadbod`.
+
+1.  **Configure Database Connections:**
+    *   Edit `db_ui/connections.json` to add your database connection details (e.g., PostgreSQL, MySQL, SQLite).
+
+2.  **Open the Database UI:**
+    *   Toggle the database UI: `<leader>db`
+    *   In the UI, navigate through your configured connections, databases, and tables.
+    *   Expand a connection to see available tables and views.
+    *   Press `Enter` on a table name to view its schema or browse its data.
+
+3.  **Write and Execute Custom Queries:**
+    *   Open a new SQL buffer: While in the database UI, press `s` on a connection to open a new SQL buffer connected to that database.
+    *   Write your SQL query in the buffer.
+    *   Execute the entire query: Place your cursor anywhere within the query, then `<leader>dq`.
+    *   Execute a selected portion of a query: Visually select the SQL you want to run, then `<leader>dq`.
+    *   View results: The query results will appear in a new split window.
+
+#### Example: Browsing a Django Database and Running a Custom Query
+
+1.  Ensure your Django database connection is configured in `db_ui/connections.json`.
+2.  Press `<leader>db` to open the database UI.
+3.  Navigate to your Django database connection and expand it.
+4.  Browse the `auth_user` table to see its columns and some data.
+5.  Press `s` on your Django connection to open a new SQL buffer.
+6.  Type the following query:
+    ```sql
+    SELECT id, username, email FROM auth_user WHERE is_staff = TRUE;
+    ```
+7.  Place your cursor on any line of the query and press `<leader>dq`.
+8.  The results (staff users) will be displayed in a new buffer.
 
 ### 3. Using AI Assistant
-```
-1. Select code in visual mode
-2. Use <leader>ae to get an explanation
-3. Use <leader>af to suggest fixes
-4. Use <leader>at to generate tests
-5. Toggle chat with <leader>ac for more complex discussions
-```
 
-#### CodeCompanion Components
+This section details how to effectively use the integrated AI assistant (CodeCompanion) for various coding tasks.
 
-##### Understanding CodeCompanion Elements
+1.  **Basic AI Interactions (Normal/Visual Mode):**
+    *   **Explain Code:** Visually select code, then `<leader>ae` to get a detailed explanation.
+    *   **Fix Code:** Visually select code, then `<leader>af` to get suggestions for fixing issues.
+    *   **Generate Tests:** Visually select code, then `<leader>at` to generate unit tests for it.
+    *   **Toggle Chat:** `<leader>ac` (Normal Mode) to open/close the interactive chat window.
+    *   **Open Actions Menu:** `<leader>aa` (Normal/Visual Mode) to see all available CodeCompanion actions.
 
-CodeCompanion provides several powerful AI-assisted coding features:
+2.  **Advanced Chat Workflows:**
+    *   **Start a new chat with selected code:** Visually select code, then `<leader>ac`.
+    *   **Add current selection to active chat:** While in visual mode, press `<leader>as` to add the selected text to the ongoing chat context.
+    *   **Send message in chat:** Press `<CR>` or `<C-s>` in the chat buffer.
+    *   **Close chat:** Press `<C-c>` in the chat buffer.
+    *   **Stop current request:** Press `q` in the chat buffer.
+    *   **Yank last code block from chat:** `gy` in the chat buffer.
+    *   **View chat content in debug format:** `gd` in the chat buffer.
 
-- **Chat Buffer**: Interactive conversation window that maintains context
-- **Action Palette**: Quick menu of common AI actions (<leader>aa)
-- **Inline Assistant**: Direct code transformations from normal/visual mode
-- **Prompt Library**: Built-in templates for common coding tasks
+3.  **Using CodeCompanion Tags for Context and Control:**
+    CodeCompanion supports special tags in chat messages to provide additional context or control its behavior:
 
-##### Using CodeCompanion Tags
+    *   `@editor`: Grants CodeCompanion permission to modify your code directly.
+        ```
+        @editor Please refactor this function to use async/await.
+        ```
+    *   `@cmd_runner`: Allows CodeCompanion to execute shell commands.
+        ```
+        @cmd_runner Can you run the tests for this module?
+        ```
+    *   `#buffer`: Shares the content of the current buffer with CodeCompanion for context.
+        ```
+        #buffer What does this code do?
+        ```
+    *   `#selection`: Shares the currently selected text with CodeCompanion.
+        ```
+        #selection How can I optimize this function?
+        ```
+    *   `#lsp`: Sends LSP diagnostics to help CodeCompanion understand and fix errors.
+        ```
+        #lsp Why am I getting this error?
+        ```
+    *   **Special Roles**: Assign specific personas to CodeCompanion for specialized feedback.
+        ```
+        @code_reviewer Please review this implementation.
+        @security_expert Check this code for vulnerabilities.
+        @performance_engineer Optimize this algorithm.
+        ```
 
-CodeCompanion supports special tags in chat that enhance its capabilities:
+4.  **Slash Commands in Chat:**
+    CodeCompanion's chat buffer supports special slash commands to trigger specific actions:
 
-- **@editor**: Gives CodeCompanion ability to modify your code directly
-  ```
-  @editor Please refactor this function to use async/await
-  ```
+    *   Open CodeCompanion chat with `<leader>ac`.
+    *   Type one of these slash commands followed by your prompt:
+        *   `/explain`: Explain the selected code.
+        *   `/fix`: Fix issues in the code.
+        *   `/tests`: Generate tests for the code.
+        *   `/commit`: Generate a commit message.
+        *   `/refactor`: Refactor selected code.
+        *   `/optimize`: Optimize for performance.
+        *   `/docstring`: Add documentation.
+        *   `/type`: Add type annotations.
+        *   `/security`: Check for security issues.
 
-- **@cmd_runner**: Lets CodeCompanion execute shell commands
-  ```
-  @cmd_runner Can you run the tests for this module?
-  ```
+#### Example: Multi-File Context Building for Complex Analysis
 
-- **#buffer**: Shares the current buffer with CodeCompanion for context
-  ```
-  #buffer What does this code do?
-  ```
+1.  Start a CodeCompanion chat with `<leader>ac`.
+2.  In the chat buffer, type a message including `#buffer` to include the current file's content, e.g., `Here's my main application file: #buffer`.
+3.  Open another related file (e.g., a utility file or a model) and visually select a relevant section.
+4.  Press `<leader>as` to add this selection to the active chat context.
+5.  Now, type a complex request like: `Explain how these two files work together to handle user authentication.`
+6.  CodeCompanion will provide a comprehensive analysis across both files, leveraging the context you provided.
 
-- **#selection**: Shares selected text with CodeCompanion
-  ```
-  #selection How can I optimize this function?
-  ```
+#### Example: Interactive Code Review with AI
 
-- **#lsp**: Sends LSP diagnostics to help with errors
-  ```
-  #lsp Why am I getting this error?
-  ```
-
-- **Special Roles**: Assign specific personas to CodeCompanion
-  ```
-  @code_reviewer Please review this implementation
-  @security_expert Check this code for vulnerabilities
-  @performance_engineer Optimize this algorithm
-  ```
-
-#### Advanced CodeCompanion Workflows
-
-##### Explaining and Fixing Complex Code
-```
-1. Select a function or code block in visual mode
-2. Press <leader>ae to get a detailed explanation
-3. If you want improvements, press <leader>af to get suggestions
-4. Review suggestions in the CodeCompanion chat buffer
-5. Apply the changes directly using the suggested code from the chat
-```
-
-##### Debugging with CodeCompanion
-```
-1. When you encounter an LSP error, place cursor on the error
-2. Press <leader>al to explain the error with CodeCompanion
-3. Review explanation and suggested fixes
-4. Implement the fix or press <leader>af to have CodeCompanion fix it
-5. Test the solution to ensure the error is resolved
-```
-
-##### Generating Tests with Context
-```
-1. Select the function you want to test in visual mode
-2. Press <leader>at to generate tests
-3. In the CodeCompanion chat, type additional context like:
-   "This test should mock the database connection"
-4. Review the generated test code
-5. Copy the test to your test file using gy in the chat buffer
-```
-
-##### Using Slash Commands
-CodeCompanion's chat buffer supports special slash commands to trigger specific actions:
-
-```
-1. Open CodeCompanion chat with <leader>ac
-2. Type one of these slash commands:
-   - /explain - Explain the selected code
-   - /fix - Fix issues in the code
-   - /tests - Generate tests for the code
-   - /commit - Generate a commit message
-   - /refactor - Refactor selected code
-   - /optimize - Optimize for performance
-   - /docstring - Add documentation
-   - /type - Add type annotations
-   - /security - Check for security issues
-3. The AI will respond with specialized output for that command
-```
-
-##### Multi-File Context Building
-```
-1. Start a CodeCompanion chat with <leader>ac
-2. Use "#buffer" in a message to include current file
-3. Open another related file and use <leader>as to add it to chat
-4. Type a complex request like "Explain how these files work together"
-5. Get comprehensive analysis across multiple files
-```
-
-##### Interactive Code Review
-```
-1. Select code for review in visual mode
-2. Press <leader>ac to open chat with the selection
-3. Type a specific question like "What potential edge cases am I missing?"
-4. Get targeted feedback about your implementation
-5. Iterate by adding more context with <leader>as
-```
-
-##### Creating Commit Messages
-```
-1. Stage your changes with git
-2. Press <leader>am to generate a commit message
-3. CodeCompanion will analyze the diff and suggest a meaningful message
-4. Edit the message if needed
-5. Accept or modify the suggested commit message
-```
+1.  Visually select a code block you want reviewed.
+2.  Press `<leader>ac` to open a chat with the selection as context.
+3.  Type a specific question like: `What potential edge cases am I missing in this error handling logic?`
+4.  CodeCompanion will provide targeted feedback.
+5.  You can iterate by adding more context with `<leader>as` or asking follow-up questions.
 
 ### 4. API Testing with REST Client
-```
-1. Create or open a .rest or .http file
-2. Write a request like: GET https://api.example.com/posts
-3. Position cursor on the request line
-4. Press <leader>rg to execute the GET request
-5. View response and format JSON with <leader>xj
-```
+
+This section explains how to use the integrated REST client (`vim-rest-console`) for testing APIs.
+
+1.  **Create or Open a Request File:**
+    *   Create a new file with a `.rest` or `.http` extension (e.g., `api_test.rest`).
+    *   Write your HTTP request in this file. For example:
+        ```http
+        GET https://jsonplaceholder.typicode.com/posts/1
+        Content-Type: application/json
+
+        ###
+
+        POST https://jsonplaceholder.typicode.com/posts
+        Content-Type: application/json
+
+        {
+          "title": "foo",
+          "body": "bar",
+          "userId": 1
+        }
+        ```
+
+2.  **Execute Requests:**
+    *   Place your cursor on the line of the request you want to execute.
+    *   Execute a GET request: `<leader>rg`
+    *   Execute a POST request: `<leader>rp`
+    *   Execute a PUT request: `<leader>ru`
+    *   Execute a DELETE request: `<leader>rd`
+    *   Alternatively, use `<leader>xr` to execute the request under the cursor (works for any method).
+
+3.  **View and Format Response:**
+    *   The API response will open in a new split window (e.g., `_OUTPUT.json`).
+    *   If the response is JSON, it will be automatically formatted.
+    *   If you need to reformat the JSON (e.g., after manual edits), press `<leader>xj`.
+
+#### Example: Testing a Public API
+
+1.  Create a file named `test_api.rest`.
+2.  Add the following content:
+    ```http
+    GET https://api.github.com/users/octocat
+    ```
+3.  Place your cursor on the `GET` line and press `<leader>rg`.
+4.  A new buffer will open with the JSON response from the GitHub API, showing details for the `octocat` user.
 
 ### 5. Session Management
-```
-1. Work on project with multiple files, splits, etc.
-2. Quit Neovim (session saved automatically)
-3. Return to project and session will be restored
-4. Use <leader>ss to search available sessions
-5. Use <leader>sd to delete unwanted sessions
-```
+
+This section explains how automatic session management works and how to manually control sessions.
+
+1.  **Automatic Session Saving and Restoration:**
+    *   When you exit Neovim from a project directory, your current session (open files, window layouts, buffer states) is automatically saved.
+    *   When you reopen Neovim in the same project directory, the saved session is automatically restored, allowing you to pick up exactly where you left off.
+    *   This feature is particularly useful for maintaining context across different projects or work sessions.
+
+2.  **Manually Managing Sessions:**
+    *   **Search and Load Sessions:** `<leader>ss` (Telescope Search Sessions) to view a list of all saved sessions. You can fuzzy-find and select a session to load it.
+    *   **Delete a Session:** `<leader>sd` (Telescope Delete Session) to view a list of saved sessions and select one to delete.
+
+#### Example: Switching Between Projects with Sessions
+
+1.  Open Neovim in `~/projects/project_a`.
+2.  Open several files, create some splits, and make some edits.
+3.  Exit Neovim (`:wq` or `:q`). The session for `project_a` is automatically saved.
+4.  Open Neovim in `~/projects/project_b`.
+5.  Work on `project_b`, opening different files and layouts.
+6.  Now, you want to go back to `project_a`.
+7.  Press `<leader>ss`.
+8.  Select the session corresponding to `project_a` from the list.
+9.  Neovim will close `project_b`'s session and restore `project_a`'s session, including all its open buffers and window layouts.
 
 ## Customization
 
 ### Adding New Plugins
-1. Create a new file in `lua/plugins/` with this structure:
+1. Create a new file in the appropriate subdirectory under `lua/plugins/` (e.g., `lua/plugins/completion/my-new-plugin.lua`).
+2. Use this structure:
 ```lua
 return {
   'author/plugin-name',
@@ -589,10 +652,10 @@ return {
 ```
 
 ### Changing Theme
-Edit `lua/plugins/colorscheme.lua` and uncomment your preferred theme configuration.
+Edit `lua/plugins/ui/colorscheme.lua` and uncomment your preferred theme configuration.
 
 ### Modifying Keymaps
-Edit `lua/core/keymaps.lua` - organized by functionality sections for easy navigation.
+Edit `lua/config/keymaps.lua` - organized by functionality sections for easy navigation.
 
 This configuration is built for productive Python/Django development with quick access to common tasks. All key mappings are logically organized around the space key as leader.
 
