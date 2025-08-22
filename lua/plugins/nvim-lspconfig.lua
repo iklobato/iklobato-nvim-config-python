@@ -53,7 +53,11 @@ return {
                 "ruff",
                 "html",
                 "cssls",
-                "tsserver",
+                "ts_ls",
+                "tailwindcss",
+                "jsonls",
+                "volar",
+                "emmet_ls",
             },
             automatic_installation = true,
         })
@@ -137,6 +141,15 @@ return {
             -- Inlay hints
             if client.server_capabilities.inlayHintProvider then
                 vim.lsp.inlay_hint.enable(bufnr, true)
+            end
+
+            if client.name == "pyright" or client.name == "ruff" then
+                vim.api.nvim_create_autocmd("BufWritePre", {
+                    buffer = bufnr,
+                    callback = function()
+                        vim.lsp.buf.format({ async = true })
+                    end,
+                })
             end
         end
 
@@ -264,7 +277,7 @@ return {
         })
 
         -- JavaScript/TypeScript LSP setup
-        require('lspconfig').tsserver.setup({
+        require('lspconfig').ts_ls.setup({
             capabilities = capabilities,
             on_attach = on_attach,
             filetypes = { "javascript", "javascriptreact", "javascript.jsx", "typescript", "typescriptreact", "typescript.tsx" },
@@ -296,6 +309,72 @@ return {
                         includeInlayVariableTypeHints = true,
                     },
                 },
+            },
+        })
+
+        -- Tailwind CSS LSP setup
+        require('lspconfig').tailwindcss.setup({
+            capabilities = capabilities,
+            on_attach = on_attach,
+            filetypes = { 
+                "aspnetcorerazor", "astro", "astro-markdown", "blade", "clojure", "django-html",
+                "htmldjango", "edge", "eelixir", "elixir", "ejs", "erb", "eruby", "gohtml", "gohtmltmpl",
+                "haml", "handlebars", "hbs", "html", "html-eex", "heex", "jade", "leaf", "liquid",
+                "markdown", "mdx", "mustache", "njk", "nunjucks", "php", "razor", "slim", "twig", "css",
+                "less", "postcss", "sass", "scss", "stylus", "sugarss", "javascript", "javascriptreact",
+                "reason", "rescript", "typescript", "typescriptreact", "vue", "svelte", "jinja.html"
+            },
+            settings = {
+                tailwindCSS = {
+                    classAttributes = { "class", "className", "classList", "ngClass" },
+                    lint = {
+                        cssConflict = "warning",
+                        invalidApply = "error",
+                        invalidConfigPath = "error",
+                        invalidScreen = "error",
+                        invalidTailwindDirective = "error",
+                        invalidVariant = "error",
+                        recommendedVariantOrder = "warning"
+                    },
+                    validate = true
+                }
+            },
+        })
+
+        -- JSON Language Server
+        require('lspconfig').jsonls.setup({
+            capabilities = capabilities,
+            on_attach = on_attach,
+            settings = {
+                json = {
+                    -- Use schemastore if available, otherwise use basic validation
+                    schemas = pcall(require, 'schemastore') and require('schemastore').json.schemas() or {},
+                    validate = { enable = true },
+                },
+            },
+            commands = {
+                Format = {
+                    function()
+                        vim.lsp.buf.range_formatting({}, {0, 0}, {vim.fn.line("$"), 0})
+                    end
+                }
+            }
+        })
+
+        -- Vue Language Server (Volar)
+        require('lspconfig').volar.setup({
+            capabilities = capabilities,
+            on_attach = on_attach,
+            filetypes = {'typescript', 'javascript', 'javascriptreact', 'typescriptreact', 'vue', 'json'}
+        })
+
+        -- Emmet Language Server
+        require('lspconfig').emmet_ls.setup({
+            capabilities = capabilities,
+            on_attach = on_attach,
+            filetypes = { 
+                'html', 'typescriptreact', 'javascriptreact', 'typescript.tsx', 'javascript.jsx', 
+                'css', 'sass', 'scss', 'less', 'vue', 'svelte', 'php', 'htmldjango' 
             },
         })
     end
