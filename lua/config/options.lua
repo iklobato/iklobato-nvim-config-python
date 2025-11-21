@@ -1,7 +1,8 @@
 local opt = vim.opt
 
 -- Session Management
-opt.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
+-- Include all options needed to restore windows, layouts, and buffers
+opt.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions,resize"
 
 -- Line Numbers
 opt.relativenumber = false

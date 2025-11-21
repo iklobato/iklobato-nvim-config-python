@@ -9,7 +9,7 @@ return {
             auto_create = true,
             
             root_dir = vim.fn.stdpath("data") .. "/sessions/",
-            auto_restore_last_session = false,
+            auto_restore_last_session = true,  -- Always restore last session globally
             use_git_branch = true,
             
             cwd_change_handling = {
@@ -63,5 +63,70 @@ return {
         vim.keymap.set('n', '<leader>sd', function()
             auto_session.DeleteSession()
         end, {desc = 'Delete session'})
+
+        -- Ensure session saves on all exit commands (backup for :wqa, :qa, etc.)
+        -- This provides redundancy in case auto_save somehow misses the exit
+        -- Note: auto_save = true should already handle this, but this is a safety net
+        local autocmd = vim.api.nvim_create_autocmd
+        autocmd("VimLeavePre", {
+            pattern = "*",
+            callback = function()
+                -- Force save session on exit as backup
+                -- auto-session's auto_save should handle this, but this ensures it happens
+                pcall(function()
+                    auto_session.SaveSession()
+                end)
+            end,
+        })
+
+        -- Ensure all windows are visible after session restoration
+        -- This fixes the issue where only one window is shown after restore
+        local function ensure_windows_visible()
+            -- Open NvimTree if it's not already open
+            pcall(function()
+                local nvim_tree = require('nvim-tree.api')
+                -- Check if NvimTree is open by looking for its buffer
+                local tree_open = false
+                for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+                    local buf_name = vim.api.nvim_buf_get_name(buf)
+                    if buf_name:match("NvimTree") then
+                        tree_open = true
+                        break
+                    end
+                end
+                if not tree_open then
+                    nvim_tree.tree.open()
+                end
+            end)
+            
+            -- Force redraw to ensure all windows are displayed
+            vim.cmd("redraw!")
+            -- Small delay to ensure windows are fully restored
+            vim.defer_fn(function()
+                vim.cmd("redraw!")
+                local win_count = #vim.api.nvim_list_wins()
+                if win_count > 1 then
+                    -- Multiple windows exist, ensure they're all visible
+                    vim.cmd("wincmd =")  -- Equalize window sizes
+                end
+            end, 100)
+        end
+
+        -- Try multiple event patterns to catch session restoration
+        autocmd("User", {
+            pattern = { "AutoSessionRestored", "auto-session-restored" },
+            callback = ensure_windows_visible,
+        })
+
+        -- Always open NvimTree and ensure windows are visible after Neovim starts
+        -- This runs after session restoration completes (if any) and ensures directory tree is always visible
+        autocmd("VimEnter", {
+            pattern = "*",
+            callback = function()
+                -- Wait a bit for session to restore (if any), then ensure windows are visible
+                -- This also opens NvimTree automatically
+                vim.defer_fn(ensure_windows_visible, 200)
+            end,
+        })
     end
 }
