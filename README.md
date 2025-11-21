@@ -664,6 +664,77 @@ Edit `lua/plugins/ui/colorscheme.lua` and uncomment your preferred theme configu
 ### Modifying Keymaps
 Edit `lua/config/keymaps.lua` - organized by functionality sections for easy navigation.
 
+### Homebrew Package Management
+
+This repository includes scripts to export and import Homebrew packages for environment reproducibility.
+
+#### Exporting Packages
+
+To export all installed Homebrew packages to a `Brewfile`:
+
+```bash
+./scripts/brew-export.sh
+```
+
+Options:
+- `--file FILE` - Specify custom output file (default: `Brewfile`)
+- `--include-mas` - Include Mac App Store apps (requires `mas-cli`)
+- `--help` - Show usage information
+
+The script exports:
+- All installed Homebrew formulas
+- All installed Homebrew casks
+- All installed Homebrew taps
+- Optional: Mac App Store apps (if `--include-mas` is used)
+
+#### Importing Packages
+
+To install all packages from a `Brewfile`:
+
+```bash
+./scripts/brew-import.sh
+```
+
+Options:
+- `--file FILE` - Specify custom input file (default: `Brewfile`)
+- `--dry-run` - Show what would be installed without installing
+- `--force` - Install packages even if already installed
+- `--help` - Show usage information
+
+#### Using the Brewfile Directly
+
+You can also use Homebrew's built-in bundle commands:
+
+```bash
+# Install all packages from Brewfile
+brew bundle install
+
+# Check if all packages are installed
+brew bundle check
+
+# Update Brewfile with current packages
+brew bundle dump --force
+```
+
+#### Best Practices
+
+1. **Regular Updates**: Periodically update your `Brewfile` to reflect current packages:
+   ```bash
+   ./scripts/brew-export.sh
+   ```
+
+2. **Version Control**: The `Brewfile` is tracked in git by default. If you have user-specific packages, you can add `Brewfile` to `.gitignore`.
+
+3. **New Machine Setup**: On a new machine, clone this repository and run:
+   ```bash
+   ./scripts/brew-import.sh
+   ```
+
+4. **Dry Run First**: Before importing, check what will be installed:
+   ```bash
+   ./scripts/brew-import.sh --dry-run
+   ```
+
 ### Lua Linting and Formatting
 
 This configuration includes automatic Lua linting and formatting:
