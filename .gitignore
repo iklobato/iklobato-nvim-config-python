@@ -32,3 +32,9 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Homebrew Bundle
+# Brewfile is tracked by default for environment reproducibility
+# Uncomment the line below if you want to ignore it (user-specific packages)
+# Brewfile
+Brewfile.backup.*
