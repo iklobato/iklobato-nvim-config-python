@@ -1,3 +1,34 @@
-db_ui/queries
+# Database UI runtime data
+db_ui/queries/
+db_ui/connections.json
 
+# Neovim runtime directories
+**/.local/share/nvim/
+**/.local/state/nvim/
+**/.cache/nvim/
+
+# Plugin directories (managed by lazy.nvim)
+**/lazy/
+**/packer/
+
+# Lock files (keep lazy-lock.json for reproducibility)
+# lazy-lock.json is tracked
+
+# Temporary files
+*.swp
+*.swo
+*~
+.*.sw?
+*.tmp
+*.bak
+*.orig
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Claude settings
 **/.claude/settings.local.json
+
+# Logs
+*.log
