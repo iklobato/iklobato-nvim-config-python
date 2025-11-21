@@ -623,11 +623,24 @@ This section provides practical, step-by-step examples for common Python develop
 
 #### Adding Missing Imports
 
+**Automatic Import Resolution:**
+1. Place cursor on undefined symbol (e.g., `Account` or `datetime`)
+2. Press `<leader>ai` (Auto-import) - automatically finds and adds the correct import
+3. The import statement is inserted at the top of the file
+
+**Using Code Actions:**
 1. Use undefined symbol (e.g., `datetime`)
 2. View error: `<leader>e` shows "undefined name 'datetime'"
 3. Quick fix: Press `<leader>ga` (Code Actions)
-4. Select "Import datetime" - import is added automatically
-5. Or manually: Type `from datetime import datetime`, use completion (`<C-Space>`) for suggestions
+4. Select "Import datetime" - import is added automatically (if Pyright offers it)
+
+**Manual Import:**
+- Type `from datetime import datetime`, use completion (`<C-Space>`) for suggestions
+
+**Note:** When using `uv run nvim .`, the configuration automatically detects:
+- `uv` virtual environment and configures Pyright to use it
+- Django project structure and adds app paths to `extraPaths`
+- This enables better import resolution and code actions for Django models
 
 ### Refactoring Workflows
 
@@ -837,9 +850,17 @@ This section provides practical, step-by-step examples for common Python develop
 4. Fix type errors as they appear
 
 **Import Management:**
-1. Use undefined symbol → `<leader>ga` → Auto-import
-2. Organize imports: Ruff auto-organizes on format
-3. Remove unused: Ruff flags unused imports, `<leader>ga` to remove
+1. Use undefined symbol → `<leader>ai` → Auto-import (recommended, uses LSP)
+2. Or use code actions: `<leader>ga` → Select import action
+3. Organize imports: Ruff auto-organizes on format
+4. Remove unused: Ruff flags unused imports, `<leader>ga` to remove
+
+**Automatic Project Detection:**
+- When using `uv run nvim .`, the configuration automatically:
+  - Detects `uv` virtual environment and configures Pyright
+  - Detects Django projects and adds app paths to `extraPaths`
+  - Sets `PYTHONPATH` correctly for import resolution
+  - Enables import code actions for Django models
 
 **Error Handling:**
 1. Write code that might raise exception
@@ -1102,6 +1123,8 @@ Auto-pairs automatically closes brackets, parentheses, and quotes. No shortcuts 
 | `<leader>gs` | n | Show signature help |
 | `<leader>lr` | n | Rename symbol |
 | `<leader>ga` | n | Code actions (quick fixes, refactors) |
+| `<leader>ai` | n | Auto-import symbol under cursor (nvim-lspimport) |
+| `<C-i>` | i | Auto-import symbol under cursor (insert mode) |
 
 #### Diagnostics
 | Shortcut | Mode | Description |
