@@ -1,3 +1,7 @@
+-- Enable Lua bytecode caching for faster startup
+-- Must be called before any requires
+vim.loader.enable()
+
 -- Setup lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
