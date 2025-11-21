@@ -1,0 +1,15 @@
+[
+  {
+    "url": "postgresql://user:password@localhost:5432/database_name",
+    "name": "database_name"
+  },
+  {
+    "url": "sqlite3:///path/to/database.db",
+    "name": "database.db"
+  },
+  {
+    "url": "mongodb://user:password@localhost:27017/",
+    "name": "connection_name"
+  }
+]
+

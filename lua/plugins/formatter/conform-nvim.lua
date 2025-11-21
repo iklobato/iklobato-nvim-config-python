@@ -52,6 +52,14 @@ return {
                         PRETTIERD_DEFAULT_CONFIG = vim.fn.expand("~/.config/nvim/.prettierrc.json"),
                     },
                 },
+                stylua = {
+                    -- Use the stylua.toml config file in the nvim config directory
+                    -- stylua will automatically find stylua.toml in the project root or config directory
+                    condition = function(ctx)
+                        -- Only format if stylua is available
+                        return vim.fn.executable("stylua") == 1
+                    end,
+                },
             },
         })
         

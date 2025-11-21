@@ -82,15 +82,18 @@ A modern Neovim configuration focused on Python/Django development with extensiv
   - `lua/plugins/ui/`: Configuration for UI-related plugins (e.g., `barbecue-nvim`, `lualine-nvim`, `nvim-tree`).
   - `lua/plugins/utility/`: Configuration for general utility plugins (e.g., `auto-session`, `nvim-autopairs`).
   - `lua/plugins/git/`: Configuration for Git integration plugins (e.g., `git-blame-nvim`).
+  - `lua/plugins/linter/`: Configuration for linting plugins (e.g., `nvim-lint` with selene for Lua).
   - `lua/plugins/lsp/`: Configuration for LSP-related plugins (e.g., `nvim-lspconfig`, `nvim-dap-ui`).
   - `lua/plugins/syntax/`: Configuration for syntax highlighting and parsing (e.g., `nvim-treesitter`).
   - `lua/plugins/database/`: Configuration for database interaction plugins (e.g., `nvim-sql`, `vim-rest-console`).
   - `lua/plugins/formatter/`: Configuration for code formatting plugins (e.g., `conform-nvim`).
   - `lua/plugins/misc/`: Miscellaneous plugin configurations.
 - `lua/lsp/`: Individual Language Server Protocol (LSP) client configurations.
-- `lua/utils/`: Custom utility functions.
 - `scripts/`: Installation and utility scripts.
 - `ftplugin/`: Filetype-specific settings.
+- `stylua.toml`: Stylua formatter configuration for consistent Lua code formatting.
+- `db_ui/`: Database UI configuration and runtime data.
+  - `db_ui/connections.json.example`: Template for database connections (copy to `connections.json` and customize).
 
 ## Key Mappings
 
@@ -140,13 +143,12 @@ LSP:
 - `<leader>gs` - Show signature help
 - `<leader>ga` - Code actions
 - `<leader>lr` - Rename symbol
-- `<leader>gf` - Format code
+- `<leader>f` - Format code (via conform.nvim)
 
 Diagnostics:
 - `[d` - Previous diagnostic
 - `]d` - Next diagnostic
 - `<leader>e` - Show diagnostic float
-- `<leader>gl` - Show diagnostic float
 - `<leader>gp` - Previous diagnostic
 - `<leader>gn` - Next diagnostic
 - `<leader>q` - List all diagnostics
@@ -220,6 +222,11 @@ Chat Buffer Commands:
 - `<leader>rd` - Execute DELETE request
 - `<leader>xr` - Run REST query
 - `<leader>xj` - Format as JSON
+
+### Linting and Formatting
+- `<leader>ll` - Lint buffer (show linting issues)
+- `<leader>lf` - Auto-fix linting issues (Lua files)
+- `<leader>f` - Format buffer (all file types)
 
 ### Terminal
 - `<leader>tt` - Open terminal
@@ -398,10 +405,10 @@ This workflow guides you through a typical Python/Django development session, le
     *   Explain a complex code block (Visual Mode): Select code, then `<leader>ae` (CodeCompanion Explain)
 
 3.  **Fixing and Refactoring Code:**
-    *   View LSP diagnostics (errors/warnings): `<leader>e` or `<leader>gl` (Show Diagnostic Float)
+    *   View LSP diagnostics (errors/warnings): `<leader>e` (Show Diagnostic Float)
     *   Navigate between diagnostics: `[d` (Previous Diagnostic), `]d` (Next Diagnostic)
     *   Apply code actions (e.g., fix imports, refactor): `<leader>ga` (Code Actions)
-    *   Format the current file: `<leader>gf` (Format Code)
+    *   Format the current file: `<leader>f` (Format Code via conform.nvim)
     *   Fix selected code (Visual Mode): Select code, then `<leader>af` (CodeCompanion Fix)
     *   Generate tests for selected code (Visual Mode): Select code, then `<leader>at` (CodeCompanion Generate Tests)
 
@@ -656,6 +663,29 @@ Edit `lua/plugins/ui/colorscheme.lua` and uncomment your preferred theme configu
 
 ### Modifying Keymaps
 Edit `lua/config/keymaps.lua` - organized by functionality sections for easy navigation.
+
+### Lua Linting and Formatting
+
+This configuration includes automatic Lua linting and formatting:
+
+- **Linting**: Uses `nvim-lint` with `selene` for Lua code linting
+  - Automatically lints on file save and when opening files
+  - Manual lint: `<leader>ll` (Lint buffer)
+  - Auto-fix: `<leader>lf` (Auto-fix linting issues)
+  
+- **Formatting**: Uses `stylua` via `conform.nvim` for Lua code formatting
+  - Automatically formats on save
+  - Manual format: `<leader>f` (Format buffer)
+  - Configuration: `stylua.toml` in the config root
+
+**Installation Requirements:**
+- Install `selene`: `cargo install selene` or via your package manager
+- Install `stylua`: `cargo install stylua` or via your package manager
+- Alternatively, both can be installed via Mason: `:MasonInstall selene stylua`
+
+**Configuration Files:**
+- `stylua.toml`: Stylua formatter configuration (indentation, line width, etc.)
+- `lua/plugins/linter/nvim-lint.lua`: Linter configuration
 
 This configuration is built for productive Python/Django development with quick access to common tasks. All key mappings are logically organized around the space key as leader.
 

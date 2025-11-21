@@ -32,9 +32,9 @@ keymap.set('n', '<leader>bn', ':bnext<CR>', { desc = "Next buffer" })
 keymap.set('n', '<leader>bp', ':bprevious<CR>', { desc = "Previous buffer" })
 keymap.set('n', '<leader>bd', ':bdelete<CR>', { desc = "Delete buffer" })
 
--- Session Management
-keymap.set('n', '<leader>ss', function() require('auto-session.session-lens').search_session() end, { desc = "Search sessions" })
-keymap.set('n', '<leader>sd', function() require('auto-session').DeleteSession() end, { desc = "Delete session" })
+-- Session Management (handled by auto-session plugin)
+-- <leader>ss - Search sessions
+-- <leader>sd - Delete session
 
 -------------------------------------------------------------------------------
 -- Navigation and Movement
@@ -70,12 +70,10 @@ keymap.set('n', '<leader>gg', vim.lsp.buf.hover, { desc = "Show hover info" })
 keymap.set('n', '<leader>gs', vim.lsp.buf.signature_help, { desc = "Show signature help" })
 keymap.set('n', '<leader>lr', vim.lsp.buf.rename, { desc = "Rename symbol" })
 keymap.set('n', '<leader>ga', vim.lsp.buf.code_action, { desc = "Code actions" })
-keymap.set('n', '<leader>gf', function() vim.lsp.buf.format({async = true}) end, { desc = "Format code" })
-keymap.set('v', '<leader>gf', function() vim.lsp.buf.format({async = true}) end, { desc = "Format selected code" })
+-- Format keybinding is handled by conform.nvim (<leader>f)
 
 -- Diagnostics
 keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = "Show diagnostic" })
-keymap.set('n', '<leader>gl', vim.diagnostic.open_float, { desc = "Show diagnostic" })
 keymap.set('n', '<leader>gn', vim.diagnostic.goto_next, { desc = "Next diagnostic" })
 keymap.set('n', '<leader>gp', vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
 keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = "Next diagnostic" })

@@ -132,14 +132,8 @@ return {
                 vim.lsp.inlay_hint.enable(bufnr, true)
             end
 
-            if client.name == "pyright" or client.name == "ruff" then
-                vim.api.nvim_create_autocmd("BufWritePre", {
-                    buffer = bufnr,
-                    callback = function()
-                        vim.lsp.buf.format({ async = true })
-                    end,
-                })
-            end
+            -- Formatting is handled by conform.nvim (format_on_save)
+            -- Removed duplicate BufWritePre autocmd to prevent double formatting
         end
 
         -- Setup LSP handlers with borders

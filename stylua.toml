@@ -1,0 +1,28 @@
+# Stylua configuration for consistent Lua code formatting
+# This file is used by stylua formatter (via conform.nvim)
+
+# Column width for line wrapping
+column_width = 100
+
+# Line ending style
+line_endings = "Unix"
+
+# Indentation
+indent_type = "Spaces"
+indent_width = 2
+
+# Quote style
+quote_style = "AutoPreferDouble"
+
+# Call parentheses
+call_parentheses = "Always"
+
+# Collapse simple statement
+collapse_simple_statement = false
+
+# Sort requires
+sort_requires = false
+
+# Use tabs
+use_tabs = false
+
