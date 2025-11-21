@@ -1,6 +1,40 @@
 return {
     'rmagatti/auto-session',
+    event = 'VeryLazy',  -- Defer loading to reduce startup time
     config = function()
+        -- Function to generate a unique session name based on directory path
+        -- This ensures each directory has its own session
+        local function get_session_name()
+            local cwd = vim.fn.getcwd()
+            -- Normalize the path (remove trailing slashes, resolve symlinks)
+            cwd = vim.fn.fnamemodify(cwd, ':p')
+            cwd = vim.fn.substitute(cwd, '/$', '', '')
+            
+            -- Create a hash of the path for uniqueness
+            -- Use a simple hash function to create a manageable name
+            local hash = 0
+            for i = 1, #cwd do
+                local char = string.byte(cwd, i)
+                -- Use multiplication instead of bit shift: hash << 5 is equivalent to hash * 32
+                hash = ((hash * 32) - hash) + char
+                -- Keep hash within 32-bit range for consistency
+                hash = hash % (2^32)
+            end
+            
+            -- Use absolute hash value and directory name for readability
+            local dir_name = vim.fn.fnamemodify(cwd, ':t')
+            if dir_name == '' then
+                dir_name = vim.fn.fnamemodify(cwd, ':h:t')
+            end
+            
+            -- Sanitize directory name for use in filename
+            dir_name = vim.fn.substitute(dir_name, '[^a-zA-Z0-9_-]', '_', 'g')
+            
+            -- Combine directory name with hash for uniqueness
+            local session_name = string.format("%s_%x", dir_name, math.abs(hash))
+            return session_name
+        end
+        
         require('auto-session').setup({
             log_level = "error",
             enabled = true,
@@ -10,15 +44,30 @@ return {
             
             root_dir = vim.fn.stdpath("data") .. "/sessions/",
             auto_restore_last_session = true,  -- Always restore last session globally
-            use_git_branch = true,
+            use_git_branch = false,  -- Disable git branch-based sessions
+            session_name = get_session_name,  -- Use directory-based session names
             
             cwd_change_handling = {
                 restore_upcoming_session = true,
-                pre_cwd_changed_hook = nil,
+                pre_cwd_changed_hook = function()
+                    -- Save current session before changing directory
+                    pcall(function()
+                        local auto_session = require('auto-session')
+                        auto_session.SaveSession()
+                    end)
+                end,
                 post_cwd_changed_hook = function()
+                    -- Reload nvim-tree after directory change
                     pcall(function()
                         require('nvim-tree.api').tree.reload()
                     end)
+                    -- Restore the new directory's session
+                    vim.defer_fn(function()
+                        pcall(function()
+                            local auto_session = require('auto-session')
+                            auto_session.RestoreSession()
+                        end)
+                    end, 100)
                 end,
             },
             
@@ -81,6 +130,7 @@ return {
 
         -- Ensure all windows are visible after session restoration
         -- This fixes the issue where only one window is shown after restore
+        -- Note: We do NOT equalize window sizes here to preserve saved window layouts
         local function ensure_windows_visible()
             -- Open NvimTree if it's not already open
             pcall(function()
@@ -100,15 +150,12 @@ return {
             end)
             
             -- Force redraw to ensure all windows are displayed
-            vim.cmd("redraw!")
-            -- Small delay to ensure windows are fully restored
+            -- This ensures windows restored from session are visible
             vim.defer_fn(function()
                 vim.cmd("redraw!")
-                local win_count = #vim.api.nvim_list_wins()
-                if win_count > 1 then
-                    -- Multiple windows exist, ensure they're all visible
-                    vim.cmd("wincmd =")  -- Equalize window sizes
-                end
+                -- Verify all windows are properly displayed
+                -- Session restoration should preserve window sizes and positions
+                -- so we don't modify them here
             end, 100)
         end
 
@@ -120,12 +167,13 @@ return {
 
         -- Always open NvimTree and ensure windows are visible after Neovim starts
         -- This runs after session restoration completes (if any) and ensures directory tree is always visible
+        -- Defer to reduce startup time
         autocmd("VimEnter", {
             pattern = "*",
             callback = function()
-                -- Wait a bit for session to restore (if any), then ensure windows are visible
-                -- This also opens NvimTree automatically
-                vim.defer_fn(ensure_windows_visible, 200)
+                -- Defer window visibility check to reduce startup blocking
+                -- Session restoration happens asynchronously, so we wait longer
+                vim.defer_fn(ensure_windows_visible, 300)
             end,
         })
     end
