@@ -623,19 +623,34 @@ This section provides practical, step-by-step examples for common Python develop
 
 #### Adding Missing Imports
 
-**Automatic Import Resolution:**
+**Automatic Import Resolution (Recommended):**
 1. Place cursor on undefined symbol (e.g., `Account` or `datetime`)
-2. Press `<leader>ai` (Auto-import) - automatically finds and adds the correct import
-3. The import statement is inserted at the top of the file
+2. Press `<leader>ai` (Auto-import)
+3. **If multiple import options exist**: A picker menu will appear showing all possible imports
+   - Use arrow keys or `<C-j>`/`<C-k>` to navigate
+   - Press `<Enter>` to select the desired import
+   - Press `<Esc>` to cancel
+4. **If only one option**: The import is added automatically
+5. The import statement is inserted at the top of the file
 
-**Using Code Actions:**
+**Using Code Actions (Alternative):**
 1. Use undefined symbol (e.g., `datetime`)
 2. View error: `<leader>e` shows "undefined name 'datetime'"
 3. Quick fix: Press `<leader>ga` (Code Actions)
-4. Select "Import datetime" - import is added automatically (if Pyright offers it)
+4. **If multiple import options**: A code action menu appears with all import options
+   - Type the number of the desired import and press `<Enter>`
+   - Or click with mouse
+5. Select "Import datetime" - import is added automatically
 
 **Manual Import:**
 - Type `from datetime import datetime`, use completion (`<C-Space>`) for suggestions
+
+**Choosing Between Multiple Import Options:**
+
+When multiple import paths exist (e.g., `Account` model in multiple Django apps):
+- **Method 1 (Auto-import)**: `<leader>ai` shows a picker menu - select the desired import path
+- **Method 2 (Code Actions)**: `<leader>ga` shows numbered options - type the number to select
+- **Method 3 (Manual)**: Use `<leader>gd` to go to definition first, see the file path, then add import manually
 
 **Note:** When using `uv run nvim .`, the configuration automatically detects:
 - `uv` virtual environment and configures Pyright to use it

@@ -234,14 +234,6 @@ local function build_pyright_config()
         }
     }
     
-    -- Log detection results for debugging
-    if django_project then
-        vim.notify("Django project detected: " .. django_project.root, vim.log.levels.INFO)
-    end
-    if venv_path then
-        vim.notify("uv virtual environment detected: " .. venv_path, vim.log.levels.INFO)
-    end
-    
     return settings, pythonpath
 end
 
