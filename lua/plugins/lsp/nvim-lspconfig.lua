@@ -173,7 +173,9 @@ return {
         capabilities.textDocument.completion.completionItem.snippetSupport = true
 
         -- Load LSP configurations from lua/lsp/
-        local lsp_configs = vim.fn.globpath(vim.fn.stdpath('config') .. '/lua/lsp', '*.lua', false, true)
+        -- Cache config path to avoid repeated globpath calls
+        local lsp_config_dir = vim.fn.stdpath('config') .. '/lua/lsp'
+        local lsp_configs = vim.fn.globpath(lsp_config_dir, '*.lua', false, true)
         for _, lsp_config_file in ipairs(lsp_configs) do
             local server_name = vim.fn.fnamemodify(lsp_config_file, ':t:r')
             local server_opts = require('lsp.' .. server_name)
