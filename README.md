@@ -25,6 +25,7 @@ A modern Neovim configuration focused on Python/Django development with extensiv
     - [Advanced CodeCompanion Workflows](#advanced-codecompanion-workflows)
   - [API Testing](#4-api-testing-with-rest-client)
   - [Session Management](#5-session-management)
+  - [Debugging Workflows](#6-debugging-workflows)
 - [Python Development Examples](#python-development-examples)
 - [Plugin Shortcuts Cheatsheet](#plugin-shortcuts-cheatsheet)
 - [Customization](#customization)
@@ -497,6 +498,392 @@ This section explains how automatic session management works and how to manually
 7.  Press `<leader>ss`.
 8.  Select the session corresponding to `project_a` from the list.
 9.  Neovim will close `project_b`'s session and restore `project_a`'s session, including all its open buffers and window layouts.
+
+### 6. Debugging Workflows
+
+This section provides comprehensive step-by-step guides for debugging different types of Python code. For keyboard shortcuts, see [Plugin Shortcuts Cheatsheet - Debugging](#debugging).
+
+#### Debugging Regular Python Scripts
+
+**Use Case**: Debugging standalone Python files, scripts, or modules that aren't part of a Django project.
+
+**Example Script** (`calculate.py`):
+```python
+def calculate_total(items):
+    total = 0
+    for item in items:  # Set breakpoint here
+        total += item.get('price', 0)
+    return total
+
+if __name__ == '__main__':
+    items = [{'price': 10}, {'price': 20}, {'name': 'free'}]
+    result = calculate_total(items)
+    print(f"Total: {result}")
+```
+
+**Step-by-Step**:
+1. Open the Python file: `<leader>ff`, type filename
+2. Set breakpoint: Place cursor on the line where you want to pause (e.g., line 3), press `<leader>bb` (red dot appears)
+3. Start debugging: Press `<leader>dc` (Debug Control)
+4. Select configuration: Choose "🐍 PYTHON: Current File"
+5. When breakpoint hits:
+   - **Inspect variables**: Hover over `item` or press `<leader>di` on the variable
+   - **View all variables**: Press `<leader>d?` to see all variables in current scope
+   - **Step through code**: 
+     - `<leader>dj` (Step Over) - Execute current line, don't enter functions
+     - `<leader>dk` (Step Into) - Enter function calls
+     - `<leader>do` (Step Out) - Exit current function
+   - **Use REPL**: Press `<leader>dr` to open Python REPL, test expressions:
+     ```python
+     >>> item.get('price', 0)
+     10
+     >>> total
+     0
+     ```
+6. Continue execution: Press `<leader>dc` to continue to next breakpoint or end
+7. Terminate: Press `<leader>dt` when done
+
+**Tips**:
+- Set multiple breakpoints in different functions
+- Use conditional breakpoints: `<leader>bc`, enter condition like `len(items) > 5`
+- Use logpoints: `<leader>bl`, enter message like `Items: {items}, Total: {total}` to log without stopping
+
+#### Debugging Django Views
+
+**Use Case**: Debugging Django view functions, class-based views, or API endpoints.
+
+**Example View** (`views.py`):
+```python
+from django.http import JsonResponse
+from .models import Product
+
+def product_list(request):
+    category = request.GET.get('category')  # Set breakpoint here
+    products = Product.objects.filter(category=category) if category else Product.objects.all()
+    data = [{'id': p.id, 'name': p.name} for p in products]
+    return JsonResponse(data, safe=False)
+```
+
+**Step-by-Step**:
+1. Open the view file: `<leader>ff`, navigate to `views.py`
+2. Set breakpoint: Place cursor on the line you want to debug, press `<leader>bb`
+3. Start Django server in debug mode: Press `<leader>dc`, select "🌐 DJANGO: Run Server"
+4. Trigger the view: 
+   - Use REST client: Create `.rest` file, make GET request to the endpoint
+   - Or use browser: Navigate to the URL
+   - Or use curl/Postman
+5. When breakpoint hits:
+   - **Inspect request**: 
+     - Hover over `request` or press `<leader>di` on `request`
+     - Check `request.GET`: Use REPL (`<leader>dr`), type `request.GET.get('category')`
+     - Check `request.POST`: In REPL, type `request.POST`
+     - Check `request.user`: In REPL, type `request.user.username`
+   - **Inspect queryset**: In REPL, type `list(products.values('id', 'name'))`
+   - **Step through logic**: Use `<leader>dj` to step over, `<leader>dk` to step into
+   - **View call stack**: Press `<leader>df` to see how you got to this view
+6. Continue or terminate: Press `<leader>dc` to continue, `<leader>dt` to stop
+
+**Advanced**:
+- Debug class-based views: Set breakpoint in `get()`, `post()`, or other methods
+- Debug middleware: Set breakpoint in middleware `process_request()` method
+- Debug template context: Set breakpoint in view, inspect context variables before rendering
+
+#### Debugging Django Models
+
+**Use Case**: Debugging model methods, properties, signals, or model validation.
+
+**Example Model** (`models.py`):
+```python
+from django.db import models
+
+class Product(models.Model):
+    name = models.CharField(max_length=100)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    def get_discounted_price(self, discount=0.1):  # Set breakpoint here
+        return self.price * (1 - discount)
+    
+    @property
+    def is_expensive(self):  # Set breakpoint here
+        return self.price > 100
+```
+
+**Step-by-Step**:
+1. Open the model file: `<leader>ff`, navigate to `models.py`
+2. Set breakpoint in model method: Place cursor in the method, press `<leader>bb`
+3. Start Django shell in debug mode: Press `<leader>dc`, select "🔮 DJANGO: Shell Plus"
+4. In the shell, create or retrieve a model instance:
+   ```python
+   >>> product = Product.objects.first()
+   >>> product.get_discounted_price(0.2)  # This will hit the breakpoint
+   ```
+5. When breakpoint hits:
+   - **Inspect `self`**: Press `<leader>di` on `self` to see model instance
+   - **Check attributes**: In REPL, type `self.name`, `self.price`
+   - **Test method logic**: In REPL, test calculations
+6. For property debugging: Access the property in shell, breakpoint will trigger
+7. Continue or terminate: Press `<leader>dc` or `<leader>dt`
+
+**Debugging Signals**:
+1. Set breakpoint in signal handler
+2. Start Django shell: `<leader>dc` → "🔮 DJANGO: Shell Plus"
+3. Perform action that triggers signal (e.g., `Product.objects.create(...)`)
+4. Breakpoint will hit in signal handler
+
+#### Debugging Django Tests (Django Test Framework)
+
+**Use Case**: Debugging tests written with Django's test framework.
+
+**Example Test** (`test_models.py`):
+```python
+from django.test import TestCase
+from .models import Product
+
+class ProductModelTest(TestCase):
+    def setUp(self):
+        self.product = Product.objects.create(name="Test", price=50)
+    
+    def test_get_discounted_price(self):
+        result = self.product.get_discounted_price(0.2)  # Set breakpoint here
+        self.assertEqual(result, 40)
+```
+
+**Step-by-Step**:
+1. Open the test file: `<leader>ff`, navigate to test file
+2. Set breakpoint: Place cursor in the test method, press `<leader>bb`
+3. Start debugging: Press `<leader>dc`, select "🧪 DJANGO: Run Tests"
+4. Enter test path: 
+   - For specific test: `test_models.ProductModelTest.test_get_discounted_price`
+   - For all tests in file: `test_models`
+   - For all tests: Leave empty
+5. When breakpoint hits:
+   - **Inspect test data**: Press `<leader>di` on `self.product`
+   - **Check assertions**: In REPL, test `self.product.get_discounted_price(0.2)`
+   - **View test database**: In REPL, type `Product.objects.all()`
+   - **Step through test logic**: Use `<leader>dj` or `<leader>dk`
+6. Continue or terminate: Press `<leader>dc` to continue, `<leader>dt` to stop
+
+**Rerunning Last Test**:
+- Press `<leader>dl` to rerun the last debugged test command
+- Or use "⏮️ DJANGO: Rerun Last Command" from `<leader>dc`
+
+#### Debugging Pytest Tests
+
+**Use Case**: Debugging tests written with pytest.
+
+**Example Test** (`test_calculations.py`):
+```python
+import pytest
+from myapp.calculations import calculate_total
+
+def test_calculate_total():
+    items = [{'price': 10}, {'price': 20}]
+    result = calculate_total(items)  # Set breakpoint here
+    assert result == 30
+```
+
+**Step-by-Step**:
+1. Open the test file: `<leader>ff`, navigate to pytest test file
+2. Set breakpoint: Place cursor in test function, press `<leader>bb`
+3. Start debugging: Press `<leader>dc`, select one of:
+   - "🎯 PYTEST: Run All Tests" - Run all pytest tests
+   - "🔍 PYTEST: Current File" - Run tests in current file
+   - "🛠️ PYTEST: Custom Path/Args" - Run specific test with custom arguments
+4. If using custom path:
+   - Enter test path: `test_calculations.py::test_calculate_total`
+   - Enter extra args (optional): `-v -k "test_calculate"`
+5. When breakpoint hits:
+   - **Inspect test data**: Press `<leader>di` on variables
+   - **Test assertions**: In REPL, verify expected values
+   - **Step through**: Use `<leader>dj` or `<leader>dk`
+6. Continue or terminate: Press `<leader>dc` or `<leader>dt`
+
+**Pytest-Specific Tips**:
+- Use "🛠️ PYTEST: Custom Path/Args" for pytest-specific flags like `-k`, `-m`, `-x`
+- Debug fixtures: Set breakpoint in fixture function
+- Debug parametrized tests: Breakpoint will hit for each parameter combination
+
+#### Debugging Django Management Commands
+
+**Use Case**: Debugging custom Django management commands.
+
+**Example Command** (`management/commands/import_data.py`):
+```python
+from django.core.management.base import BaseCommand
+
+class Command(BaseCommand):
+    def handle(self, *args, **options):
+        filename = options['file']  # Set breakpoint here
+        data = self.load_data(filename)
+        self.process_data(data)
+    
+    def load_data(self, filename):
+        # Set breakpoint here
+        with open(filename) as f:
+            return json.load(f)
+```
+
+**Step-by-Step**:
+1. Open the management command file: `<leader>ff`, navigate to command file
+2. Set breakpoint: Place cursor in `handle()` method or other methods, press `<leader>bb`
+3. Start debugging: Press `<leader>dc`, select "⚙️ DJANGO: Custom Command"
+4. Enter command: Type the management command name and arguments:
+   - Example: `import_data --file data.json`
+   - Example: `migrate`
+   - Example: `createsuperuser`
+5. When breakpoint hits:
+   - **Inspect options**: Press `<leader>di` on `options` to see command arguments
+   - **Check args**: In REPL, type `args` to see positional arguments
+   - **Step through command logic**: Use `<leader>dj` or `<leader>dk`
+   - **Test data processing**: In REPL, test functions with sample data
+6. Continue or terminate: Press `<leader>dc` or `<leader>dt`
+
+**Rerunning Commands**:
+- After running a command, use "⏮️ DJANGO: Rerun Last Command" to quickly rerun it
+- The last command is stored automatically
+
+#### Debugging Django Shell
+
+**Use Case**: Interactive debugging and testing in Django shell context.
+
+**Step-by-Step**:
+1. Start Django shell in debug mode: Press `<leader>dc`, select "🔮 DJANGO: Shell Plus"
+2. Shell opens with debugger attached
+3. Set breakpoints in any file: Open file, place cursor, press `<leader>bb`
+4. Execute code in shell that triggers breakpoint:
+   ```python
+   >>> from myapp.models import Product
+   >>> product = Product.objects.first()
+   >>> product.get_discounted_price(0.2)  # If breakpoint in method
+   ```
+5. When breakpoint hits:
+   - **Inspect variables**: Use `<leader>di` or REPL
+   - **Test expressions**: Use REPL (`<leader>dr`) to test code
+   - **Step through**: Use `<leader>dj`, `<leader>dk`, `<leader>do`
+6. Continue or terminate: Press `<leader>dc` or `<leader>dt`
+
+**Tips**:
+- Use shell plus for better experience (includes IPython if available)
+- Test ORM queries before using in views
+- Debug model methods interactively
+
+#### Debugging API Endpoints (REST/DRF)
+
+**Use Case**: Debugging Django REST Framework views, serializers, or API endpoints.
+
+**Example API View** (`views.py`):
+```python
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .serializers import ProductSerializer
+
+@api_view(['GET', 'POST'])
+def product_list(request):
+    if request.method == 'POST':
+        serializer = ProductSerializer(data=request.data)  # Set breakpoint here
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+    else:
+        products = Product.objects.all()
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data)
+```
+
+**Step-by-Step**:
+1. Open the API view file: `<leader>ff`, navigate to view file
+2. Set breakpoint: Place cursor in view function, press `<leader>bb`
+3. Start debug server: Press `<leader>dc`, select "🌐 DJANGO: Run Server"
+4. Make API request:
+   - **Using REST client**: Create `.rest` file:
+     ```http
+     POST http://localhost:8000/api/products/
+     Content-Type: application/json
+     
+     {
+       "name": "New Product",
+       "price": 99.99
+     }
+     ```
+     Place cursor on `POST` line, press `<leader>rg`
+   - **Or use external tool**: Postman, curl, or browser
+5. When breakpoint hits:
+   - **Inspect request data**: 
+     - Press `<leader>di` on `request.data` to see POST/PUT data
+     - In REPL (`<leader>dr`), type `request.data` to see full payload
+   - **Check query params**: In REPL, type `request.query_params`
+   - **Inspect serializer**: Press `<leader>di` on `serializer`
+   - **Check validation errors**: In REPL, type `serializer.errors` if invalid
+   - **Step through logic**: Use `<leader>dj` or `<leader>dk`
+6. View response: Continue execution (`<leader>dc`), check REST client output
+7. Terminate: Press `<leader>dt` when done
+
+**Debugging Serializers**:
+1. Set breakpoint in serializer's `validate()` or `create()` method
+2. Make API request that triggers serializer
+3. Breakpoint will hit in serializer method
+
+#### Advanced Debugging Techniques
+
+**Conditional Breakpoints**:
+1. Place cursor where you want breakpoint
+2. Press `<leader>bc` (Conditional Breakpoint)
+3. Enter condition: 
+   - `user.is_staff == True`
+   - `len(items) > 10`
+   - `price > 100 and category == 'electronics'`
+4. Breakpoint only triggers when condition is true
+
+**Logpoints (Log Without Stopping)**:
+1. Place cursor where you want logging
+2. Press `<leader>bl` (Logpoint)
+3. Enter log message with variable placeholders:
+   - `User: {user.username}, Count: {count}`
+   - `Processing item {item.id}: {item.name}`
+4. Values are logged to console without stopping execution
+
+**Using the Debug REPL**:
+1. When breakpoint hits, press `<leader>dr` to open REPL
+2. Test expressions in current context:
+   ```python
+   >>> user.email
+   'test@example.com'
+   >>> Product.objects.filter(price__gte=100).count()
+   5
+   >>> calculate_discount(100, 0.2)
+   80.0
+   ```
+3. Modify variables (if mutable):
+   ```python
+   >>> items.append({'price': 30})
+   ```
+4. Test function calls before using in code
+
+**Variable Inspection**:
+- **Hover**: Hover over variable to see value and type
+- **Detailed info**: Press `<leader>di` on variable for full details
+- **All scopes**: Press `<leader>d?` to see all variables in current scope
+- **Call stack**: Press `<leader>df` to see function call hierarchy
+
+**Debug UI Panels**:
+When debugging starts, DAP UI automatically opens with:
+- **Left Panel**: Scopes, Stacks, Watches, Breakpoints
+- **Right Panel**: REPL and Console
+- Navigate panels: Use mouse or arrow keys
+- Close UI: Press `q` in panel or `<leader>dt` to terminate
+
+**Troubleshooting**:
+- **Breakpoint not hitting**: 
+  - Verify file is saved
+  - Check you're using correct debug configuration
+  - Ensure code path is actually executed
+- **Variables not showing**: 
+  - Use REPL to verify variable exists
+  - Check variable is in current scope
+- **Debugger not starting**:
+  - Verify `debugpy` is installed: `pip install debugpy`
+  - Check virtual environment is detected correctly
+  - Verify Python path in debug configuration
 
 ## Python Development Examples
 
