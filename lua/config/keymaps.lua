@@ -137,8 +137,34 @@ keymap.set('n', '<leader>gb', ":GitBlameToggle<CR>", { desc = "Toggle git blame"
 -- Fuzzy Finding (Telescope)
 -------------------------------------------------------------------------------
 
-keymap.set('n', '<leader>ff', require('telescope.builtin').find_files, { desc = "Find files" })
-keymap.set('n', '<leader>fg', require('telescope.builtin').live_grep, { desc = "Find text" })
+keymap.set('n', '<leader>ff', function()
+  -- Get absolute path of current working directory to ensure we're in the right place
+  local cwd = vim.fn.fnamemodify(vim.fn.getcwd(), ':p')
+  -- Remove trailing slash if present
+  cwd = cwd:gsub('/$', '')
+  
+  -- Debug: show current directory (can be removed later)
+  -- vim.notify("Searching in: " .. cwd, vim.log.levels.INFO)
+  
+  -- Ensure we're searching in the current directory
+  require('telescope.builtin').find_files({
+    cwd = cwd,
+    hidden = true,
+    no_ignore = false,  -- Respect .gitignore (set to true if .gitignore is too restrictive)
+    follow = true,
+  })
+end, { desc = "Find files" })
+keymap.set('n', '<leader>fg', function()
+  -- Get absolute path of current working directory
+  local cwd = vim.fn.fnamemodify(vim.fn.getcwd(), ':p')
+  -- Remove trailing slash if present
+  cwd = cwd:gsub('/$', '')
+  
+  -- Ensure live grep searches in the current directory
+  require('telescope.builtin').live_grep({
+    cwd = cwd,
+  })
+end, { desc = "Find text" })
 keymap.set('n', '<leader>fb', require('telescope.builtin').buffers, { desc = "Find buffers" })
 keymap.set('n', '<leader>fh', require('telescope.builtin').help_tags, { desc = "Find help" })
 keymap.set('n', '<leader>fr', '<cmd>Telescope oldfiles<CR>', { desc = "Find recent files" })
