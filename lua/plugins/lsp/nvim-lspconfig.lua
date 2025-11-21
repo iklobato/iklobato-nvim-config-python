@@ -177,10 +177,31 @@ return {
         for _, lsp_config_file in ipairs(lsp_configs) do
             local server_name = vim.fn.fnamemodify(lsp_config_file, ':t:r')
             local server_opts = require('lsp.' .. server_name)
-            require('lspconfig')[server_name].setup(vim.tbl_deep_extend('force', {
-                on_attach = on_attach,
-                capabilities = capabilities,
-            }, server_opts))
+            
+            -- For Pyright, set PYTHONPATH environment variable from detected configuration
+            if server_name == 'pyright' then
+                -- Merge with existing config
+                local merged_opts = vim.tbl_deep_extend('force', {
+                    on_attach = on_attach,
+                    capabilities = capabilities,
+                }, server_opts)
+                
+                -- Set environment for Pyright process (use pythonpath from pyright.lua if available)
+                merged_opts.env = merged_opts.env or {}
+                if _G._pyright_pythonpath then
+                    merged_opts.env.PYTHONPATH = _G._pyright_pythonpath
+                else
+                    -- Fallback: use current working directory
+                    merged_opts.env.PYTHONPATH = vim.fn.getcwd()
+                end
+                
+                require('lspconfig')[server_name].setup(merged_opts)
+            else
+                require('lspconfig')[server_name].setup(vim.tbl_deep_extend('force', {
+                    on_attach = on_attach,
+                    capabilities = capabilities,
+                }, server_opts))
+            end
         end
     end
 }
