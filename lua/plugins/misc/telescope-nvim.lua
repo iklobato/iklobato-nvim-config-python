@@ -20,17 +20,8 @@ end
 
 return {
   'nvim-telescope/telescope.nvim',
-  keys = {
-    { '<leader>ff', desc = 'Find files' },
-    { '<leader>fg', desc = 'Live grep' },
-    { '<leader>fb', desc = 'Find buffers' },
-    { '<leader>fh', desc = 'Find help' },
-    { '<leader>fr', desc = 'Find recent files' },
-    { '<leader>fs', desc = 'Find in buffer' },
-    { '<leader>fo', desc = 'Find symbols' },
-    { '<leader>fi', desc = 'Find incoming calls' },
-    { '<leader>fm', desc = 'Find methods' },
-  },
+  -- Keys are defined in lua/config/keymaps.lua, so we don't need lazy-loading here
+  -- This ensures telescope is always available when keymaps are called
   dependencies = {
     { 'nvim-lua/plenary.nvim' },
     {

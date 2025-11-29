@@ -15,8 +15,7 @@ return {
     config = function()
       -- Database connections
       vim.g.dbs = {
-        default_postgres = 'postgresql://postgres:postgres@localhost:5432/wanna',
-        default_ew = 'postgresql://postgres:postgres@localhost:5432/ew'
+        default = 'postgresql://postgres:postgres@localhost:5432/postgres'
       }
 
       -- Core Settings
@@ -25,7 +24,7 @@ return {
       
       -- Window Management Settings
       vim.g.db_ui_win_position = 'right'
-      vim.g.db_ui_winwidth = math.floor(vim.o.columns * 0.2) -- 20% of screen width
+      vim.g.db_ui_winwidth = math.floor(vim.o.columns * 0.3)
       vim.g.db_ui_show_help = true
       
       -- UI Settings
@@ -66,34 +65,34 @@ return {
       vim.g.db_ui_auto_refresh_tables = true
       vim.g.db_ui_disable_info_notifications = 0
 
-      -- Modified query window opening function to preserve existing windows
+      -- Modified query window opening function to open output below query editor
       local function open_query_vsplit()
-        -- Store current window
+        -- Store current window (query editor)
         local current_win = vim.api.nvim_get_current_win()
         
-        -- Find the rightmost window
+        -- Find the bottommost window (lowest on screen)
         local wins = vim.api.nvim_list_wins()
-        local rightmost_win = current_win
-        local max_x = 0
+        local bottommost_win = current_win
+        local max_y = 0
         
         for _, win in ipairs(wins) do
           local win_config = vim.api.nvim_win_get_config(win)
           local win_pos = vim.api.nvim_win_get_position(win)
-          if win_pos[2] > max_x and win_config.relative == '' then
-            max_x = win_pos[2]
-            rightmost_win = win
+          if win_pos[1] > max_y and win_config.relative == '' then
+            max_y = win_pos[1]
+            bottommost_win = win
           end
         end
         
-        -- Focus rightmost window and split
-        vim.api.nvim_set_current_win(rightmost_win)
-        vim.cmd('vsplit')
+        -- Focus bottommost window and split horizontally (below)
+        vim.api.nvim_set_current_win(bottommost_win)
+        vim.cmd('split')
         
-        -- Configure the new window
+        -- Configure the new window (output window) - set height to 50% of screen
         local new_win = vim.api.nvim_get_current_win()
-        vim.cmd('vertical resize ' .. math.floor(vim.o.columns * 0.6))
+        vim.cmd('resize ' .. math.floor(vim.o.lines * 0.5))
         
-        -- Return to original window
+        -- Return to original window (query editor)
         vim.api.nvim_set_current_win(current_win)
         
         return true
@@ -131,7 +130,8 @@ return {
             local buf = vim.api.nvim_win_get_buf(win)
             local buf_name = vim.api.nvim_buf_get_name(buf)
             if buf_name:match("DBOut$") then
-              vim.api.nvim_win_set_width(win, math.floor(vim.o.columns * 0.6))
+              -- Set height for horizontal split (output below query editor)
+              vim.api.nvim_win_set_height(win, math.floor(vim.o.lines * 0.5))
             end
           end
         end)

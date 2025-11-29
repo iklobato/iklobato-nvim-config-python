@@ -143,9 +143,6 @@ keymap.set('n', '<leader>ff', function()
   -- Remove trailing slash if present
   cwd = cwd:gsub('/$', '')
   
-  -- Debug: show current directory (can be removed later)
-  -- vim.notify("Searching in: " .. cwd, vim.log.levels.INFO)
-  
   -- Ensure we're searching in the current directory
   require('telescope.builtin').find_files({
     cwd = cwd,
