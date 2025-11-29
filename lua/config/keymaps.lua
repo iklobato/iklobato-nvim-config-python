@@ -40,6 +40,32 @@ keymap.set('n', '<leader>bd', ':bdelete<CR>', { desc = "Delete buffer" })
 -- Navigation and Movement
 -------------------------------------------------------------------------------
 
+-- Function to center cursor both vertically and horizontally
+local function center_cursor()
+  -- Center vertically (middle of screen height)
+  vim.cmd('normal! zz')
+  -- Center horizontally (middle of screen width)
+  local win_width = vim.api.nvim_win_get_width(0)
+  local middle_col = math.floor(win_width / 2)
+  local tolerance = 2  -- Allow 2 columns of tolerance
+  
+  -- Iteratively scroll until cursor is centered (within tolerance)
+  for _ = 1, 10 do  -- Max 10 iterations to avoid infinite loop
+    local screen_col = vim.fn.wincol()  -- Current screen column of cursor
+    local diff = screen_col - middle_col
+    
+    if math.abs(diff) <= tolerance then
+      break  -- Close enough to center
+    elseif diff > 0 then
+      -- Cursor is to the right of center, scroll right
+      vim.cmd('normal! zl')
+    else
+      -- Cursor is to the left of center, scroll left
+      vim.cmd('normal! zh')
+    end
+  end
+end
+
 -- Cursor Centering (for long-distance movements)
 keymap.set('n', '<C-d>', '<C-d>zz', { desc = "Page down and center" })
 keymap.set('n', '<C-u>', '<C-u>zz', { desc = "Page up and center" })
@@ -52,6 +78,42 @@ keymap.set('n', '}', '}zz', { desc = "Next paragraph and center" })
 -- Method Navigation
 keymap.set('n', ']m', ']mzz', { desc = "Next method and center" })
 keymap.set('n', '[m', '[mzz', { desc = "Previous method and center" })
+
+-- Basic movement with full centering (vertical and horizontal)
+keymap.set('n', 'h', function()
+  vim.cmd('normal! h')
+  center_cursor()
+end, { desc = "Move left and center", noremap = true })
+keymap.set('n', 'j', function()
+  vim.cmd('normal! j')
+  center_cursor()
+end, { desc = "Move down and center", noremap = true })
+keymap.set('n', 'k', function()
+  vim.cmd('normal! k')
+  center_cursor()
+end, { desc = "Move up and center", noremap = true })
+keymap.set('n', 'l', function()
+  vim.cmd('normal! l')
+  center_cursor()
+end, { desc = "Move right and center", noremap = true })
+
+-- Arrow keys with full centering (vertical and horizontal)
+keymap.set('n', '<Left>', function()
+  vim.cmd('normal! h')
+  center_cursor()
+end, { desc = "Move left and center", noremap = true })
+keymap.set('n', '<Down>', function()
+  vim.cmd('normal! j')
+  center_cursor()
+end, { desc = "Move down and center", noremap = true })
+keymap.set('n', '<Up>', function()
+  vim.cmd('normal! k')
+  center_cursor()
+end, { desc = "Move up and center", noremap = true })
+keymap.set('n', '<Right>', function()
+  vim.cmd('normal! l')
+  center_cursor()
+end, { desc = "Move right and center", noremap = true })
 
 -- External Navigation
 keymap.set("n", "gx", ":!open <c-r><c-a><CR>", { desc = "Open URL under cursor" })
@@ -242,7 +304,42 @@ keymap.set('t', '<Esc>', '<C-\\><C-n>', { desc = "Exit terminal mode" })
 -- Database Operations (vim-dadbod)
 -------------------------------------------------------------------------------
 
-keymap.set('n', '<leader>db', '<cmd>DBUIToggle<CR>', { desc = "Toggle DB UI" })
+keymap.set('n', '<leader>db', function()
+  -- Check if DBUI is currently open by looking for the buffer in windows
+  local dbui_open = false
+  -- First check visible windows
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    local buf = vim.api.nvim_win_get_buf(win)
+    local buf_name = vim.api.nvim_buf_get_name(buf)
+    local filetype = vim.api.nvim_buf_get_option(buf, 'filetype')
+    if buf_name:match("dbui://") or buf_name:match("DBUI") or filetype == "dbui" then
+      dbui_open = true
+      break
+    end
+  end
+  -- Also check all buffers if not found in windows
+  if not dbui_open then
+    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+      local buf_name = vim.api.nvim_buf_get_name(buf)
+      local filetype = vim.api.nvim_buf_get_option(buf, 'filetype')
+      if buf_name:match("dbui://") or buf_name:match("DBUI") or filetype == "dbui" then
+        dbui_open = true
+        break
+      end
+    end
+  end
+  
+  -- Toggle the state
+  if dbui_open then
+    -- Currently open, so close it
+    vim.g.db_ui_should_be_open = false
+    vim.cmd('DBUIToggle')
+  else
+    -- Currently closed, so open it
+    vim.g.db_ui_should_be_open = true
+    vim.cmd('DBUI')
+  end
+end, { desc = "Toggle DB UI" })
 keymap.set('n', '<leader>dq', '<cmd>DBUIExecuteQuery<CR>', { desc = "Execute query" })
 keymap.set('v', '<leader>dq', ':DBUIExecuteQuery<CR>', { desc = "Execute selected query" })
 

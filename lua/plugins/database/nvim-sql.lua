@@ -13,6 +13,38 @@ return {
       'DBUIFindBuffer',
     },
     config = function()
+      -- State tracking for DBUI drawer
+      vim.g.db_ui_should_be_open = false
+      
+      -- Function to check if DBUI buffer exists and is visible
+      local function dbui_buffer_exists()
+        -- Check if any window shows a DBUI buffer
+        for _, win in ipairs(vim.api.nvim_list_wins()) do
+          local buf = vim.api.nvim_win_get_buf(win)
+          local buf_name = vim.api.nvim_buf_get_name(buf)
+          local filetype = vim.api.nvim_buf_get_option(buf, 'filetype')
+          if buf_name:match("dbui://") or buf_name:match("DBUI") or filetype == "dbui" then
+            return true
+          end
+        end
+        -- Also check buffers (in case window check missed it)
+        for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+          local buf_name = vim.api.nvim_buf_get_name(buf)
+          local filetype = vim.api.nvim_buf_get_option(buf, 'filetype')
+          if buf_name:match("dbui://") or buf_name:match("DBUI") or filetype == "dbui" then
+            return true
+          end
+        end
+        return false
+      end
+      
+      -- Function to ensure drawer stays open
+      local function ensure_drawer_open()
+        if vim.g.db_ui_should_be_open and not dbui_buffer_exists() then
+          vim.cmd('DBUI')
+        end
+      end
+      
       -- Database connections
       vim.g.dbs = {
         default = 'postgresql://postgres:postgres@localhost:5432/postgres'
@@ -168,8 +200,46 @@ return {
       autocmd('User', {
         pattern = 'DBUIOpened',
         callback = function()
+          vim.g.db_ui_should_be_open = true
           vim.cmd('DBUIRefreshTable')
           update_window_dimensions()
+        end
+      })
+      
+      -- DBUI closed handler (if it exists)
+      autocmd('User', {
+        pattern = 'DBUIClosed',
+        callback = function()
+          -- Only update state if we're not explicitly toggling
+          -- The toggle keymap will handle state updates
+        end
+      })
+      
+      -- Keep drawer open across buffer/window/tab changes
+      autocmd('BufEnter', {
+        pattern = '*',
+        callback = function()
+          if vim.g.db_ui_should_be_open then
+            vim.defer_fn(ensure_drawer_open, 50)
+          end
+        end
+      })
+      
+      autocmd('WinEnter', {
+        pattern = '*',
+        callback = function()
+          if vim.g.db_ui_should_be_open then
+            vim.defer_fn(ensure_drawer_open, 50)
+          end
+        end
+      })
+      
+      autocmd('TabEnter', {
+        pattern = '*',
+        callback = function()
+          if vim.g.db_ui_should_be_open then
+            vim.defer_fn(ensure_drawer_open, 50)
+          end
         end
       })
     end,
