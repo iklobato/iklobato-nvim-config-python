@@ -35,6 +35,10 @@ return {
                 -- Ensure existing formatters aren't overridden
                 lua = { "stylua" },
                 python = { "ruff", "black" },
+                
+                -- Terraform formatters
+                terraform = { "terraform_fmt" },
+                hcl = { "terraform_fmt" },
             },
             
             -- Format on save
@@ -58,6 +62,12 @@ return {
                     condition = function(ctx)
                         -- Only format if stylua is available
                         return vim.fn.executable("stylua") == 1
+                    end,
+                },
+                terraform_fmt = {
+                    condition = function(ctx)
+                        -- Only format if terraform is available
+                        return vim.fn.executable("terraform") == 1
                     end,
                 },
             },

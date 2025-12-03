@@ -12,6 +12,8 @@ return {
       -- Add other file types as needed
       -- python = { "pylint" },
       -- javascript = { "eslint" },
+      terraform = { "tflint" },
+      hcl = { "tflint" },
     }
 
     -- Selene configuration for Lua
