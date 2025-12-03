@@ -20,7 +20,8 @@ return {
       'markdown',
       'json',
       'yaml',
-      'bash'
+      'bash',
+      'hcl'
     },
   },
   config = function (_, opts)
