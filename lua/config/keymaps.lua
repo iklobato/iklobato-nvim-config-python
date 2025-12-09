@@ -123,24 +123,108 @@ keymap.set("n", "gx", ":!open <c-r><c-a><CR>", { desc = "Open URL under cursor" 
 -------------------------------------------------------------------------------
 
 -- LSP Controls
-keymap.set('n', '<leader>gd', function() vim.lsp.buf.definition() end, { desc = "Go to definition" })
-keymap.set('n', '<leader>gD', vim.lsp.buf.declaration, { desc = "Go to declaration" })
-keymap.set('n', '<leader>gi', vim.lsp.buf.implementation, { desc = "Go to implementation" })
-keymap.set('n', '<leader>gr', require('telescope.builtin').lsp_references, { desc = "Find references" })
-keymap.set('n', '<leader>gt', vim.lsp.buf.type_definition, { desc = "Go to type definition" })
+keymap.set('n', '<leader>gd', function()
+  local ok, builtin = pcall(require, 'telescope.builtin')
+  if ok and builtin.lsp_definitions then
+    builtin.lsp_definitions()
+  else
+    vim.lsp.buf.definition()
+  end
+end, { desc = "Go to definition" })
+keymap.set('n', '<leader>gD', function()
+  local ok, builtin = pcall(require, 'telescope.builtin')
+  if ok and builtin.lsp_declarations then
+    builtin.lsp_declarations()
+  else
+    vim.lsp.buf.declaration()
+  end
+end, { desc = "Go to declaration" })
+keymap.set('n', '<leader>gi', function()
+  local ok, builtin = pcall(require, 'telescope.builtin')
+  if ok and builtin.lsp_implementations then
+    builtin.lsp_implementations()
+  else
+    vim.lsp.buf.implementation()
+  end
+end, { desc = "Go to implementation" })
+keymap.set('n', '<leader>gr', function()
+  local ok, builtin = pcall(require, 'telescope.builtin')
+  if ok and builtin.lsp_references then
+    builtin.lsp_references()
+  else
+    vim.lsp.buf.references()
+  end
+end, { desc = "Find references" })
+keymap.set('n', '<leader>gt', function()
+  local ok, builtin = pcall(require, 'telescope.builtin')
+  if ok and builtin.lsp_type_definitions then
+    builtin.lsp_type_definitions()
+  else
+    vim.lsp.buf.type_definition()
+  end
+end, { desc = "Go to type definition" })
 keymap.set('n', '<leader>gg', vim.lsp.buf.hover, { desc = "Show hover info" })
 keymap.set('n', '<leader>gs', vim.lsp.buf.signature_help, { desc = "Show signature help" })
 keymap.set('n', '<leader>lr', vim.lsp.buf.rename, { desc = "Rename symbol" })
-keymap.set('n', '<leader>ga', vim.lsp.buf.code_action, { desc = "Code actions" })
+keymap.set('n', '<leader>ga', function()
+  local ok, builtin = pcall(require, 'telescope.builtin')
+  if ok and builtin.lsp_code_actions then
+    builtin.lsp_code_actions()
+  else
+    vim.lsp.buf.code_action()
+  end
+end, { desc = "Code actions" })
 -- Format keybinding is handled by conform.nvim (<leader>f)
 
 -- Diagnostics
-keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = "Show diagnostic" })
-keymap.set('n', '<leader>gn', vim.diagnostic.goto_next, { desc = "Next diagnostic" })
-keymap.set('n', '<leader>gp', vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
-keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = "Next diagnostic" })
-keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
-keymap.set('n', '<leader>q', function() vim.diagnostic.setloclist({ wrap = true }) end, { desc = "Diagnostics to location list" })
+keymap.set('n', '<leader>e', function()
+  local ok, builtin = pcall(require, 'telescope.builtin')
+  if ok and builtin.diagnostics then
+    builtin.diagnostics()
+  else
+    vim.diagnostic.open_float()
+  end
+end, { desc = "Show diagnostics" })
+keymap.set('n', '<leader>gn', function()
+  local ok, builtin = pcall(require, 'telescope.builtin')
+  if ok and builtin.diagnostics then
+    builtin.diagnostics()
+  else
+    vim.diagnostic.goto_next()
+  end
+end, { desc = "Show diagnostics" })
+keymap.set('n', '<leader>gp', function()
+  local ok, builtin = pcall(require, 'telescope.builtin')
+  if ok and builtin.diagnostics then
+    builtin.diagnostics()
+  else
+    vim.diagnostic.goto_prev()
+  end
+end, { desc = "Show diagnostics" })
+keymap.set('n', ']d', function()
+  local ok, builtin = pcall(require, 'telescope.builtin')
+  if ok and builtin.diagnostics then
+    builtin.diagnostics()
+  else
+    vim.diagnostic.goto_next()
+  end
+end, { desc = "Show diagnostics" })
+keymap.set('n', '[d', function()
+  local ok, builtin = pcall(require, 'telescope.builtin')
+  if ok and builtin.diagnostics then
+    builtin.diagnostics()
+  else
+    vim.diagnostic.goto_prev()
+  end
+end, { desc = "Show diagnostics" })
+keymap.set('n', '<leader>q', function()
+  local ok, builtin = pcall(require, 'telescope.builtin')
+  if ok and builtin.diagnostics then
+    builtin.diagnostics()
+  else
+    vim.diagnostic.setloclist({ wrap = true })
+  end
+end, { desc = "Show diagnostics" })
 
 -- Code Symbols
 keymap.set('n', '<leader>tr', vim.lsp.buf.document_symbol, { desc = "Document symbols" })
