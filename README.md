@@ -58,9 +58,13 @@ git clone --depth=1 https://github.com/iklobato/iklobato-nvim-config-python.git 
 ```
 
 The installation script will:
+- **Automatically detect your OS** (macOS or Ubuntu/Debian)
+- **Install all required dependencies** (Neovim 0.10.0+, Git, Node.js, Ripgrep, Python 3)
 - Prompt you to backup existing Neovim config (if present)
 - Clone the repository and install configuration files
 - Set up the configuration directory
+
+**Supported OS:** macOS (via Homebrew) and Ubuntu/Debian (via apt-get)
 
 **Note:** Plugins will be automatically installed by lazy.nvim when you first launch Neovim. No manual plugin installation needed!
 
@@ -69,10 +73,11 @@ The installation script will:
 If you prefer to install manually:
 
 1. Ensure you have the necessary dependencies:
-   - Neovim 0.9+ (https://github.com/neovim/neovim/releases)
+   - Neovim 0.10.0+ (https://github.com/neovim/neovim/releases) - Required for vim.loader support
    - Node.js and npm (for LSP servers)
    - Git
    - Ripgrep (for Telescope searching)
+   - Python 3 (for Pyright and Ruff LSP servers)
 
 2. Clone this configuration to your Neovim config directory:
    ```bash
