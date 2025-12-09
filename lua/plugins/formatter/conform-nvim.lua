@@ -1,20 +1,11 @@
 return {
     "stevearc/conform.nvim",
-    event = { "BufWritePre" },
+    -- event removed - format_on_save is disabled
     cmd = { "ConformInfo" },
     dependencies = {
         "williamboman/mason.nvim", -- Ensure Mason is available
     },
-    keys = {
-        {
-            "<leader>f",
-            function()
-                require("conform").format({ async = true, lsp_fallback = true })
-            end,
-            desc = "Format buffer",
-            mode = { "n", "v" }
-        },
-    },
+    -- Keybindings removed - formatting tools are available but not bound to shortcuts
     config = function()
         require("conform").setup({
             -- Define formatters
@@ -41,12 +32,8 @@ return {
                 hcl = { "terraform_fmt" },
             },
             
-            -- Format on save
-            format_on_save = {
-                -- I recommend setting up format on save with a timeout
-                timeout_ms = 500,
-                lsp_fallback = true,
-            },
+            -- Format on save disabled
+            format_on_save = false,
             
             -- Customize formatters
             formatters = {
