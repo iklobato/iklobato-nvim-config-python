@@ -86,9 +86,20 @@ return {
             
             post_restore_cmds = {
                 function()
-                    pcall(function()
-                        require('nvim-tree.api').tree.open()
-                    end)
+                    -- Wait for tabs and windows to restore before opening NvimTree
+                    -- Session restoration happens asynchronously, so we need to delay
+                    vim.defer_fn(function()
+                        -- Verify tabs are restored before opening NvimTree
+                        local tab_count = vim.api.nvim_list_tabpages()
+                        if tab_count > 0 then
+                            -- Wait a bit more to ensure all windows in all tabs are restored
+                            vim.defer_fn(function()
+                                pcall(function()
+                                    require('nvim-tree.api').tree.open()
+                                end)
+                            end, 200)
+                        end
+                    end, 300)
                 end,
             },
 
@@ -132,31 +143,47 @@ return {
         -- This fixes the issue where only one window is shown after restore
         -- Note: We do NOT equalize window sizes here to preserve saved window layouts
         local function ensure_windows_visible()
-            -- Open NvimTree if it's not already open
-            pcall(function()
-                local nvim_tree = require('nvim-tree.api')
-                -- Check if NvimTree is open by looking for its buffer
-                local tree_open = false
-                for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-                    local buf_name = vim.api.nvim_buf_get_name(buf)
-                    if buf_name:match("NvimTree") then
-                        tree_open = true
-                        break
+            -- Verify tabs are restored before proceeding
+            local tab_count = vim.api.nvim_list_tabpages()
+            if tab_count == 0 then
+                -- No tabs yet, wait longer for session restoration
+                vim.defer_fn(ensure_windows_visible, 300)
+                return
+            end
+            
+            -- Ensure all windows in all tabs are visible
+            for _, tab in ipairs(vim.api.nvim_list_tabpages()) do
+                vim.api.nvim_set_current_tabpage(tab)
+                local wins = vim.api.nvim_tabpage_list_wins(tab)
+                for _, win in ipairs(wins) do
+                    -- Ensure window is visible
+                    if vim.api.nvim_win_is_valid(win) then
+                        vim.api.nvim_set_current_win(win)
                     end
                 end
-                if not tree_open then
-                    nvim_tree.tree.open()
-                end
-            end)
+            end
             
-            -- Force redraw to ensure all windows are displayed
-            -- This ensures windows restored from session are visible
+            -- Open NvimTree if it's not already open (but only after tabs are restored)
             vim.defer_fn(function()
+                pcall(function()
+                    local nvim_tree = require('nvim-tree.api')
+                    -- Check if NvimTree is open by looking for its buffer
+                    local tree_open = false
+                    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+                        local buf_name = vim.api.nvim_buf_get_name(buf)
+                        if buf_name:match("NvimTree") then
+                            tree_open = true
+                            break
+                        end
+                    end
+                    if not tree_open then
+                        nvim_tree.tree.open()
+                    end
+                end)
+                
+                -- Force redraw to ensure all windows are displayed
                 vim.cmd("redraw!")
-                -- Verify all windows are properly displayed
-                -- Session restoration should preserve window sizes and positions
-                -- so we don't modify them here
-            end, 100)
+            end, 200)
         end
 
         -- Try multiple event patterns to catch session restoration
@@ -173,7 +200,17 @@ return {
             callback = function()
                 -- Defer window visibility check to reduce startup blocking
                 -- Session restoration happens asynchronously, so we wait longer
-                vim.defer_fn(ensure_windows_visible, 300)
+                -- Increased delay to ensure tabs and windows are fully restored
+                vim.defer_fn(function()
+                    -- Verify tabs exist before ensuring windows are visible
+                    local tab_count = vim.api.nvim_list_tabpages()
+                    if tab_count > 0 then
+                        ensure_windows_visible()
+                    else
+                        -- If no tabs yet, wait a bit more and try again
+                        vim.defer_fn(ensure_windows_visible, 500)
+                    end
+                end, 600)
             end,
         })
     end
