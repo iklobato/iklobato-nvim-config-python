@@ -43,6 +43,31 @@ A modern Neovim configuration focused on Python/Django development with extensiv
 
 ## Installation
 
+### Quick Install (One-liner)
+
+Install this Neovim configuration with a single command:
+
+```bash
+bash <(curl -sSL https://raw.githubusercontent.com/iklobato/iklobato-nvim-config-python/main/install.sh)
+```
+
+Or using git clone:
+
+```bash
+git clone --depth=1 https://github.com/iklobato/iklobato-nvim-config-python.git /tmp/nvim-config-install && bash /tmp/nvim-config-install/install.sh && rm -rf /tmp/nvim-config-install
+```
+
+The installation script will:
+- Prompt you to backup existing Neovim config (if present)
+- Clone the repository and install configuration files
+- Set up the configuration directory
+
+**Note:** Plugins will be automatically installed by lazy.nvim when you first launch Neovim. No manual plugin installation needed!
+
+### Manual Installation
+
+If you prefer to install manually:
+
 1. Ensure you have the necessary dependencies:
    - Neovim 0.9+ (https://github.com/neovim/neovim/releases)
    - Node.js and npm (for LSP servers)
@@ -51,16 +76,10 @@ A modern Neovim configuration focused on Python/Django development with extensiv
 
 2. Clone this configuration to your Neovim config directory:
    ```bash
-   git clone https://github.com/yourusername/nvim-config.git ~/.config/nvim
+   git clone https://github.com/iklobato/iklobato-nvim-config-python.git ~/.config/nvim
    ```
 
-3. Run the installation script (if provided):
-   ```bash
-   cd ~/.config/nvim
-   ./install.sh
-   ```
-
-4. Launch Neovim, and plugins will be automatically installed.
+3. Launch Neovim, and plugins will be automatically installed by lazy.nvim.
 
 ## Configuration Structure
 
