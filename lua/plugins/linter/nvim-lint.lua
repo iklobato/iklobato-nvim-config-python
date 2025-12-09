@@ -46,35 +46,8 @@ return {
       end,
     }
 
-    -- Auto-lint before save (runs before formatting) and when opening files
-    local lint_augroup = vim.api.nvim_create_augroup("lint", { clear = true })
-
-    vim.api.nvim_create_autocmd({ "BufEnter", "BufWritePre", "InsertLeave" }, {
-      group = lint_augroup,
-      callback = function()
-        lint.try_lint()
-      end,
-    })
-
-    -- Keybindings for manual linting and fixing
-    vim.keymap.set("n", "<leader>ll", function()
-      lint.try_lint()
-    end, { desc = "Lint buffer" })
-
-    -- Auto-fix using selene (if available)
-    vim.keymap.set("n", "<leader>lf", function()
-      local bufnr = vim.api.nvim_get_current_buf()
-      local filetype = vim.bo[bufnr].filetype
-
-      if filetype == "lua" then
-        -- Try to auto-fix with selene
-        vim.cmd("silent !selene --fix " .. vim.fn.shellescape(vim.api.nvim_buf_get_name(bufnr)))
-        vim.cmd("edit") -- Reload the file
-        lint.try_lint() -- Re-lint after fixing
-      else
-        vim.notify("Auto-fix not available for filetype: " .. filetype, vim.log.levels.WARN)
-      end
-    end, { desc = "Auto-fix linting issues" })
+    -- Auto-lint disabled - removed automatic linting on BufEnter, BufWritePre, and InsertLeave
+    -- Keybindings removed - linting tools are available but not bound to shortcuts
   end,
 }
 
