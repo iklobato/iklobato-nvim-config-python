@@ -101,3 +101,4 @@ echo "  2. Plugins will be automatically installed by lazy.nvim"
 echo "  3. Wait for the plugin installation to complete"
 echo ""
 print_info "Configuration location: $NVIM_CONFIG_DIR"
+

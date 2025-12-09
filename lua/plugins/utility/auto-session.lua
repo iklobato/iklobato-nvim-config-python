@@ -94,9 +94,9 @@ return {
                         if tab_count > 0 then
                             -- Wait a bit more to ensure all windows in all tabs are restored
                             vim.defer_fn(function()
-                                pcall(function()
-                                    require('nvim-tree.api').tree.open()
-                                end)
+                    pcall(function()
+                        require('nvim-tree.api').tree.open()
+                    end)
                             end, 200)
                         end
                     end, 300)
@@ -165,23 +165,23 @@ return {
             
             -- Open NvimTree if it's not already open (but only after tabs are restored)
             vim.defer_fn(function()
-                pcall(function()
-                    local nvim_tree = require('nvim-tree.api')
-                    -- Check if NvimTree is open by looking for its buffer
-                    local tree_open = false
-                    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-                        local buf_name = vim.api.nvim_buf_get_name(buf)
-                        if buf_name:match("NvimTree") then
-                            tree_open = true
-                            break
-                        end
+            pcall(function()
+                local nvim_tree = require('nvim-tree.api')
+                -- Check if NvimTree is open by looking for its buffer
+                local tree_open = false
+                for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+                    local buf_name = vim.api.nvim_buf_get_name(buf)
+                    if buf_name:match("NvimTree") then
+                        tree_open = true
+                        break
                     end
-                    if not tree_open then
-                        nvim_tree.tree.open()
-                    end
-                end)
-                
-                -- Force redraw to ensure all windows are displayed
+                end
+                if not tree_open then
+                    nvim_tree.tree.open()
+                end
+            end)
+            
+            -- Force redraw to ensure all windows are displayed
                 vim.cmd("redraw!")
             end, 200)
         end
