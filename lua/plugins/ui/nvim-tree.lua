@@ -12,6 +12,9 @@ return {
     'nvim-tree/nvim-web-devicons', -- Fancy icon support
   },
   opts = {
+    view = {
+      width = 50,  -- Set width to 40 columns (default is 30)
+    },
     actions = {
       open_file = {
         window_picker = {
