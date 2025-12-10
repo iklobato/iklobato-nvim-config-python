@@ -86,6 +86,53 @@ If you prefer to install manually:
 
 3. Launch Neovim, and plugins will be automatically installed by lazy.nvim.
 
+### Font Configuration (Required for Icons)
+
+This configuration uses Nerd Fonts to display file icons in the file explorer, status line, and other UI elements.
+
+**Automatic Installation:**
+The install script automatically installs Meslo LG Nerd Font on Ubuntu. However, you must configure your terminal to use it.
+
+**Manual Font Installation (Ubuntu):**
+```bash
+# Create fonts directory
+mkdir -p ~/.local/share/fonts
+cd ~/.local/share/fonts
+
+# Download Meslo LG Nerd Font
+curl -L https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Meslo.zip -o Meslo.zip
+unzip Meslo.zip
+rm Meslo.zip
+
+# Update font cache
+fc-cache -fv
+```
+
+**Configure Terminal:**
+
+1. **GNOME Terminal:** Edit > Preferences > Text > Custom font > Select "MesloLGS Nerd Font"
+2. **VS Code Terminal:** Add to `settings.json`:
+   ```json
+   {
+     "terminal.integrated.fontFamily": "MesloLGS Nerd Font"
+   }
+   ```
+3. **Other terminals:** Check terminal settings for font configuration
+
+**Verify Installation:**
+```bash
+# Check if font is installed
+fc-list | grep -i "meslo.*nerd"
+
+# Restart terminal and Neovim after font change
+```
+
+**Troubleshooting:**
+
+- If icons show as Chinese/Korean characters: Terminal font is not set to Nerd Font
+- If icons show as boxes: Font cache needs refresh (`fc-cache -fv`)
+- If no icons appear: Check that `nvim-web-devicons` plugin is loaded
+
 ## Configuration Structure
 
 - `init.lua`: Main configuration entry point, loads core settings and plugins.
