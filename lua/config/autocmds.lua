@@ -1,3 +1,4 @@
+---@diagnostic disable: undefined-global
 -- Autocommands go here
 
 -- Open nvim-tree when opening a directory

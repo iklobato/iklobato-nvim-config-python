@@ -1,15 +1,16 @@
+---@diagnostic disable: undefined-global
 --[[
   Neovim Keymaps Configuration
 
   This file contains all custom keybindings organized by category.
   Most mappings use <Space> as the leader key.
-  
+
   STRUCTURE:
   - Basic navigation and operations
   - Development tools (LSP, debugging, git)
   - UI controls (windows, tabs, explorer)
   - Specialized tools (AI, database, REST)
-  
+
   TIP: Search for section headers (e.g. "-- File Navigation")
   to quickly jump to a specific category.
 --]]
