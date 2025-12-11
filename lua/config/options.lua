@@ -67,3 +67,7 @@ opt.updatetime = 300               -- Faster completion
 -- Disable swap files globally
 vim.opt.swapfile = false
 
+-- Disable netrw (using nvim-tree instead)
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+

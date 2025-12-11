@@ -6,9 +6,6 @@ return {
         "hrsh7th/cmp-buffer",      
         "hrsh7th/cmp-path",        
         "hrsh7th/cmp-cmdline",     
-        "L3MON4D3/LuaSnip",        
-        "saadparwaiz1/cmp_luasnip", 
-        "rafamadriz/friendly-snippets",
         "williamboman/mason.nvim",  
         "williamboman/mason-lspconfig.nvim",
         "j-hui/fidget.nvim",       
@@ -51,12 +48,8 @@ return {
             automatic_installation = true,
         })
 
-        -- Load snippets
-        require("luasnip.loaders.from_vscode").lazy_load()
-
         -- Setup completion
         local cmp = require("cmp")
-        local luasnip = require("luasnip")
 
         local has_words_before = function()
             unpack = unpack or table.unpack
@@ -65,11 +58,6 @@ return {
         end
 
         cmp.setup({
-            snippet = {
-                expand = function(args)
-                    luasnip.lsp_expand(args.body)
-                end,
-            },
             window = {
                 completion = cmp.config.window.bordered(),
                 documentation = cmp.config.window.bordered(),
@@ -86,8 +74,6 @@ return {
                 ["<S-Tab>"] = cmp.mapping(function(fallback)
                     if cmp.visible() then
                         cmp.select_prev_item()
-                    elseif luasnip.jumpable(-1) then
-                        luasnip.jump(-1)
                     else
                         fallback()
                     end
@@ -95,7 +81,6 @@ return {
             }),
             sources = cmp.config.sources({
                 { name = 'nvim_lsp' },
-                { name = 'luasnip' },
                 { name = 'buffer' },
                 { name = 'path' },
             }),
@@ -104,7 +89,6 @@ return {
                     vim_item.kind = string.format('%s', vim_item.kind)
                     vim_item.menu = ({
                         nvim_lsp = "[LSP]",
-                        luasnip = "[Snippet]",
                         buffer = "[Buffer]",
                         path = "[Path]",
                     })[entry.source.name]
@@ -176,34 +160,34 @@ return {
         -- Cache config path to avoid repeated globpath calls
         local lsp_config_dir = vim.fn.stdpath('config') .. '/lua/lsp'
         local lsp_configs = vim.fn.globpath(lsp_config_dir, '*.lua', false, true)
+        local servers_to_enable = {}
+        
         for _, lsp_config_file in ipairs(lsp_configs) do
             local server_name = vim.fn.fnamemodify(lsp_config_file, ':t:r')
             local server_opts = require('lsp.' .. server_name)
             
+            -- Merge with common config
+            local merged_opts = vim.tbl_deep_extend('force', {
+                on_attach = on_attach,
+                capabilities = capabilities,
+            }, server_opts)
+            
             -- For Pyright, set PYTHONPATH environment variable from detected configuration
             if server_name == 'pyright' then
-                -- Merge with existing config
-                local merged_opts = vim.tbl_deep_extend('force', {
-                    on_attach = on_attach,
-                    capabilities = capabilities,
-                }, server_opts)
-                
-                -- Set environment for Pyright process (use pythonpath from pyright.lua if available)
                 merged_opts.env = merged_opts.env or {}
                 if _G._pyright_pythonpath then
                     merged_opts.env.PYTHONPATH = _G._pyright_pythonpath
                 else
-                    -- Fallback: use current working directory
                     merged_opts.env.PYTHONPATH = vim.fn.getcwd()
                 end
-                
-                require('lspconfig')[server_name].setup(merged_opts)
-            else
-                require('lspconfig')[server_name].setup(vim.tbl_deep_extend('force', {
-                    on_attach = on_attach,
-                    capabilities = capabilities,
-                }, server_opts))
             end
+            
+            -- Use new Neovim 0.11+ API
+            vim.lsp.config(server_name, merged_opts)
+            table.insert(servers_to_enable, server_name)
         end
+        
+        -- Enable all configured servers
+        vim.lsp.enable(servers_to_enable)
     end
 }
