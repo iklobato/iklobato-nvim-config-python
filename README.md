@@ -18,11 +18,11 @@ A modern Neovim configuration focused on Python/Django development with extensiv
   - [Treesitter Integration](#treesitter-integration)
 - [Common Workflows](#common-workflows)
   - [Python/Django Development](#1-pythondjango-development)
-    - [Python Development with CodeCompanion](#python-development-with-codecompanion)
+    - [Python Development with Avante AI](#python-development-with-avante-ai)
   - [Database Operations](#2-database-operations)
   - [Using AI Assistant](#3-using-ai-assistant)
-    - [CodeCompanion Components](#codecompanion-components)
-    - [Advanced CodeCompanion Workflows](#advanced-codecompanion-workflows)
+    - [Avante AI Components](#avante-ai-components)
+    - [Advanced Avante AI Workflows](#advanced-avante-ai-workflows)
   - [API Testing](#4-api-testing-with-rest-client)
   - [Session Management](#5-session-management)
   - [Debugging Workflows](#6-debugging-workflows)
@@ -36,7 +36,7 @@ A modern Neovim configuration focused on Python/Django development with extensiv
 - **Comprehensive Debugging**: Python/Django debugging with DAP and interactive UI
 - **Modern UI**: Status line, Git integration, file explorer, and clean theme
 - **Intelligent Code Completion**: Context-aware suggestions via nvim-cmp with various sources
-- **AI Code Assistant**: Integration with CodeCompanion for code explanations, fixes, test generation, and intelligent code refactoring
+- **AI Code Assistant**: Integration with Avante AI for code explanations, fixes, test generation, and intelligent code refactoring
 - **Database Integration**: SQL query execution and database management via vim-dadbod
 - **REST Client**: HTTP request testing and JSON formatting
 - **Session Management**: Automatic session saving and restoration
@@ -342,13 +342,13 @@ This workflow guides you through a typical Python/Django development session, le
 2.  **Code Navigation and Understanding:**
     *   Jump to definitions and find references using LSP (see [Plugin Shortcuts Cheatsheet - LSP & Diagnostics](#lsp--diagnostics))
     *   View documentation for symbols under cursor
-    *   Explain complex code blocks using CodeCompanion (see [Plugin Shortcuts Cheatsheet - AI Assistant](#ai-assistant))
+    *   Explain complex code blocks using Avante AI (see [Plugin Shortcuts Cheatsheet - AI Assistant](#ai-assistant))
 
 3.  **Fixing and Refactoring Code:**
     *   View and navigate LSP diagnostics
     *   Apply code actions for quick fixes
     *   Format code automatically on save
-    *   Use CodeCompanion to fix and generate tests (see [Python Development Examples](#python-development-examples) for detailed examples)
+    *   Use Avante AI to fix and generate tests (see [Python Development Examples](#python-development-examples) for detailed examples)
 
 4.  **Debugging Django Applications:**
     *   Set breakpoints and debug Django applications (see [Plugin Shortcuts Cheatsheet - Debugging](#debugging))
@@ -356,8 +356,8 @@ This workflow guides you through a typical Python/Django development session, le
     *   Inspect variables and step through code
     *   Use debug REPL for interactive testing
 
-5.  **Leveraging AI Assistant (CodeCompanion):**
-    *   Use CodeCompanion for code explanations, fixes, and test generation
+5.  **Leveraging AI Assistant (Avante AI):**
+    *   Use Avante AI for code explanations, fixes, and test generation
     *   Generate commit messages from staged changes
     *   Build context in chat for complex refactoring tasks
 
@@ -365,26 +365,26 @@ This workflow guides you through a typical Python/Django development session, le
 
 1.  Open your Django `views.py` file.
 2.  Visually select a view function you want to refactor (e.g., `V` to start visual mode, then move cursor).
-3.  Press `<leader>ac` to open the CodeCompanion chat with the selected code as context.
-4.  In the chat buffer, type: `Help me refactor this view to use class-based views.`
-5.  Review the suggested changes provided by CodeCompanion.
-6.  Copy the code block from the chat using `gy` (yank last code block) or apply it directly if CodeCompanion supports it.
+3.  Press `<leader>ac` to add the current buffer to Avante AI, then press `<leader>aa` to show the sidebar.
+4.  In the Avante AI sidebar, type: `Help me refactor this view to use class-based views.`
+5.  Review the suggested changes provided by Avante AI.
+6.  Apply the suggestions directly using Avante AI's edit functionality.
 
 #### Example: Optimizing Django Database Queries
 
 1.  Open a Django model or view file containing ORM queries.
 2.  Visually select the ORM query or a block of queries you want to optimize.
-3.  Press `<leader>ac` to open the CodeCompanion chat.
+3.  Press `<leader>ac` to add the current buffer to Avante AI, then press `<leader>aa` to show the sidebar.
 4.  Ask: `How can I optimize these database queries? Consider prefetch_related and select_related.`
-5.  CodeCompanion will provide suggestions. Apply the optimizations to your code.
+5.  Avante AI will provide suggestions. Apply the optimizations to your code.
 
 #### Example: Debugging a Complex API Issue with AI
 
 1.  When encountering an API issue (e.g., a 500 error), open the relevant code file.
 2.  Visually select the code block suspected of causing the issue.
-3.  Press `<leader>ae` to get an explanation of the selected code from CodeCompanion.
-4.  If the explanation helps identify the problem, you can then press `<leader>af` to ask CodeCompanion to suggest a fix.
-5.  For deeper analysis, open the chat with `<leader>ac` and provide more context, e.g., `The API returns status 500 when I send this payload: { "data": "example" }`. CodeCompanion can then offer more targeted debugging steps or solutions.
+3.  Press `<leader>ae` to edit the selected code with Avante AI, which will provide explanations and suggestions.
+4.  If the explanation helps identify the problem, you can use Avante AI's edit functionality to apply fixes.
+5.  For deeper analysis, press `<leader>aa` to show the Avante AI sidebar and provide more context, e.g., `The API returns status 500 when I send this payload: { "data": "example" }`. Avante AI can then offer more targeted debugging steps or solutions.
 
 ### 2. Database Operations
 
@@ -422,81 +422,45 @@ This section outlines how to interact with your databases directly from Neovim u
 
 ### 3. Using AI Assistant
 
-This section details how to effectively use the integrated AI assistant (CodeCompanion) for various coding tasks. For keyboard shortcuts, see [Plugin Shortcuts Cheatsheet - AI Assistant](#ai-assistant).
+This section details how to effectively use the integrated AI assistant (Avante AI) for various coding tasks. For keyboard shortcuts, see [Plugin Shortcuts Cheatsheet - AI Assistant](#ai-assistant).
 
 1.  **Basic AI Interactions (Normal/Visual Mode):**
     *   **Explain Code:** Visually select code and get detailed explanations
     *   **Fix Code:** Get suggestions for fixing issues in selected code
     *   **Generate Tests:** Generate unit tests for selected code
     *   **Toggle Chat:** Open/close the interactive chat window
-    *   **Open Actions Menu:** See all available CodeCompanion actions
+    *   **Show Sidebar:** Press `<leader>aa` to show the Avante AI sidebar
 
 2.  **Advanced Chat Workflows:**
     *   **Start a new chat with selected code:** Visually select code to begin a chat with context
     *   **Add current selection to active chat:** Build context by adding selections to ongoing chat
     *   **Chat buffer commands:** Send messages, close chat, stop requests, and extract code blocks
 
-3.  **Using CodeCompanion Tags for Context and Control:**
-    CodeCompanion supports special tags in chat messages to provide additional context or control its behavior:
+3.  **Using Avante AI Features:**
+    Avante AI provides powerful features for code assistance:
 
-    *   `@editor`: Grants CodeCompanion permission to modify your code directly.
-        ```
-        @editor Please refactor this function to use async/await.
-        ```
-    *   `@cmd_runner`: Allows CodeCompanion to execute shell commands.
-        ```
-        @cmd_runner Can you run the tests for this module?
-        ```
-    *   `#buffer`: Shares the content of the current buffer with CodeCompanion for context.
-        ```
-        #buffer What does this code do?
-        ```
-    *   `#selection`: Shares the currently selected text with CodeCompanion.
-        ```
-        #selection How can I optimize this function?
-        ```
-    *   `#lsp`: Sends LSP diagnostics to help CodeCompanion understand and fix errors.
-        ```
-        #lsp Why am I getting this error?
-        ```
-    *   **Special Roles**: Assign specific personas to CodeCompanion for specialized feedback.
-        ```
-        @code_reviewer Please review this implementation.
-        @security_expert Check this code for vulnerabilities.
-        @performance_engineer Optimize this algorithm.
-        ```
-
-4.  **Slash Commands in Chat:**
-    CodeCompanion's chat buffer supports special slash commands to trigger specific actions:
-
-    *   Open CodeCompanion chat with `<leader>ac`.
-    *   Type one of these slash commands followed by your prompt:
-        *   `/explain`: Explain the selected code.
-        *   `/fix`: Fix issues in the code.
-        *   `/tests`: Generate tests for the code.
-        *   `/commit`: Generate a commit message.
-        *   `/refactor`: Refactor selected code.
-        *   `/optimize`: Optimize for performance.
-        *   `/docstring`: Add documentation.
-        *   `/type`: Add type annotations.
-        *   `/security`: Check for security issues.
+    *   **Edit Selected Blocks:** Visually select code and press `<leader>ae` to edit with AI assistance
+    *   **Add Files to Context:** Press `<leader>ac` to add current buffer, or `<leader>aB` to add all buffers
+    *   **New Ask:** Press `<leader>an` to start a new question
+    *   **Select Model:** Press `<leader>a?` to choose different AI models
+    *   **Chat History:** Press `<leader>ah` to access previous conversations
+    *   **Stop Request:** Press `<leader>aS` to stop the current AI request
 
 #### Example: Multi-File Context Building for Complex Analysis
 
-1.  Start a CodeCompanion chat with `<leader>ac`.
-2.  In the chat buffer, type a message including `#buffer` to include the current file's content, e.g., `Here's my main application file: #buffer`.
-3.  Open another related file (e.g., a utility file or a model) and visually select a relevant section.
-4.  Press `<leader>as` to add this selection to the active chat context.
-5.  Now, type a complex request like: `Explain how these two files work together to handle user authentication.`
-6.  CodeCompanion will provide a comprehensive analysis across both files, leveraging the context you provided.
+1.  Press `<leader>aa` to show the Avante AI sidebar.
+2.  Press `<leader>ac` to add the current buffer to the context.
+3.  Open another related file (e.g., a utility file or a model) and press `<leader>ac` again to add it.
+4.  Now, type a complex request like: `Explain how these two files work together to handle user authentication.`
+5.  Avante AI will provide a comprehensive analysis across both files, leveraging the context you provided.
 
 #### Example: Interactive Code Review with AI
 
 1.  Visually select a code block you want reviewed.
-2.  Press `<leader>ac` to open a chat with the selection as context.
-3.  Type a specific question like: `What potential edge cases am I missing in this error handling logic?`
-4.  CodeCompanion will provide targeted feedback.
-5.  You can iterate by adding more context with `<leader>as` or asking follow-up questions.
+2.  Press `<leader>ae` to edit the selected code with AI assistance.
+3.  Or press `<leader>aa` to show the sidebar and ask: `What potential edge cases am I missing in this error handling logic?`
+4.  Avante AI will provide targeted feedback.
+5.  You can iterate by adding more files with `<leader>ac` or asking follow-up questions.
 
 ### 4. API Testing with REST Client
 
@@ -1033,9 +997,9 @@ This section provides practical, step-by-step examples for common Python develop
 
 1. Open the Python file with the function you want to test
 2. Visually select the function (e.g., `V` to start visual mode, then `}` to select function)
-3. Generate tests: `<leader>at` (CodeCompanion Generate Tests)
+3. Press `<leader>ae` to edit with Avante AI and ask to generate tests, or press `<leader>aa` to show sidebar and ask
 4. Review the generated test code
-5. Copy the test: `gy` (yank last code block from chat) if using chat, or copy directly
+5. Apply the suggestions directly using Avante AI's edit functionality
 6. Create or open test file: `<leader>ff`, type `test_*.py`
 7. Paste and save the test
 
@@ -1120,9 +1084,9 @@ When multiple import paths exist (e.g., `Account` model in multiple Django apps)
 #### Extracting a Function
 
 1. Select the code block to extract (Visual mode: `V` then move cursor)
-2. Open CodeCompanion chat: `<leader>ac`
+2. Press `<leader>aa` to show Avante AI sidebar
 3. Ask: "Extract this code into a function named `calculate_discount` with parameters for price and discount_rate"
-4. Review suggested function, copy with `gy`
+4. Review suggested function and apply using Avante AI's edit functionality
 5. Create the function, replace original code with function call
 
 #### Renaming a Function Across Files
@@ -1146,9 +1110,9 @@ When multiple import paths exist (e.g., `Account` model in multiple Django apps)
 
 1. Place cursor on function definition
 2. Get suggestions: `<leader>gg` (Hover) to see function usage
-3. Open chat: `<leader>ac`
+3. Press `<leader>aa` to show Avante AI sidebar
 4. Ask: "Improve this function signature with better type hints and parameter names"
-5. Apply suggestions from CodeCompanion
+5. Apply suggestions from Avante AI
 
 ### Django-Specific Workflows
 
@@ -1261,7 +1225,7 @@ When multiple import paths exist (e.g., `Account` model in multiple Django apps)
 2. Format JSON: `<leader>xj` (Format as JSON)
 3. Copy JSON structure: Select JSON, use for creating serializers
 4. Create serializer: Open `serializers.py`, use JSON structure as reference
-5. Validate: Use CodeCompanion (`<leader>ac`) to ask "Create a DRF serializer for this JSON structure"
+5. Validate: Press `<leader>aa` to show Avante AI sidebar and ask "Create a DRF serializer for this JSON structure"
 
 ### Project Navigation for Python
 
@@ -1338,7 +1302,7 @@ When multiple import paths exist (e.g., `Account` model in multiple Django apps)
 **Error Handling:**
 1. Write code that might raise exception
 2. Pyright shows potential issues
-3. Use CodeCompanion: Select code, `<leader>af` (Fix code) for error handling suggestions
+3. Use Avante AI: Select code, press `<leader>ae` (Edit selected blocks) for error handling suggestions
 
 #### Debugging Tips
 
@@ -1650,33 +1614,33 @@ Auto-pairs automatically closes brackets, parentheses, and quotes. No shortcuts 
 
 ### AI Assistant
 
-#### CodeCompanion
-**Normal Mode:**
+#### Avante AI
+**Sidebar Operations:**
 | Shortcut | Mode | Description |
 |----------|------|-------------|
-| `<leader>aa` | n | Open CodeCompanion actions menu |
-| `<leader>ac` | n | Toggle CodeCompanion chat |
-| `<leader>al` | n | Explain LSP error under cursor |
-| `<leader>am` | n | Generate commit message (from staged changes) |
+| `<leader>aa` | n | Show sidebar |
+| `<leader>at` | n | Toggle sidebar visibility |
+| `<leader>ar` | n | Refresh sidebar |
+| `<leader>af` | n | Switch sidebar focus |
 
-**Visual Mode:**
+**Code Editing:**
 | Shortcut | Mode | Description |
 |----------|------|-------------|
-| `<leader>aa` | v | Open CodeCompanion actions menu |
-| `<leader>ac` | v | Toggle chat with selected code |
-| `<leader>ae` | v | Explain selected code |
-| `<leader>af` | v | Fix selected code |
-| `<leader>at` | v | Generate tests for selected code |
-| `<leader>as` | v | Add selection to active chat |
+| `<leader>ae` | n/v | Edit selected blocks |
+| `<leader>an` | n | New ask |
 
-**Chat Buffer Commands:**
+**Model and Provider:**
 | Shortcut | Mode | Description |
 |----------|------|-------------|
-| `<Enter>` / `<C-s>` | n | Send message |
-| `<C-c>` | n | Close chat |
-| `q` | n | Stop current request |
-| `gy` | n | Yank last code block from chat |
-| `gd` | n | View chat content in debug format |
+| `<leader>a?` | n | Select model |
+| `<leader>aS` | n | Stop current AI request |
+| `<leader>ah` | n | Select chat history |
+
+**File Management:**
+| Shortcut | Mode | Description |
+|----------|------|-------------|
+| `<leader>ac` | n | Add current buffer to selected files |
+| `<leader>aB` | n | Add all buffer files to selected files |
 
 ### Database & API
 

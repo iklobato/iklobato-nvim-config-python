@@ -345,37 +345,22 @@ keymap.set("n", '<leader>dh', '<cmd>Telescope dap commands<cr>', { desc = "List 
 keymap.set("n", '<leader>de', function() require('telescope.builtin').diagnostics({default_text=":E:"}) end, { desc = "List diagnostics" })
 
 -------------------------------------------------------------------------------
--- AI Assistant (CodeCompanion)
+-- AI Assistant (Avante AI)
 -------------------------------------------------------------------------------
 
--- Normal Mode
-keymap.set("n", "<leader>aa", "<cmd>CodeCompanionActions<cr>", { desc = "Open CodeCompanion Actions" })
-keymap.set("n", "<leader>ac", "<cmd>CodeCompanionChat Toggle<cr>", { desc = "Toggle CodeCompanion Chat" })
-keymap.set("n", "<leader>al", "", {
-  callback = function() require("codecompanion").prompt("lsp") end,
-  desc = "Explain LSP error"
-})
-keymap.set("n", "<leader>am", "", {
-  callback = function() require("codecompanion").prompt("commit") end,
-  desc = "Generate commit message"
-})
-
--- Visual Mode
-keymap.set("v", "<leader>aa", "<cmd>CodeCompanionActions<cr>", { desc = "Open CodeCompanion Actions" })
-keymap.set("v", "<leader>ac", "<cmd>CodeCompanionChat Toggle<cr>", { desc = "Toggle CodeCompanion Chat" })
-keymap.set("v", "<leader>as", "<cmd>CodeCompanionChat Add<cr>", { desc = "Add selection to chat" })
-keymap.set("v", "<leader>ae", "", {
-  callback = function() require("codecompanion").prompt("explain") end,
-  desc = "Explain code"
-})
-keymap.set("v", "<leader>af", "", {
-  callback = function() require("codecompanion").prompt("fix") end,
-  desc = "Fix code"
-})
-keymap.set("v", "<leader>at", "", {
-  callback = function() require("codecompanion").prompt("tests") end,
-  desc = "Generate tests"
-})
+-- Note: Avante AI uses default keybindings configured in nvim-avante.lua
+-- Keybindings are handled by the plugin itself, but we document them here:
+-- <leader>aa: Show sidebar
+-- <leader>at: Toggle sidebar
+-- <leader>ar: Refresh sidebar
+-- <leader>af: Switch sidebar focus
+-- <leader>ae: Edit selected blocks
+-- <leader>an: New ask
+-- <leader>a?: Select model
+-- <leader>aS: Stop current AI request
+-- <leader>ah: Select chat history
+-- <leader>ac: Add current buffer to selected files
+-- <leader>aB: Add all buffer files to selected files
 
 -------------------------------------------------------------------------------
 -- Terminal
@@ -449,5 +434,5 @@ keymap.set('n', '<leader>tp', ':TSPlaygroundToggle<CR>', { desc = "Toggle Treesi
 -- Command Aliases
 -------------------------------------------------------------------------------
 
-vim.cmd([[cab cc CodeCompanion]])
+vim.cmd([[cab av Avante]])
 
