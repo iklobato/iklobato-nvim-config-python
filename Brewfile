@@ -111,7 +111,6 @@ brew "python-tk@3.12"
 brew "rabbitmq"
 brew "redis", restart_service: :changed
 brew "ripgrep"
-brew "selene"
 brew "skaffold"
 brew "socat"
 brew "speedtest-cli"
