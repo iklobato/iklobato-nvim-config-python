@@ -145,7 +145,7 @@ fc-list | grep -i "meslo.*nerd"
   - `lua/plugins/ui/`: Configuration for UI-related plugins (e.g., `barbecue-nvim`, `lualine-nvim`, `nvim-tree`).
   - `lua/plugins/utility/`: Configuration for general utility plugins (e.g., `auto-session`, `nvim-autopairs`).
   - `lua/plugins/git/`: Configuration for Git integration plugins (e.g., `git-blame-nvim`).
-  - `lua/plugins/linter/`: Configuration for linting plugins (e.g., `nvim-lint` with selene for Lua).
+  - `lua/plugins/linter/`: Configuration for linting plugins (e.g., `nvim-lint` for Terraform).
   - `lua/plugins/lsp/`: Configuration for LSP-related plugins (e.g., `nvim-lspconfig`, `nvim-dap-ui`).
   - `lua/plugins/syntax/`: Configuration for syntax highlighting and parsing (e.g., `nvim-treesitter`).
   - `lua/plugins/database/`: Configuration for database interaction plugins (e.g., `nvim-sql`, `vim-rest-console`).
@@ -1414,28 +1414,21 @@ brew bundle dump --force
    ./scripts/brew-import.sh --dry-run
    ```
 
-### Lua Linting and Formatting
+### Lua Formatting
 
-This configuration includes automatic Lua linting and formatting:
+This configuration includes Lua code formatting:
 
-- **Linting**: Uses `nvim-lint` with `selene` for Lua code linting
-  - Automatically lints on file save and when opening files
-  - Manual lint: `<leader>ll` (Lint buffer)
-  - Auto-fix: `<leader>lf` (Auto-fix linting issues)
-  
 - **Formatting**: Uses `stylua` via `conform.nvim` for Lua code formatting
   - Automatically formats on save
   - Manual format: `<leader>f` (Format buffer)
   - Configuration: `stylua.toml` in the config root
 
 **Installation Requirements:**
-- Install `selene`: `cargo install selene` or via your package manager
 - Install `stylua`: `cargo install stylua` or via your package manager
-- Alternatively, both can be installed via Mason: `:MasonInstall selene stylua`
+- Alternatively, install via Mason: `:MasonInstall stylua`
 
 **Configuration Files:**
 - `stylua.toml`: Stylua formatter configuration (indentation, line width, etc.)
-- `lua/plugins/linter/nvim-lint.lua`: Linter configuration
 
 ## Plugin Shortcuts Cheatsheet
 
@@ -1692,10 +1685,10 @@ Auto-pairs automatically closes brackets, parentheses, and quotes. No shortcuts 
 | Shortcut | Mode | Description |
 |----------|------|-------------|
 | `<leader>ll` | n | Lint current buffer |
-| `<leader>lf` | n | Auto-fix linting issues (Lua files with selene) |
+| `<leader>lf` | n | Auto-fix linting issues |
 
 **Linters:**
-- Lua: `selene`
+- Terraform: `tflint`
 - Python: `ruff` (via LSP)
 - Auto-lints on file save and buffer enter
 
