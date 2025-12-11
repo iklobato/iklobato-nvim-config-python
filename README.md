@@ -59,7 +59,7 @@ git clone --depth=1 https://github.com/iklobato/iklobato-nvim-config-python.git 
 
 The installation script will:
 - **Automatically detect your OS** (macOS or Ubuntu/Debian)
-- **Install all required dependencies** (Neovim 0.10.0+, Git, Node.js, Ripgrep, Python 3)
+- **Install all required dependencies** (Neovim 0.11.0+, Git, Node.js, Ripgrep, Python 3)
 - Prompt you to backup existing Neovim config (if present)
 - Clone the repository and install configuration files
 - Set up the configuration directory
@@ -73,7 +73,7 @@ The installation script will:
 If you prefer to install manually:
 
 1. Ensure you have the necessary dependencies:
-   - Neovim 0.10.0+ (https://github.com/neovim/neovim/releases) - Required for vim.loader support
+   - Neovim 0.11.0+ (https://github.com/neovim/neovim/releases) - Required for nvim-lspconfig compatibility
    - Node.js and npm (for LSP servers)
    - Git
    - Ripgrep (for Telescope searching)
@@ -1498,7 +1498,6 @@ Quick reference for the most commonly used shortcuts organized by plugin. All sh
 
 **Completion Sources:**
 - LSP suggestions (from Pyright, Ruff, etc.)
-- Snippets (LuaSnip)
 - Buffer text (words in current file)
 - File paths
 
@@ -1527,17 +1526,6 @@ Auto-pairs automatically closes brackets, parentheses, and quotes. No shortcuts 
 - Smart pairing (respects Treesitter syntax)
 - Works with LSP completion
 
-#### LuaSnip (Snippets)
-| Shortcut | Mode | Description |
-|----------|------|-------------|
-| `<Tab>` | i | Jump to next snippet placeholder (when snippet is active) |
-| `<S-Tab>` | i | Jump to previous snippet placeholder (when snippet is active) |
-
-**Usage:**
-- Type snippet trigger (e.g., `def` for Python function)
-- Press `<Tab>` to expand snippet
-- Use `<Tab>` to navigate between placeholders
-- Snippets are loaded from friendly-snippets and can be customized
 
 ### LSP & Diagnostics
 

@@ -1,4 +1,4 @@
--- Enable Lua bytecode caching for faster startup (Neovim 0.10.0+)
+-- Enable Lua bytecode caching for faster startup (Neovim 0.11.0+)
 -- Must be called before any requires
 if vim.loader then
     vim.loader.enable()

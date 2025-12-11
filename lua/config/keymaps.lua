@@ -246,9 +246,30 @@ keymap.set("v", "<leader>S", "y:%s/<C-r>\"/<C-r>\"/gI<Left><Left><Left>", { desc
 -------------------------------------------------------------------------------
 
 -- File Explorer (Nvim-tree)
-keymap.set("n", "<leader>ee", ":NvimTreeToggle<CR>", { desc = "Toggle file explorer" })
-keymap.set("n", "<leader>ef", ":NvimTreeFindFile<CR>", { desc = "Find file in explorer" })
-keymap.set("n", "<leader>er", ":NvimTreeFocus<CR>", { desc = "Focus file explorer" })
+keymap.set("n", "<leader>ee", function()
+  local ok, api = pcall(require, "nvim-tree.api")
+  if ok then
+    api.tree.toggle()
+  else
+    vim.notify("nvim-tree not available", vim.log.levels.WARN)
+  end
+end, { desc = "Toggle file explorer" })
+keymap.set("n", "<leader>ef", function()
+  local ok, api = pcall(require, "nvim-tree.api")
+  if ok then
+    api.tree.find_file()
+  else
+    vim.notify("nvim-tree not available", vim.log.levels.WARN)
+  end
+end, { desc = "Find file in explorer" })
+keymap.set("n", "<leader>er", function()
+  local ok, api = pcall(require, "nvim-tree.api")
+  if ok then
+    api.tree.focus()
+  else
+    vim.notify("nvim-tree not available", vim.log.levels.WARN)
+  end
+end, { desc = "Focus file explorer" })
 
 -- Split Windows
 keymap.set("n", "<leader>sv", "<C-w>v", { desc = "Split vertical" })

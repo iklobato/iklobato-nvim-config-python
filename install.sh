@@ -68,8 +68,8 @@ check_neovim_version() {
         local version=$(nvim --version | head -n 1 | grep -oE '[0-9]+\.[0-9]+' | head -n 1)
         local major=$(echo "$version" | cut -d. -f1)
         local minor=$(echo "$version" | cut -d. -f2)
-        if [ "$major" -gt 0 ] || ([ "$major" -eq 0 ] && [ "$minor" -ge 10 ]); then
-            return 0  # Version >= 0.10.0
+        if [ "$major" -gt 0 ] || ([ "$major" -eq 0 ] && [ "$minor" -ge 11 ]); then
+            return 0  # Version >= 0.11.0
         fi
     fi
     return 1  # Not installed or version too old
@@ -130,6 +130,24 @@ install_nerd_font_ubuntu() {
     fi
 }
 
+# Remove problematic PPAs before updating
+cleanup_problematic_ppas() {
+    print_info "Cleaning up problematic PPAs..."
+    
+    # Remove lazygit-team PPA if it exists
+    if [ -n "$(find /etc/apt/sources.list.d/ -name 'lazygit-team-ubuntu-release-*.list' 2>/dev/null)" ]; then
+        print_info "Removing lazygit-team PPA (not compatible with this Ubuntu version)..."
+        sudo rm -f /etc/apt/sources.list.d/lazygit-team-ubuntu-release-*.list 2>/dev/null || true
+        sudo rm -f /etc/apt/sources.list.d/lazygit-team-ubuntu-release-*.list.save 2>/dev/null || true
+    fi
+    
+    # Remove from sources.list.d if present
+    if grep -r "lazygit-team" /etc/apt/sources.list.d/ 2>/dev/null | grep -q .; then
+        print_info "Cleaning up lazygit-team references from sources..."
+        sudo find /etc/apt/sources.list.d/ -name "*.list" -type f -exec sed -i '/lazygit-team/d' {} \; 2>/dev/null || true
+    fi
+}
+
 # Ubuntu Dependency Installation
 install_dependencies_ubuntu() {
     print_info "Detected Ubuntu/Debian. Checking dependencies..."
@@ -139,9 +157,14 @@ install_dependencies_ubuntu() {
         print_info "Some operations require sudo. You may be prompted for your password."
     fi
     
-    # Update package list
+    # Clean up problematic PPAs before updating
+    cleanup_problematic_ppas
+    
+    # Update package list (ignore repository errors)
     print_info "Updating package list..."
-    sudo apt-get update -qq
+    sudo apt-get update -qq 2>&1 | grep -v "does not have a Release file" || {
+        print_info "Some repositories had issues, but continuing installation..."
+    }
     
     # Install software-properties-common for add-apt-repository
     if ! check_command add-apt-repository; then
@@ -151,17 +174,19 @@ install_dependencies_ubuntu() {
     
     # Install Neovim (from PPA for latest version)
     if ! check_neovim_version; then
-        print_info "Installing Neovim 0.10.0+..."
+        print_info "Installing Neovim 0.11.0+..."
         # Add Neovim PPA for latest version
         sudo add-apt-repository -y ppa:neovim-ppa/unstable 2>/dev/null || {
             print_info "Adding Neovim PPA..."
             sudo add-apt-repository -y ppa:neovim-ppa/unstable
         }
-        sudo apt-get update -qq
+        sudo apt-get update -qq 2>&1 | grep -v "does not have a Release file" || {
+            print_info "Some repositories had issues, but continuing installation..."
+        }
         sudo apt-get install -y neovim
         print_success "Neovim installed successfully"
     else
-        print_success "Neovim 0.10.0+ already installed"
+        print_success "Neovim 0.11.0+ already installed"
     fi
     
     # Install Git
@@ -219,13 +244,13 @@ install_dependencies_macos() {
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     fi
     
-    # Install Neovim (latest version)
+    # Install/Upgrade Neovim (latest version)
     if ! check_neovim_version; then
-        print_info "Installing Neovim..."
-        brew install neovim
-        print_success "Neovim installed"
+        print_info "Installing/upgrading Neovim to 0.11.0+..."
+        brew upgrade neovim 2>/dev/null || brew install neovim
+        print_success "Neovim installed/upgraded"
     else
-        print_success "Neovim 0.10.0+ already installed"
+        print_success "Neovim 0.11.0+ already installed"
     fi
     
     # Install Git
@@ -293,7 +318,7 @@ case "$OS" in
     *)
         print_error "Unsupported OS: $(uname -s)"
         print_info "Please install dependencies manually:"
-        echo "  - Neovim 0.10.0+"
+        echo "  - Neovim 0.11.0+"
         echo "  - Git"
         echo "  - Node.js and npm"
         echo "  - Ripgrep"
@@ -308,7 +333,7 @@ esac
 
 # Verify Neovim installation
 if ! check_neovim_version; then
-    print_error "Neovim 0.10.0+ is required but not found. Please install it manually."
+    print_error "Neovim 0.11.0+ is required but not found. Please install it manually."
     exit 1
 fi
 
@@ -431,7 +456,7 @@ done
 
 # Check dependencies
 if ! check_neovim_version; then
-    print_error "Neovim 0.10.0+ not found"
+    print_error "Neovim 0.11.0+ not found"
     INSTALLATION_OK=false
 fi
 
