@@ -2,11 +2,6 @@
 return {
   -- https://github.com/nvim-tree/nvim-tree.lua
   'nvim-tree/nvim-tree.lua',
-  keys = {
-    { '<leader>ee', desc = 'Toggle file explorer' },
-    { '<leader>ef', desc = 'Find file in explorer' },
-    { '<leader>er', desc = 'Focus file explorer' },
-  },
   dependencies = {
     -- https://github.com/nvim-tree/nvim-web-devicons
     'nvim-tree/nvim-web-devicons', -- Fancy icon support
