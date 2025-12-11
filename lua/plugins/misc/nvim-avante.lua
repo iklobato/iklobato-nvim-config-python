@@ -1,8 +1,5 @@
 return {
   "yetone/avante.nvim",
-  build = vim.fn.has("win32") ~= 0
-      and "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false"
-      or "make",
   event = "VeryLazy",
   version = false,
   dependencies = {
@@ -13,5 +10,20 @@ return {
     "nvim-telescope/telescope.nvim",
     "nvim-tree/nvim-web-devicons",
   },
+  config = function()
+    require('avante').setup({
+      behaviour = {
+        auto_set_keymaps = false,
+      },
+      mappings = {
+        sidebar = {
+          -- Tab keybinding removed to keep default Tab behavior
+          -- Users can still use <leader>af to switch sidebar focus
+        },
+      },
+    })
+  end,
 }
+
+
 

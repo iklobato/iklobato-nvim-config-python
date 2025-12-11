@@ -246,30 +246,9 @@ keymap.set("v", "<leader>S", "y:%s/<C-r>\"/<C-r>\"/gI<Left><Left><Left>", { desc
 -------------------------------------------------------------------------------
 
 -- File Explorer (Nvim-tree)
-keymap.set("n", "<leader>ee", function()
-  local ok, api = pcall(require, "nvim-tree.api")
-  if ok then
-    api.tree.toggle()
-  else
-    vim.notify("nvim-tree not available", vim.log.levels.WARN)
-  end
-end, { desc = "Toggle file explorer" })
-keymap.set("n", "<leader>ef", function()
-  local ok, api = pcall(require, "nvim-tree.api")
-  if ok then
-    api.tree.find_file()
-  else
-    vim.notify("nvim-tree not available", vim.log.levels.WARN)
-  end
-end, { desc = "Find file in explorer" })
-keymap.set("n", "<leader>er", function()
-  local ok, api = pcall(require, "nvim-tree.api")
-  if ok then
-    api.tree.focus()
-  else
-    vim.notify("nvim-tree not available", vim.log.levels.WARN)
-  end
-end, { desc = "Focus file explorer" })
+keymap.set('n', '<leader>ee', function() require('nvim-tree.api').tree.toggle() end, { desc = "Toggle file explorer" })
+keymap.set('n', '<leader>ef', function() require('nvim-tree.api').tree.find_file({ open = true, focus = true }) end, { desc = "Find file in explorer" })
+keymap.set('n', '<leader>er', function() require('nvim-tree.api').tree.focus() end, { desc = "Focus file explorer" })
 
 -- Split Windows
 keymap.set("n", "<leader>sv", "<C-w>v", { desc = "Split vertical" })
@@ -366,22 +345,18 @@ keymap.set("n", '<leader>dh', '<cmd>Telescope dap commands<cr>', { desc = "List 
 keymap.set("n", '<leader>de', function() require('telescope.builtin').diagnostics({default_text=":E:"}) end, { desc = "List diagnostics" })
 
 -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- AI Assistant (Avante AI)
 -------------------------------------------------------------------------------
 
--- Note: Avante AI uses default keybindings configured in nvim-avante.lua
--- Keybindings are handled by the plugin itself, but we document them here:
--- <leader>aa: Show sidebar
--- <leader>at: Toggle sidebar
--- <leader>ar: Refresh sidebar
--- <leader>af: Switch sidebar focus
--- <leader>ae: Edit selected blocks
--- <leader>an: New ask
--- <leader>a?: Select model
--- <leader>aS: Stop current AI request
--- <leader>ah: Select chat history
--- <leader>ac: Add current buffer to selected files
--- <leader>aB: Add all buffer files to selected files
+-- Avante AI Keybindings
+keymap.set({ 'n', 'v' }, '<leader>aa', function() require('avante.api').ask() end, { desc = "Show sidebar (ask AI)" })
+keymap.set('n', '<leader>at', function() require('avante.api').toggle() end, { desc = "Toggle sidebar" })
+keymap.set('n', '<leader>ar', function() require('avante.api').refresh() end, { desc = "Refresh sidebar" })
+keymap.set('n', '<leader>af', function() require('avante.api').focus() end, { desc = "Switch sidebar focus" })
+keymap.set({ 'n', 'v' }, '<leader>ae', function() require('avante.api').edit() end, { desc = "Edit selected blocks" })
+keymap.set('n', '<leader>an', function() require('avante').build() end, { desc = "Build/Compile avante" })
+keymap.set('n', '<leader>a?', function() require('avante.api').switch_provider() end, { desc = "Switch AI provider" })
 
 -------------------------------------------------------------------------------
 -- Terminal

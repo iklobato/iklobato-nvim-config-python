@@ -4,3 +4,5 @@ function! netrw#LocalBrowseCheck(...)
   " Stub function - do nothing since netrw is disabled
   " Accept variable arguments to prevent "too many arguments" errors
 endfunction
+
+

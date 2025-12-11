@@ -1599,7 +1599,7 @@ Auto-pairs automatically closes brackets, parentheses, and quotes. No shortcuts 
 **Sidebar Operations:**
 | Shortcut | Mode | Description |
 |----------|------|-------------|
-| `<leader>aa` | n | Show sidebar |
+| `<leader>aa` | n/v | Show sidebar (ask AI) |
 | `<leader>at` | n | Toggle sidebar visibility |
 | `<leader>ar` | n | Refresh sidebar |
 | `<leader>af` | n | Switch sidebar focus |
@@ -1608,20 +1608,12 @@ Auto-pairs automatically closes brackets, parentheses, and quotes. No shortcuts 
 | Shortcut | Mode | Description |
 |----------|------|-------------|
 | `<leader>ae` | n/v | Edit selected blocks |
-| `<leader>an` | n | New ask |
+| `<leader>an` | n | Build/Compile avante |
 
 **Model and Provider:**
 | Shortcut | Mode | Description |
 |----------|------|-------------|
-| `<leader>a?` | n | Select model |
-| `<leader>aS` | n | Stop current AI request |
-| `<leader>ah` | n | Select chat history |
-
-**File Management:**
-| Shortcut | Mode | Description |
-|----------|------|-------------|
-| `<leader>ac` | n | Add current buffer to selected files |
-| `<leader>aB` | n | Add all buffer files to selected files |
+| `<leader>a?` | n | Switch AI provider |
 
 ### Database & API
 
