@@ -38,3 +38,4 @@ Thumbs.db
 # Uncomment the line below if you want to ignore it (user-specific packages)
 # Brewfile
 Brewfile.backup.*
+db_ui/connections.json
