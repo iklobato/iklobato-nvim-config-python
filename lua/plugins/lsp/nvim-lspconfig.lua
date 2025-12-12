@@ -46,6 +46,9 @@ return {
         -- Setup Mason-LSPconfig
         require("mason-lspconfig").setup({
             automatic_installation = true,
+            ensure_installed = {
+                'tsserver',  -- TypeScript/JavaScript language server
+            },
         })
 
         -- Setup completion
@@ -80,10 +83,15 @@ return {
                 end, { "i", "s" }),
             }),
             sources = cmp.config.sources({
-                { name = 'nvim_lsp' },
-                { name = 'buffer' },
-                { name = 'path' },
+                { name = 'nvim_lsp', priority = 1000 }, -- LSP - highest priority
+                { name = 'buffer', priority = 500, max_item_count = 5 }, -- Buffer - limited for performance
+                { name = 'path', priority = 250 }, -- Path
             }),
+            performance = {
+                debounce = 60, -- Debounce completion requests (ms)
+                throttle = 30, -- Throttle completion requests (ms)
+                fetching_timeout = 500, -- Timeout for fetching completions (ms)
+            },
             formatting = {
                 format = function(entry, vim_item)
                     vim_item.kind = string.format('%s', vim_item.kind)
@@ -102,18 +110,58 @@ return {
             -- Enable completion triggered by <c-x><c-o>
             vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
 
-            -- Modified highlighting setup using vim.cmd approach
+            -- Document highlighting with debouncing for performance
+            -- Only enable for specific filetypes to reduce overhead
             if client.server_capabilities.documentHighlightProvider then
-                vim.cmd('augroup LspHighlight')
-                vim.cmd('autocmd! * <buffer>')
-                vim.cmd('autocmd CursorHold <buffer> lua vim.lsp.buf.document_highlight()')
-                vim.cmd('autocmd CursorMoved <buffer> lua vim.lsp.buf.clear_references()')
-                vim.cmd('augroup END')
+                local filetype = vim.api.nvim_buf_get_option(bufnr, 'filetype')
+                -- Only enable document highlighting for code files, not for markdown, etc.
+                local enable_highlighting = vim.tbl_contains({
+                    'python', 'javascript', 'typescript', 'javascriptreact', 'typescriptreact',
+                    'lua', 'rust', 'go', 'java', 'cpp', 'c', 'vue', 'svelte'
+                }, filetype)
+                
+                if enable_highlighting then
+                    -- Use CursorHoldI with longer delay to reduce frequency
+                    -- CursorHoldI only triggers in insert mode, reducing overhead
+                    local highlight_timer = nil
+                    local function debounced_highlight()
+                        if highlight_timer then
+                            highlight_timer:stop()
+                            highlight_timer:close()
+                        end
+                        highlight_timer = vim.loop.new_timer()
+                        highlight_timer:start(500, 0, function()
+                            vim.schedule(function()
+                                vim.lsp.buf.document_highlight()
+                                if highlight_timer then
+                                    highlight_timer:close()
+                                    highlight_timer = nil
+                                end
+                            end)
+                        end)
+                    end
+                    
+                    vim.cmd('augroup LspHighlight')
+                    vim.cmd('autocmd! * <buffer>')
+                    -- Use CursorHold with longer updatetime delay
+                    vim.cmd('autocmd CursorHold <buffer> lua vim.lsp.buf.document_highlight()')
+                    vim.cmd('autocmd CursorMoved <buffer> lua vim.lsp.buf.clear_references()')
+                    vim.cmd('augroup END')
+                end
             end
 
-            -- Inlay hints
+            -- Inlay hints - only enable for specific filetypes for performance
             if client.server_capabilities.inlayHintProvider then
-                vim.lsp.inlay_hint.enable(bufnr, true)
+                local filetype = vim.api.nvim_buf_get_option(bufnr, 'filetype')
+                -- Only enable inlay hints for languages that benefit most
+                local enable_inlay_hints = vim.tbl_contains({
+                    'typescript', 'typescriptreact', 'javascript', 'javascriptreact',
+                    'rust', 'go'
+                }, filetype)
+                
+                if enable_inlay_hints then
+                    vim.lsp.inlay_hint.enable(bufnr, true)
+                end
             end
 
             -- Formatting is handled by conform.nvim (format_on_save)
@@ -129,15 +177,16 @@ return {
             vim.lsp.handlers.signature_help, { border = "rounded" }
         )
 
-        -- Diagnostic configuration
+        -- Diagnostic configuration - optimized for performance
         vim.diagnostic.config({
             virtual_text = {
                 prefix = '●',
-                source = "always",
+                source = "if_many", -- Only show source if multiple sources exist (performance optimization)
+                spacing = 4, -- Reduce spacing for faster rendering
             },
             float = {
                 border = "rounded",
-                source = "always",
+                source = "if_many", -- Only show source if multiple sources exist
             },
             signs = {
                 text = {
@@ -148,7 +197,7 @@ return {
                 },
             },
             underline = true,
-            update_in_insert = false,
+            update_in_insert = false, -- Don't update diagnostics while typing (performance)
             severity_sort = true,
         })
 

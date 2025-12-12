@@ -47,10 +47,15 @@ return {
         end, { 'i', 's' }),
       },
       sources = cmp.config.sources({
-        { name = "nvim_lsp" }, -- lsp 
-        { name = "buffer" }, -- text within current buffer
-        { name = "path" }, -- file system paths
+        { name = "nvim_lsp", priority = 1000 }, -- lsp - highest priority
+        { name = "buffer", priority = 500, max_item_count = 5 }, -- text within current buffer - limited for performance
+        { name = "path", priority = 250 }, -- file system paths
       }),
+      performance = {
+        debounce = 60, -- Debounce completion requests (ms)
+        throttle = 30, -- Throttle completion requests (ms)
+        fetching_timeout = 500, -- Timeout for fetching completions (ms)
+      },
       window = {
         -- Add borders to completions popups
         completion = cmp.config.window.bordered(),
