@@ -75,6 +75,17 @@ check_neovim_version() {
     return 1  # Not installed or version too old
 }
 
+check_node_version() {
+    if check_command node; then
+        local version=$(node --version | sed 's/v//')
+        local major=$(echo "$version" | cut -d. -f1)
+        if [ "$major" -ge 22 ]; then
+            return 0  # Version >= 22.0.0
+        fi
+    fi
+    return 1  # Not installed or version too old
+}
+
 check_nerd_font_installed() {
     # Check if any Nerd Font is installed
     if fc-list | grep -i "nerd font" >/dev/null 2>&1; then
@@ -198,14 +209,24 @@ install_dependencies_ubuntu() {
         print_success "Git already installed"
     fi
     
-    # Install Node.js and npm (using NodeSource repository for latest LTS)
+    # Install/Upgrade Node.js and npm (requires 22.x+ for GitHub Copilot)
+    # Manual upgrade instructions (if needed):
+    #   sudo apt-get remove nodejs npm  # Remove old version if needed
+    #   curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+    #   sudo apt-get install -y nodejs
+    #   node --version  # Verify version >= 22.0.0
     if ! check_command node; then
-        print_info "Installing Node.js..."
-        curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+        print_info "Installing Node.js 22.x..."
+        curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
         sudo apt-get install -y nodejs
-        print_success "Node.js installed"
+        print_success "Node.js 22.x installed"
+    elif ! check_node_version; then
+        print_info "Upgrading Node.js to 22.x (required for GitHub Copilot)..."
+        curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+        sudo apt-get install -y nodejs
+        print_success "Node.js upgraded to 22.x"
     else
-        print_success "Node.js already installed"
+        print_success "Node.js 22.x+ already installed"
     fi
     
     # Install Ripgrep
@@ -262,13 +283,22 @@ install_dependencies_macos() {
         print_success "Git already installed"
     fi
     
-    # Install Node.js and npm
+    # Install/Upgrade Node.js and npm (requires 22.x+ for GitHub Copilot)
+    # Manual upgrade instructions (if needed):
+    #   brew uninstall node  # Remove old version if needed
+    #   brew install node@22
+    #   brew link --overwrite node@22  # Link node@22 as default node
+    #   node --version  # Verify version >= 22.0.0
     if ! check_command node; then
-        print_info "Installing Node.js..."
-        brew install node
+        print_info "Installing Node.js 22.x..."
+        brew install node@22
         print_success "Node.js installed"
+    elif ! check_node_version; then
+        print_info "Upgrading Node.js to 22.x (required for GitHub Copilot)..."
+        brew upgrade node@22 2>/dev/null || brew install node@22
+        print_success "Node.js upgraded to 22.x"
     else
-        print_success "Node.js already installed"
+        print_success "Node.js 22.x+ already installed"
     fi
     
     # Install Ripgrep
@@ -334,6 +364,15 @@ esac
 # Verify Neovim installation
 if ! check_neovim_version; then
     print_error "Neovim 0.11.0+ is required but not found. Please install it manually."
+    exit 1
+fi
+
+# Verify Node.js installation (required for GitHub Copilot)
+if ! check_node_version; then
+    print_error "Node.js 22.x+ is required for GitHub Copilot but not found."
+    print_info "To upgrade manually:"
+    echo "  macOS:   brew install node@22 && brew link --overwrite node@22"
+    echo "  Ubuntu: curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs"
     exit 1
 fi
 
@@ -460,7 +499,12 @@ if ! check_neovim_version; then
     INSTALLATION_OK=false
 fi
 
-for cmd in git node rg python3; do
+if ! check_node_version; then
+    print_error "Node.js 22.x+ not found (required for GitHub Copilot)"
+    INSTALLATION_OK=false
+fi
+
+for cmd in git rg python3; do
     if ! check_command "$cmd"; then
         print_error "Missing dependency: $cmd"
         INSTALLATION_OK=false
