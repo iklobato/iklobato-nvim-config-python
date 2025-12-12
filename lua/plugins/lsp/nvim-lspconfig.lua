@@ -139,18 +139,18 @@ return {
                 border = "rounded",
                 source = "always",
             },
-            signs = true,
+            signs = {
+                text = {
+                    [vim.diagnostic.severity.ERROR] = "E",
+                    [vim.diagnostic.severity.WARN] = "W",
+                    [vim.diagnostic.severity.HINT] = "H",
+                    [vim.diagnostic.severity.INFO] = "I",
+                },
+            },
             underline = true,
             update_in_insert = false,
             severity_sort = true,
         })
-
-        -- Configure sign column
-        local signs = { Error = " ", Warn = " ", Hint = " ", Info = " " }
-        for type, icon in pairs(signs) do
-            local hl = "DiagnosticSign" .. type
-            vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
-        end
 
         -- Setup capabilities
         local capabilities = require('cmp_nvim_lsp').default_capabilities()
