@@ -217,34 +217,52 @@ return {
     -- Create Django configuration
     local function make_django_config(name, args)
       local config_name = type(name) == 'function' and name() or name
-      return {
+      -- Use safe default args if args is a function (don't call it during init)
+      -- The function will be called later in resolve_config when dap.run() is invoked
+      local default_args = type(args) == 'function' and {'help'} or args
+      -- Store original function reference for runtime resolution
+      local config = {
         type = 'python',
         request = 'launch',
         name = config_name,
         program = '${workspaceFolder}/manage.py',
-        args = args,
+        args = default_args,
         django = true,
         env = get_django_env(),
         pythonPath = function() return get_python_path() end,
         console = 'integratedTerminal',
         justMyCode = false,
       }
+      -- Store original args function if it was a function, for runtime resolution
+      if type(args) == 'function' then
+        config._args_func = args
+      end
+      return config
     end
 
     -- Create Pytest configuration
     local function make_pytest_config(name, args)
       local config_name = type(name) == 'function' and name() or name
-      return {
+      -- Use safe default args if args is a function (don't call it during init)
+      -- The function will be called later in resolve_config when dap.run() is invoked
+      local default_args = type(args) == 'function' and {'--help'} or args
+      -- Store original function reference for runtime resolution
+      local config = {
         type = 'python',
         request = 'launch',
         name = config_name,
         module = 'pytest',
-        args = args,
+        args = default_args,
         cwd = '${workspaceFolder}',
         pythonPath = function() return get_python_path() end,
         console = 'integratedTerminal',
         justMyCode = false,
       }
+      -- Store original args function if it was a function, for runtime resolution
+      if type(args) == 'function' then
+        config._args_func = args
+      end
+      return config
     end
 
 
@@ -574,7 +592,14 @@ return {
       
       local resolved = {}
       for k, v in pairs(config) do
-        if type(v) == 'function' and (k == 'env' or k == 'pythonPath' or k == 'args' or k == 'program' or k == 'name') then
+        -- Skip internal metadata fields
+        if k:match('^_') then
+          -- Handle _args_func: resolve it and use for args
+          if k == '_args_func' and type(v) == 'function' then
+            resolved['args'] = v()
+          end
+          -- Don't copy other internal fields
+        elseif type(v) == 'function' and (k == 'env' or k == 'pythonPath' or k == 'args' or k == 'program' or k == 'name') then
           resolved[k] = v()
         else
           resolved[k] = v
@@ -584,10 +609,41 @@ return {
       return resolved
     end
     
-    -- Override dap.run to resolve functions before launching
+    -- Override dap.run to resolve functions before launching and handle buffer modifications
     -- Names are already resolved at build time, but args/program/env/pythonPath may still be functions
     local original_run = dap.run
     dap.run = function(config, opts)
+      -- Check if current buffer is modified before launching integrated terminal
+      -- Neovim requires unmodified buffers for termopen()
+      local current_buf = vim.api.nvim_get_current_buf()
+      local is_modified = vim.api.nvim_buf_get_option(current_buf, 'modified')
+      
+      if is_modified then
+        local buf_name = vim.api.nvim_buf_get_name(current_buf)
+        local is_file_buffer = buf_name ~= '' and not vim.api.nvim_buf_get_option(current_buf, 'buftype')
+        
+        if is_file_buffer then
+          -- Auto-save modified file buffers
+          local success, err = pcall(function()
+            vim.cmd('silent write')
+          end)
+          
+          if not success then
+            vim.notify("Failed to save buffer before DAP launch: " .. tostring(err), vim.log.levels.ERROR)
+            vim.notify("Please save the file manually and try again", vim.log.levels.WARN)
+            return
+          end
+          
+          vim.notify("Buffer auto-saved before DAP launch", vim.log.levels.INFO)
+        else
+          -- Scratch buffer or unnamed buffer - warn and abort
+          vim.notify("Cannot launch DAP: current buffer has unsaved changes and is not a file buffer", vim.log.levels.WARN)
+          vim.notify("Please save your changes or switch to a file buffer", vim.log.levels.INFO)
+          return
+        end
+      end
+      
+      -- Resolve config functions and launch
       local resolved_config = resolve_config(config)
       return original_run(resolved_config, opts)
     end
