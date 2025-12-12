@@ -61,6 +61,10 @@ return {
         '--hidden',        -- Search hidden files
         '--glob=!.git/*'   -- But still ignore .git directory
       },
+      preview = {
+        -- Enable line numbers in preview window
+        treesitter = { enable = true },
+      },
     },
     pickers = {
       find_files = {

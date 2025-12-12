@@ -120,3 +120,127 @@ vim.api.nvim_create_autocmd('BufWinLeave', {
     end
   end,
 })
+
+-------------------------------------------------------------------------------
+-- Line Numbers - Only show in text editor buffers, not in sidebars/plugins
+-------------------------------------------------------------------------------
+
+-- Filetypes that should NOT have line numbers (non-editing buffers)
+local no_line_numbers_filetypes = {
+  'NvimTree',
+  'nvim-tree',
+  'tsplayground',
+  'Trouble',
+  'trouble',
+  'dapui_scopes',
+  'dapui_breakpoints',
+  'dapui_stacks',
+  'dapui_watches',
+  'dapui_console',
+  'dap-repl',
+  'dbui',
+  'dbout',
+  'help',
+  'qf',
+  'quickfix',
+  'terminal',
+  'TelescopePrompt',
+  'TelescopeResults',
+  'avante',
+}
+
+-- Create autocommand group for line number management
+local line_numbers_group = vim.api.nvim_create_augroup('LineNumbersManagement', { clear = true })
+
+-- Disable line numbers for non-editing buffers
+vim.api.nvim_create_autocmd('BufWinEnter', {
+  group = line_numbers_group,
+  callback = function(args)
+    local filetype = vim.api.nvim_buf_get_option(args.buf, 'filetype')
+    local buftype = vim.api.nvim_buf_get_option(args.buf, 'buftype')
+    
+    -- Get the window that contains this buffer
+    local win_id = vim.fn.bufwinid(args.buf)
+    if win_id == -1 then
+      -- Buffer not in any window yet, skip
+      return
+    end
+    
+    -- Check if this is a non-editing buffer
+    local is_no_line_numbers = false
+    for _, ft in ipairs(no_line_numbers_filetypes) do
+      if filetype == ft then
+        is_no_line_numbers = true
+        break
+      end
+    end
+    
+    -- Also disable for special buffer types (except acwrite which is for editing)
+    if buftype ~= '' and buftype ~= 'acwrite' then
+      is_no_line_numbers = true
+    end
+    
+    -- Set line numbers accordingly using the window ID
+    if is_no_line_numbers then
+      vim.api.nvim_win_set_option(win_id, 'number', false)
+      vim.api.nvim_win_set_option(win_id, 'relativenumber', false)
+    else
+      -- Enable line numbers for editing buffers
+      vim.api.nvim_win_set_option(win_id, 'number', true)
+      vim.api.nvim_win_set_option(win_id, 'relativenumber', false)
+    end
+  end,
+})
+
+-- Also handle when switching windows
+vim.api.nvim_create_autocmd('WinEnter', {
+  group = line_numbers_group,
+  callback = function()
+    local buf = vim.api.nvim_get_current_buf()
+    local filetype = vim.api.nvim_buf_get_option(buf, 'filetype')
+    local buftype = vim.api.nvim_buf_get_option(buf, 'buftype')
+    
+    -- Check if this is a non-editing buffer
+    local is_no_line_numbers = false
+    for _, ft in ipairs(no_line_numbers_filetypes) do
+      if filetype == ft then
+        is_no_line_numbers = true
+        break
+      end
+    end
+    
+    -- Also disable for special buffer types
+    if buftype ~= '' and buftype ~= 'acwrite' then
+      is_no_line_numbers = true
+    end
+    
+    -- Set line numbers accordingly
+    if is_no_line_numbers then
+      vim.opt_local.number = false
+      vim.opt_local.relativenumber = false
+    else
+      -- Enable line numbers for editing buffers
+      vim.opt_local.number = true
+      vim.opt_local.relativenumber = false
+    end
+  end,
+})
+
+-- Enable line numbers in Telescope preview windows
+vim.api.nvim_create_autocmd('User', {
+  group = line_numbers_group,
+  pattern = 'TelescopePreviewerLoaded',
+  callback = function(args)
+    -- Enable line numbers in the preview window
+    local preview_buf = args.data.bufnr
+    if preview_buf then
+      vim.schedule(function()
+        local win_id = vim.fn.bufwinid(preview_buf)
+        if win_id ~= -1 then
+          vim.api.nvim_win_set_option(win_id, 'number', true)
+          vim.api.nvim_win_set_option(win_id, 'relativenumber', false)
+        end
+      end)
+    end
+  end,
+})
