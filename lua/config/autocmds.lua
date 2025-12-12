@@ -27,23 +27,6 @@ vim.api.nvim_create_autocmd({ "VimEnter" }, {
 -- Auto-equalize windows when sidebars open/close
 -------------------------------------------------------------------------------
 
--- Function to equalize windows in all tabs
-local function equalize_windows_all_tabs()
-  -- Save current tab
-  local current_tab = vim.fn.tabpagenr()
-
-  -- Iterate through all tabs
-  for tab = 1, vim.fn.tabpagenr('$') do
-    -- Switch to tab
-    vim.cmd('tabnext ' .. tab)
-    -- Equalize windows in this tab
-    vim.cmd('wincmd =')
-  end
-
-  -- Return to original tab
-  vim.cmd('tabnext ' .. current_tab)
-end
-
 -- List of filetypes that are considered sidebars
 local sidebar_filetypes = {
   'NvimTree',
@@ -59,15 +42,60 @@ local sidebar_filetypes = {
   'dbout',
 }
 
--- Check if a buffer is a sidebar
+-- Cache sidebar detection per buffer to avoid repeated lookups
+local sidebar_cache = {}
 local function is_sidebar(bufnr)
+  -- Use cached result if available
+  if sidebar_cache[bufnr] ~= nil then
+    return sidebar_cache[bufnr]
+  end
+  
   local ft = vim.api.nvim_buf_get_option(bufnr, 'filetype')
+  local result = false
   for _, sidebar_ft in ipairs(sidebar_filetypes) do
     if ft == sidebar_ft then
-      return true
+      result = true
+      break
     end
   end
-  return false
+  
+  -- Cache the result
+  sidebar_cache[bufnr] = result
+  return result
+end
+
+-- Clear cache when buffer is deleted
+vim.api.nvim_create_autocmd('BufDelete', {
+  callback = function(args)
+    sidebar_cache[args.buf] = nil
+  end,
+})
+
+-- Function to equalize windows in current tab only (performance optimization)
+local function equalize_windows_current_tab()
+  vim.cmd('wincmd =')
+end
+
+-- Debouncing for window equalization to prevent rapid-fire updates
+local equalize_timer = nil
+local function debounced_equalize()
+  -- Cancel any pending equalization
+  if equalize_timer then
+    equalize_timer:stop()
+    equalize_timer:close()
+  end
+  
+  -- Schedule new equalization with debounce delay
+  equalize_timer = vim.loop.new_timer()
+  equalize_timer:start(100, 0, function()
+    vim.schedule(function()
+      equalize_windows_current_tab()
+      if equalize_timer then
+        equalize_timer:close()
+        equalize_timer = nil
+      end
+    end)
+  end)
 end
 
 -- Create autocommand group for window equalization
@@ -78,10 +106,7 @@ vim.api.nvim_create_autocmd('BufWinEnter', {
   group = eq_group,
   callback = function(args)
     if is_sidebar(args.buf) then
-      -- Defer the equalization to ensure the window is fully rendered
-      vim.defer_fn(function()
-        equalize_windows_all_tabs()
-      end, 50)
+      debounced_equalize()
     end
   end,
 })
@@ -91,10 +116,7 @@ vim.api.nvim_create_autocmd('BufWinLeave', {
   group = eq_group,
   callback = function(args)
     if is_sidebar(args.buf) then
-      -- Defer the equalization to ensure the window is fully closed
-      vim.defer_fn(function()
-        equalize_windows_all_tabs()
-      end, 50)
+      debounced_equalize()
     end
   end,
 })
