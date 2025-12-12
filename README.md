@@ -1227,39 +1227,265 @@ When multiple import paths exist (e.g., `Account` model in multiple Django apps)
 4. Create serializer: Open `serializers.py`, use JSON structure as reference
 5. Validate: Press `<leader>aa` to show Avante AI sidebar and ask "Create a DRF serializer for this JSON structure"
 
-### Project Navigation for Python
+### Project Navigation and Path Management
 
-#### Finding All Usages of a Function
+This section provides comprehensive workflows for navigating files, paths, and code locations throughout your project using all available tools.
 
-1. Place cursor on function name
-2. Find references: `<leader>gr` (Find references)
-3. Telescope shows all files using this function
-4. Navigate: Select file to jump to usage
+#### Complete Navigation Toolset
 
-#### Understanding Import Dependencies
+**Primary Navigation Tools:**
+- **Telescope** - Fuzzy file finder and text search
+- **nvim-tree** - Visual file explorer
+- **LSP Navigation** - Jump to definitions, references, implementations
+- **Buffer Navigation** - Switch between open files
+- **DAP Navigation** - Debug-time path and frame navigation
+- **Quickfix Lists** - Navigate search results and diagnostics
 
-1. Place cursor on import statement
-2. Go to source: `<leader>gd` (Go to definition)
-3. See what's exported: `<leader>fo` (Find symbols) in the imported file
-4. Find where module is used: `<leader>gr` on the import
+#### Real-World Navigation Workflows
 
-#### Navigating Django App Structure
+##### 1. Finding a File by Name
 
-1. Open file explorer: `<leader>ee` (NvimTree)
-2. Navigate to Django project root
-3. Find app: Use `<leader>ff` (Find files), type app name
-4. Quick access to common files:
-   - Models: `<leader>ff`, type `models.py`
-   - Views: `<leader>ff`, type `views.py`
-   - URLs: `<leader>ff`, type `urls.py`
-   - Tests: `<leader>ff`, type `test*.py`
+**Scenario:** You need to open a specific file but don't remember its exact location.
 
-#### Finding Python Classes and Methods
+**Workflow:**
+1. Press `<leader>ff` to open Telescope file finder
+2. Start typing the filename (fuzzy matching works)
+3. Use `<C-j>` / `<C-k>` to navigate results
+4. Preview shows full file path
+5. Press `<Enter>` to open, or:
+   - `<C-t>` to open in new tab
+   - `<C-v>` to open in vertical split
+   - `<C-x>` to open in horizontal split
 
-1. Find class in current file: `<leader>fo` (Find symbols), filter by `class`
-2. Find class across project: `<leader>fg` (Live grep), type `class ClassName`
-3. Find methods: `<leader>fm` (Find methods) in current file
-4. Navigate between methods: `]m` (Next method), `[m` (Previous method)
+**Alternative:** Use `<leader>fr` to browse recently opened files with paths.
+
+##### 2. Finding Where a Function is Used
+
+**Scenario:** You want to see all places where a function is called across the codebase.
+
+**Workflow:**
+1. Place cursor on the function name
+2. Press `<leader>gr` (Find references)
+3. Telescope shows all file locations with line numbers
+4. Navigate with `<C-j>` / `<C-k>`
+5. Preview shows code context at each location
+6. Press `<Enter>` to jump to that file and line
+
+**Example:** Finding Django view usage
+```
+Cursor on: def my_view(request):
+Press: <leader>gr
+Result: Shows all urls.py files and templates that reference this view
+```
+
+##### 3. Exploring Project Structure Visually
+
+**Scenario:** You want to understand the project layout or navigate directories.
+
+**Workflow:**
+1. Press `<leader>ee` to open nvim-tree file explorer
+2. Use `j` / `k` to navigate up/down
+3. Press `o` or `<Enter>` to:
+   - Expand/collapse directories
+   - Open files
+4. Press `<leader>ef` to reveal current file in explorer
+5. Press `c` to copy file path, `w` to copy filename
+6. Press `?` to see all available commands
+
+**Tips:**
+- The explorer shows git status indicators
+- Use `R` to refresh if files change externally
+- Press `q` to close explorer
+
+##### 4. Searching Text Across Files
+
+**Scenario:** You need to find where a specific string or pattern appears.
+
+**Workflow:**
+1. Press `<leader>fg` to open live grep
+2. Type your search term
+3. Results show:
+   - File paths
+   - Line numbers
+   - Matching line content
+4. Navigate with `<C-j>` / `<C-k>`
+5. Press `<Enter>` to jump to location
+6. Use `<leader>qo` to open quickfix list for all results
+7. Navigate quickfix with `<leader>qn` (next) / `<leader>qp` (previous)
+
+**Example:** Finding all Django model usages
+```
+Press: <leader>fg
+Type: class User(AbstractUser)
+Result: Shows all files importing or referencing User model
+```
+
+##### 5. Navigating Code Definitions and Implementations
+
+**Scenario:** You want to understand code structure by jumping between definitions.
+
+**Workflow:**
+1. **Go to definition:** Place cursor on symbol, press `<leader>gd`
+2. **Go to declaration:** Press `<leader>gD`
+3. **Find implementations:** Press `<leader>gi`
+4. **Find type definition:** Press `<leader>gt`
+5. **View hover info:** Press `<leader>gg` to see type/definition without jumping
+6. **Return:** Use `<C-o>` (jump back) or `<C-i>` (jump forward)
+
+**Example:** Understanding Django model relationships
+```
+1. Cursor on: ForeignKey(User)
+2. Press: <leader>gd → jumps to User model definition
+3. Press: <leader>gr → shows all ForeignKey references to User
+4. Press: <C-o> → returns to original location
+```
+
+##### 6. Switching Between Open Files
+
+**Scenario:** You have multiple files open and need to switch quickly.
+
+**Workflow:**
+1. Press `<leader>fb` to open buffer picker
+2. See all open files with preview
+3. Navigate with `<C-j>` / `<C-k>`
+4. Press `<Enter>` to switch to buffer
+5. Or use `<leader>bn` (next) / `<leader>bp` (previous) for quick cycling
+6. Press `<leader>bd` to close current buffer
+
+**Tip:** Buffer picker shows file paths, making it easy to identify files.
+
+##### 7. Finding Symbols and Methods in Current File
+
+**Scenario:** You're in a large file and need to find a specific function or class.
+
+**Workflow:**
+1. Press `<leader>fo` to find symbols in current document (LSP)
+2. Or press `<leader>fm` to find methods (Treesitter)
+3. Filter by typing symbol name
+4. Navigate with `<C-j>` / `<C-k>`
+5. Press `<Enter>` to jump to that symbol
+6. Use `]m` / `[m` to jump between methods in file
+
+**Example:** Navigating Django views.py
+```
+Press: <leader>fo
+Type: class
+Result: Shows all class-based views in file
+Press: <Enter> on a view → jumps to that class
+```
+
+##### 8. Navigating Recent Files
+
+**Scenario:** You want to reopen a file you worked on recently.
+
+**Workflow:**
+1. Press `<leader>fr` to open recent files
+2. See list of recently opened files with full paths
+3. Navigate with `<C-j>` / `<C-k>`
+4. Preview shows file content
+5. Press `<Enter>` to reopen
+
+**Use Case:** Quickly returning to files you were editing earlier in your session.
+
+##### 9. Debug-Time Navigation (DAP)
+
+**Scenario:** You're debugging and need to navigate the call stack and file locations.
+
+**Workflow:**
+1. Set breakpoint: `<leader>bb` on a line
+2. Start debugging: `<leader>dc`
+3. **View call stack:** Press `<leader>df` to see frames with file paths
+4. **Navigate frames:** In Telescope, select a frame to jump to that location
+5. **View scopes:** Press `<leader>d?` to see variable scopes with locations
+6. **Step through:** 
+   - `<leader>dj` - Step over (stay in current file)
+   - `<leader>dk` - Step into (may jump to other files)
+   - `<leader>do` - Step out (return to caller)
+7. **Inspect variables:** Press `<leader>di` on a variable to see its value
+
+**Example:** Debugging Django view
+```
+1. Set breakpoint in views.py: <leader>bb
+2. Start debug: <leader>dc
+3. View call stack: <leader>df
+   → Shows: views.py → urls.py → middleware.py
+4. Select urls.py frame → jumps to URL configuration
+5. Step back: <leader>do → returns to views.py
+```
+
+##### 10. Navigating Search Results and Diagnostics
+
+**Scenario:** You've searched for something or have diagnostics and want to navigate through results.
+
+**Workflow:**
+1. **After grep/search:** Press `<leader>qo` to open quickfix list
+2. **View diagnostics:** Press `<leader>q` to see all LSP diagnostics
+3. Navigate results:
+   - `<leader>qn` - Next item (jumps to next file/location)
+   - `<leader>qp` - Previous item
+   - `<leader>qf` - First item
+   - `<leader>ql` - Last item
+4. Each navigation jumps to the file and line
+5. Press `<leader>qc` to close quickfix
+
+**Use Case:** Fixing multiple linting errors or reviewing search results systematically.
+
+##### 11. Revealing Current File Location
+
+**Scenario:** You're editing a file and want to see where it is in the project structure.
+
+**Workflow:**
+1. While editing any file, press `<leader>ef`
+2. nvim-tree opens and highlights the current file
+3. You can see:
+   - Full directory structure
+   - File location in project
+   - Sibling files and directories
+4. Navigate from there using tree commands
+
+**Tip:** Useful when you're deep in a file and lose context of project structure.
+
+##### 12. Multi-File Code Review Workflow
+
+**Scenario:** You need to review code across multiple files systematically.
+
+**Workflow:**
+1. Find files to review: `<leader>ff`, select files with `<C-t>` (opens in tabs)
+2. Or use `<leader>fb` to see all open buffers
+3. Navigate tabs: `<leader>tn` (next) / `<leader>tb` (previous)
+4. In each file:
+   - Check diagnostics: `<leader>q`
+   - Find symbols: `<leader>fo`
+   - Find references: `<leader>gr` on key functions
+5. Compare files: `<leader>sv` (vertical split) to view side-by-side
+6. Search across: `<leader>fg` to find patterns
+
+#### Navigation Tips and Best Practices
+
+**Path Awareness:**
+- Telescope always shows full paths in preview
+- nvim-tree shows relative paths from project root
+- LSP navigation shows file paths in Telescope results
+- DAP frames show file paths in call stack
+
+**Efficient Navigation Patterns:**
+1. **Quick file access:** `<leader>ff` for fuzzy finding
+2. **Code understanding:** `<leader>gd` → `<leader>gr` → `<leader>fo`
+3. **Project exploration:** `<leader>ee` → navigate tree → `<leader>ef` to reveal
+4. **Debug navigation:** `<leader>bb` → `<leader>dc` → `<leader>df` for stack
+
+**Keyboard Shortcuts Summary:**
+- File finding: `<leader>ff`, `<leader>fr`, `<leader>fb`
+- Code navigation: `<leader>gd`, `<leader>gr`, `<leader>gi`, `<leader>fo`
+- Explorer: `<leader>ee`, `<leader>ef`, `<leader>er`
+- Debug: `<leader>df`, `<leader>dh`, `<leader>di`
+- Results: `<leader>qo`, `<leader>qn`, `<leader>qp`
+
+**Working Directory:**
+- Your config automatically tracks the current working directory
+- Telescope searches are relative to current directory
+- Directory changes trigger auto-session updates
+- nvim-tree reflects current directory structure
 
 ### Tips and Tricks for Python Development
 
