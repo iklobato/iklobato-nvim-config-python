@@ -46,9 +46,8 @@ return {
         -- Setup Mason-LSPconfig
         require("mason-lspconfig").setup({
             automatic_installation = true,
-            ensure_installed = {
-                'tsserver',  -- TypeScript/JavaScript language server
-            },
+            -- ensure_installed not needed when automatic_installation is true
+            -- Servers will be automatically installed when configured in lua/lsp/
         })
 
         -- Setup completion
