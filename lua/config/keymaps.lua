@@ -96,6 +96,19 @@ keymap.set('n', '<Right>', 'lzz', { desc = "Move right and center" })
 keymap.set("n", "gx", ":!open <c-r><c-a><CR>", { desc = "Open URL under cursor" })
 
 -------------------------------------------------------------------------------
+-- Telescope Helper Functions
+-------------------------------------------------------------------------------
+
+-- Cache Telescope builtin module for performance
+local telescope_builtin = nil
+local function get_telescope_builtin()
+  if not telescope_builtin then
+    telescope_builtin = require('telescope.builtin')
+  end
+  return telescope_builtin
+end
+
+-------------------------------------------------------------------------------
 -- Code Editing and Refactoring
 -------------------------------------------------------------------------------
 
@@ -201,15 +214,6 @@ keymap.set('n', '<leader>gb', ":GitBlameToggle<CR>", { desc = "Toggle git blame"
 -------------------------------------------------------------------------------
 -- Fuzzy Finding (Telescope)
 -------------------------------------------------------------------------------
-
--- Cache Telescope builtin module and directory calculations for performance
-local telescope_builtin = nil
-local function get_telescope_builtin()
-  if not telescope_builtin then
-    telescope_builtin = require('telescope.builtin')
-  end
-  return telescope_builtin
-end
 
 -- Cache current working directory (recalculate only when directory changes)
 local cached_cwd = nil
