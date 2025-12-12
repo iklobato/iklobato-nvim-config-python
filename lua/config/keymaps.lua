@@ -80,41 +80,8 @@ keymap.set('n', '}', '}zz', { desc = "Next paragraph and center" })
 keymap.set('n', ']m', ']mzz', { desc = "Next method and center" })
 keymap.set('n', '[m', '[mzz', { desc = "Previous method and center" })
 
--- Basic movement with full centering (vertical and horizontal)
-keymap.set('n', 'h', function()
-  vim.cmd('normal! h')
-  center_cursor()
-end, { desc = "Move left and center", noremap = true })
-keymap.set('n', 'j', function()
-  vim.cmd('normal! j')
-  center_cursor()
-end, { desc = "Move down and center", noremap = true })
-keymap.set('n', 'k', function()
-  vim.cmd('normal! k')
-  center_cursor()
-end, { desc = "Move up and center", noremap = true })
-keymap.set('n', 'l', function()
-  vim.cmd('normal! l')
-  center_cursor()
-end, { desc = "Move right and center", noremap = true })
-
--- Arrow keys with full centering (vertical and horizontal)
-keymap.set('n', '<Left>', function()
-  vim.cmd('normal! h')
-  center_cursor()
-end, { desc = "Move left and center", noremap = true })
-keymap.set('n', '<Down>', function()
-  vim.cmd('normal! j')
-  center_cursor()
-end, { desc = "Move down and center", noremap = true })
-keymap.set('n', '<Up>', function()
-  vim.cmd('normal! k')
-  center_cursor()
-end, { desc = "Move up and center", noremap = true })
-keymap.set('n', '<Right>', function()
-  vim.cmd('normal! l')
-  center_cursor()
-end, { desc = "Move right and center", noremap = true })
+-- Basic movement - fast, no centering (centering removed for speed)
+-- Centering is kept for long-distance movements below (search, page up/down, etc.)
 
 -- External Navigation
 keymap.set("n", "gx", ":!open <c-r><c-a><CR>", { desc = "Open URL under cursor" })
@@ -124,103 +91,45 @@ keymap.set("n", "gx", ":!open <c-r><c-a><CR>", { desc = "Open URL under cursor" 
 -------------------------------------------------------------------------------
 
 -- LSP Controls
-keymap.set('n', '<leader>gd', function()
-  local ok, builtin = pcall(require, 'telescope.builtin')
-  if ok and builtin.lsp_definitions then
-    builtin.lsp_definitions()
-  else
-    vim.lsp.buf.definition()
+-- Cache Telescope builtin for LSP operations
+local function safe_telescope_lsp(fn_name, fallback_fn)
+  return function()
+    local builtin = get_telescope_builtin()
+    if builtin[fn_name] then
+      builtin[fn_name]()
+    else
+      fallback_fn()
+    end
   end
-end, { desc = "Go to definition" })
-keymap.set('n', '<leader>gD', function()
-  local ok, builtin = pcall(require, 'telescope.builtin')
-  if ok and builtin.lsp_declarations then
-    builtin.lsp_declarations()
-  else
-    vim.lsp.buf.declaration()
-  end
-end, { desc = "Go to declaration" })
-keymap.set('n', '<leader>gi', function()
-  local ok, builtin = pcall(require, 'telescope.builtin')
-  if ok and builtin.lsp_implementations then
-    builtin.lsp_implementations()
-  else
-    vim.lsp.buf.implementation()
-  end
-end, { desc = "Go to implementation" })
-keymap.set('n', '<leader>gr', function()
-  local ok, builtin = pcall(require, 'telescope.builtin')
-  if ok and builtin.lsp_references then
-    builtin.lsp_references()
-  else
-    vim.lsp.buf.references()
-  end
-end, { desc = "Find references" })
-keymap.set('n', '<leader>gt', function()
-  local ok, builtin = pcall(require, 'telescope.builtin')
-  if ok and builtin.lsp_type_definitions then
-    builtin.lsp_type_definitions()
-  else
-    vim.lsp.buf.type_definition()
-  end
-end, { desc = "Go to type definition" })
+end
+
+keymap.set('n', '<leader>gd', safe_telescope_lsp('lsp_definitions', vim.lsp.buf.definition), { desc = "Go to definition" })
+keymap.set('n', '<leader>gD', safe_telescope_lsp('lsp_declarations', vim.lsp.buf.declaration), { desc = "Go to declaration" })
+keymap.set('n', '<leader>gi', safe_telescope_lsp('lsp_implementations', vim.lsp.buf.implementation), { desc = "Go to implementation" })
+keymap.set('n', '<leader>gr', safe_telescope_lsp('lsp_references', vim.lsp.buf.references), { desc = "Find references" })
+keymap.set('n', '<leader>gt', safe_telescope_lsp('lsp_type_definitions', vim.lsp.buf.type_definition), { desc = "Go to type definition" })
 keymap.set('n', '<leader>gg', vim.lsp.buf.hover, { desc = "Show hover info" })
 keymap.set('n', '<leader>gs', vim.lsp.buf.signature_help, { desc = "Show signature help" })
 keymap.set('n', '<leader>lr', vim.lsp.buf.rename, { desc = "Rename symbol" })
-keymap.set('n', '<leader>ga', function()
-  local ok, builtin = pcall(require, 'telescope.builtin')
-  if ok and builtin.lsp_code_actions then
-    builtin.lsp_code_actions()
-  else
-    vim.lsp.buf.code_action()
-  end
-end, { desc = "Code actions" })
+keymap.set('n', '<leader>ga', safe_telescope_lsp('lsp_code_actions', vim.lsp.buf.code_action), { desc = "Code actions" })
 -- Format keybinding is handled by conform.nvim (<leader>f)
 
 -- Diagnostics
 keymap.set('n', '<leader>e', function()
-  local ok, builtin = pcall(require, 'telescope.builtin')
-  if ok and builtin.diagnostics then
+  local builtin = get_telescope_builtin()
+  if builtin.diagnostics then
     builtin.diagnostics()
   else
     vim.diagnostic.open_float()
   end
 end, { desc = "Show diagnostics" })
-keymap.set('n', '<leader>gn', function()
-  local ok, builtin = pcall(require, 'telescope.builtin')
-  if ok and builtin.diagnostics then
-    builtin.diagnostics()
-  else
-    vim.diagnostic.goto_next()
-  end
-end, { desc = "Show diagnostics" })
-keymap.set('n', '<leader>gp', function()
-  local ok, builtin = pcall(require, 'telescope.builtin')
-  if ok and builtin.diagnostics then
-    builtin.diagnostics()
-  else
-    vim.diagnostic.goto_prev()
-  end
-end, { desc = "Show diagnostics" })
-keymap.set('n', ']d', function()
-  local ok, builtin = pcall(require, 'telescope.builtin')
-  if ok and builtin.diagnostics then
-    builtin.diagnostics()
-  else
-    vim.diagnostic.goto_next()
-  end
-end, { desc = "Show diagnostics" })
-keymap.set('n', '[d', function()
-  local ok, builtin = pcall(require, 'telescope.builtin')
-  if ok and builtin.diagnostics then
-    builtin.diagnostics()
-  else
-    vim.diagnostic.goto_prev()
-  end
-end, { desc = "Show diagnostics" })
+keymap.set('n', '<leader>gn', vim.diagnostic.goto_next, { desc = "Next diagnostic" })
+keymap.set('n', '<leader>gp', vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
+keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = "Next diagnostic" })
+keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
 keymap.set('n', '<leader>q', function()
-  local ok, builtin = pcall(require, 'telescope.builtin')
-  if ok and builtin.diagnostics then
+  local builtin = get_telescope_builtin()
+  if builtin.diagnostics then
     builtin.diagnostics()
   else
     vim.diagnostic.setloclist({ wrap = true })
@@ -284,38 +193,58 @@ keymap.set('n', '<leader>gb', ":GitBlameToggle<CR>", { desc = "Toggle git blame"
 -- Fuzzy Finding (Telescope)
 -------------------------------------------------------------------------------
 
+-- Cache Telescope builtin module and directory calculations for performance
+local telescope_builtin = nil
+local function get_telescope_builtin()
+  if not telescope_builtin then
+    telescope_builtin = require('telescope.builtin')
+  end
+  return telescope_builtin
+end
+
+-- Cache current working directory (recalculate only when directory changes)
+local cached_cwd = nil
+local last_cwd_check = 0
+local function get_cached_cwd()
+  local current_time = vim.loop.now()
+  -- Recalculate cwd if more than 1 second has passed or if it's not cached
+  if not cached_cwd or (current_time - last_cwd_check) > 1000 then
+    cached_cwd = vim.fn.fnamemodify(vim.fn.getcwd(), ':p'):gsub('/$', '')
+    last_cwd_check = current_time
+  end
+  return cached_cwd
+end
+
+-- Clear cache when directory changes
+vim.api.nvim_create_autocmd('DirChanged', {
+  callback = function()
+    cached_cwd = nil
+  end,
+})
+
 keymap.set('n', '<leader>ff', function()
-  -- Get absolute path of current working directory to ensure we're in the right place
-  local cwd = vim.fn.fnamemodify(vim.fn.getcwd(), ':p')
-  -- Remove trailing slash if present
-  cwd = cwd:gsub('/$', '')
-  
-  -- Ensure we're searching in the current directory
-  require('telescope.builtin').find_files({
-    cwd = cwd,
+  local builtin = get_telescope_builtin()
+  builtin.find_files({
+    cwd = get_cached_cwd(),
     hidden = true,
-    no_ignore = false,  -- Respect .gitignore (set to true if .gitignore is too restrictive)
+    no_ignore = false,  -- Respect .gitignore
     follow = true,
   })
 end, { desc = "Find files" })
+
 keymap.set('n', '<leader>fg', function()
-  -- Get absolute path of current working directory
-  local cwd = vim.fn.fnamemodify(vim.fn.getcwd(), ':p')
-  -- Remove trailing slash if present
-  cwd = cwd:gsub('/$', '')
-  
-  -- Ensure live grep searches in the current directory
-  require('telescope.builtin').live_grep({
-    cwd = cwd,
+  local builtin = get_telescope_builtin()
+  builtin.live_grep({
+    cwd = get_cached_cwd(),
   })
 end, { desc = "Find text" })
-keymap.set('n', '<leader>fb', require('telescope.builtin').buffers, { desc = "Find buffers" })
-keymap.set('n', '<leader>fh', require('telescope.builtin').help_tags, { desc = "Find help" })
+keymap.set('n', '<leader>fb', function() get_telescope_builtin().buffers() end, { desc = "Find buffers" })
+keymap.set('n', '<leader>fh', function() get_telescope_builtin().help_tags() end, { desc = "Find help" })
 keymap.set('n', '<leader>fr', '<cmd>Telescope oldfiles<CR>', { desc = "Find recent files" })
-keymap.set('n', '<leader>fs', require('telescope.builtin').current_buffer_fuzzy_find, { desc = "Find in buffer" })
-keymap.set('n', '<leader>fo', require('telescope.builtin').lsp_document_symbols, { desc = "Find symbols" })
-keymap.set('n', '<leader>fi', require('telescope.builtin').lsp_incoming_calls, { desc = "Find incoming calls" })
-keymap.set('n', '<leader>fm', function() require('telescope.builtin').treesitter({default_text=":method:"}) end, { desc = "Find methods" })
+keymap.set('n', '<leader>fs', function() get_telescope_builtin().current_buffer_fuzzy_find() end, { desc = "Find in buffer" })
+keymap.set('n', '<leader>fo', function() get_telescope_builtin().lsp_document_symbols() end, { desc = "Find symbols" })
+keymap.set('n', '<leader>fi', function() get_telescope_builtin().lsp_incoming_calls() end, { desc = "Find incoming calls" })
+keymap.set('n', '<leader>fm', function() get_telescope_builtin().treesitter({default_text=":method:"}) end, { desc = "Find methods" })
 
 -------------------------------------------------------------------------------
 -- Debugging (DAP)
@@ -370,41 +299,59 @@ keymap.set('t', '<Esc>', '<C-\\><C-n>', { desc = "Exit terminal mode" })
 -- Database Operations (vim-dadbod)
 -------------------------------------------------------------------------------
 
-keymap.set('n', '<leader>db', function()
-  -- Check if DBUI is currently open by looking for the buffer in windows
-  local dbui_open = false
-  -- First check visible windows
+-- Cache DBUI state to avoid expensive buffer iteration
+local dbui_state_cache = nil
+local dbui_cache_time = 0
+local DBUI_CACHE_TTL = 2000 -- Cache for 2 seconds
+
+local function is_dbui_open()
+  local current_time = vim.loop.now()
+  -- Use cached result if still valid
+  if dbui_state_cache ~= nil and (current_time - dbui_cache_time) < DBUI_CACHE_TTL then
+    return dbui_state_cache
+  end
+  
+  -- Only check visible windows (much faster than checking all buffers)
   for _, win in ipairs(vim.api.nvim_list_wins()) do
     local buf = vim.api.nvim_win_get_buf(win)
-    local buf_name = vim.api.nvim_buf_get_name(buf)
     local filetype = vim.api.nvim_buf_get_option(buf, 'filetype')
-    if buf_name:match("dbui://") or buf_name:match("DBUI") or filetype == "dbui" then
-      dbui_open = true
-      break
-    end
-  end
-  -- Also check all buffers if not found in windows
-  if not dbui_open then
-    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-      local buf_name = vim.api.nvim_buf_get_name(buf)
-      local filetype = vim.api.nvim_buf_get_option(buf, 'filetype')
-      if buf_name:match("dbui://") or buf_name:match("DBUI") or filetype == "dbui" then
-        dbui_open = true
-        break
-      end
+    if filetype == "dbui" then
+      dbui_state_cache = true
+      dbui_cache_time = current_time
+      return true
     end
   end
   
+  dbui_state_cache = false
+  dbui_cache_time = current_time
+  return false
+end
+
+-- Clear cache when DBUI buffers are created/destroyed
+vim.api.nvim_create_autocmd({ 'BufWinEnter', 'BufWinLeave' }, {
+  pattern = '*',
+  callback = function(args)
+    local filetype = vim.api.nvim_buf_get_option(args.buf, 'filetype')
+    if filetype == "dbui" then
+      dbui_state_cache = nil
+    end
+  end,
+})
+
+keymap.set('n', '<leader>db', function()
+  local dbui_open = is_dbui_open()
+  
   -- Toggle the state
   if dbui_open then
-    -- Currently open, so close it
     vim.g.db_ui_should_be_open = false
     vim.cmd('DBUIToggle')
   else
-    -- Currently closed, so open it
     vim.g.db_ui_should_be_open = true
     vim.cmd('DBUI')
   end
+  
+  -- Invalidate cache after toggle
+  dbui_state_cache = nil
 end, { desc = "Toggle DB UI" })
 keymap.set('n', '<leader>dq', '<cmd>DBUIExecuteQuery<CR>', { desc = "Execute query" })
 keymap.set('v', '<leader>dq', ':DBUIExecuteQuery<CR>', { desc = "Execute selected query" })
