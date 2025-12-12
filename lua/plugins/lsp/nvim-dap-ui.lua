@@ -13,18 +13,10 @@ return {
     local function get_left_panel_width()
       return math.floor(vim.o.columns * 0.25)
     end
-    
     local function get_right_panel_width()
       return math.floor(vim.o.columns * 0.4)
     end
-    
     -- Element sizes can also be dynamic based on terminal height if needed
-    local function get_element_height_ratio()
-      -- Adjust based on terminal height if needed
-      -- For now, using fixed ratios that work well
-      return nil
-    end
-    
     return {
       controls = {
         element = "repl",
@@ -94,11 +86,14 @@ return {
     local dapui = require('dapui')
     dapui.setup(opts)
 
+    -- ============================================================================
+    -- Environment Detection Helpers
+    -- ============================================================================
+
     -- Function to find Django settings module
     local function find_django_settings()
       local current_dir = vim.fn.getcwd()
       local manage_py = vim.fn.findfile('manage.py', current_dir .. ';')
-      
       if manage_py ~= '' then
         local manage_content = vim.fn.readfile(manage_py)
         for _, line in ipairs(manage_content) do
@@ -107,7 +102,6 @@ return {
             return settings_module
           end
         end
-        
         local project_dir = vim.fn.fnamemodify(manage_py, ':h')
         local possible_settings = vim.fn.globpath(project_dir, '*/settings.py', 0, 1)
         if #possible_settings > 0 then
@@ -128,7 +122,6 @@ return {
         '.env/bin/python',
         'virtualenv/bin/python',
       }
-      
       -- Check for poetry environment
       local poetry_env = vim.fn.systemlist('poetry env info -p 2>/dev/null')
       if #poetry_env > 0 then
@@ -176,6 +169,10 @@ return {
       
       return env
     end
+
+    -- ============================================================================
+    -- Command Parsing Helpers
+    -- ============================================================================
 
     -- Function to parse shell command and extract Python script and arguments
     local function parse_python_command(cmd)
@@ -259,18 +256,168 @@ return {
       return program, args
     end
 
-    -- Python adapter configuration
+    -- ============================================================================
+    -- DAP Adapter Configuration
+    -- ============================================================================
+
     dap.adapters.python = {
       type = 'executable',
       command = get_python_path(),
       args = { '-m', 'debugpy.adapter' }
     }
 
+    -- Initialize configurations table early
+    if not dap.configurations then
+      dap.configurations = {}
+    end
+    -- Don't initialize python configs here - we'll assign them after building
+
+    -- ============================================================================
+    -- State Management
+    -- ============================================================================
+
     -- Initialize last command storage
     local last_django_command = nil
     local last_custom_command = nil
 
-    -- Function to get the function name under cursor
+    -- ============================================================================
+    -- Path Utilities
+    -- ============================================================================
+
+    -- Format file path for display (relative path or filename)
+    local function format_file_path(file)
+      if file == '' then
+        return '[no file]'
+      end
+      local filename = vim.fn.fnamemodify(file, ':t')
+      local relative_path = vim.fn.fnamemodify(file, ':.')
+      if relative_path == file then
+        relative_path = vim.fn.fnamemodify(file, ':~:.')
+      end
+      -- Use relative path if it's shorter and different, otherwise just filename
+      if #relative_path < #file and relative_path ~= file then
+        return relative_path
+      else
+        return filename
+      end
+    end
+
+    -- ============================================================================
+    -- Name Generation Helpers
+    -- ============================================================================
+
+    -- Build command name string from parts
+    local function build_command_name(parts)
+      return table.concat(parts, ' ')
+    end
+
+    -- Create name for current file configs
+    local function create_file_name(prefix, file)
+      local display_path = format_file_path(file)
+      return prefix .. ' (' .. display_path .. ')'
+    end
+
+    -- Create name for pytest with file and function
+    local function create_pytest_function_name(file, func_name)
+      local display_path = format_file_path(file)
+      if func_name then
+        return '🎯 PYTEST: Function Under Cursor (python -m pytest ' .. display_path .. ' -k "' .. func_name .. '" --verbose)'
+      else
+        return '🎯 PYTEST: Function Under Cursor (python -m pytest ' .. display_path .. ' -k [no function found] --verbose)'
+      end
+    end
+
+    -- ============================================================================
+    -- Configuration Builders
+    -- ============================================================================
+
+    -- Create base Python configuration properties
+    local function create_base_python_config()
+      return {
+        type = 'python',
+        request = 'launch',
+        pythonPath = function() return get_python_path() end,
+        console = 'integratedTerminal',
+        justMyCode = false,
+      }
+    end
+
+    -- Create Django-specific configuration properties
+    local function create_django_config()
+      local base = create_base_python_config()
+      base.django = true
+      base.env = get_django_env()
+      base.program = '${workspaceFolder}/manage.py'
+      return base
+    end
+
+    -- Create Pytest-specific configuration properties
+    local function create_pytest_config()
+      local base = create_base_python_config()
+      base.program = '-m'
+      base.cwd = '${workspaceFolder}'
+      return base
+    end
+
+    -- Helper function to resolve name (function or string) to a string
+    -- For dynamic names, resolves with current state or provides sensible default
+    local function resolve_name(name)
+      if type(name) == 'function' then
+        -- Call the function to get the name string
+        -- Use pcall to handle any errors gracefully
+        local success, result = pcall(name)
+        if success and type(result) == 'string' then
+          return result
+        else
+          -- Fallback if function fails or returns non-string
+          -- Try to provide a meaningful default based on the function's context
+          if not success then
+            vim.notify("Warning: Name function failed: " .. tostring(result), vim.log.levels.WARN)
+          end
+          return '[Name resolution failed]'
+        end
+      elseif type(name) == 'string' then
+        return name
+      else
+        -- Fallback for unexpected types
+        return '[Invalid name type]'
+      end
+    end
+
+    -- Build Django configuration
+    local function build_django_config(name, args)
+      local config = create_django_config()
+      -- Resolve function-based names immediately
+      config.name = resolve_name(name)
+      config.args = args
+      return config
+    end
+
+    -- Build Pytest configuration
+    local function build_pytest_config(name, args)
+      local config = create_pytest_config()
+      -- Resolve function-based names immediately
+      config.name = resolve_name(name)
+      config.args = args
+      return config
+    end
+
+    -- Build generic Python configuration
+    local function build_python_config(name, program, args, extra)
+      local config = create_base_python_config()
+      -- Resolve function-based names immediately
+      config.name = resolve_name(name)
+      config.program = program
+      config.args = args
+      if extra then
+        for k, v in pairs(extra) do
+          config[k] = v
+        end
+      end
+      return config
+    end
+
+    -- Function to get the function name under cursor (for pytest function testing)
     local function get_function_under_cursor()
       local bufnr = vim.api.nvim_get_current_buf()
       local cursor_line = vim.api.nvim_win_get_cursor(0)[1]  -- 1-indexed
@@ -333,82 +480,42 @@ return {
       return nil
     end
 
+    -- ============================================================================
+    -- Configuration Definitions
+    -- ============================================================================
+
     -- Django configurations
-    dap.configurations.python = {
-      {
-        type = 'python',
-        request = 'launch',
-        name = function()
+    local django_configs = {
+      -- Rerun Last Django Command
+      build_django_config(
+        function()
           if last_django_command then
             return '⏮️  DJANGO: Rerun Last Command (manage.py ' .. table.concat(last_django_command, " ") .. ')'
           else
             return '⏮️  DJANGO: Rerun Last Command (manage.py [no previous command])'
           end
         end,
-        program = '${workspaceFolder}/manage.py',
-        args = function()
-            if last_django_command then
-                vim.notify("Rerunning command: " .. table.concat(last_django_command, " "), vim.log.levels.INFO)
-                return last_django_command
-            else
-                vim.notify("No previous command found. Please run a Django command first.", vim.log.levels.WARN)
-                return {'help'}
-            end
-        end,
-        pythonPath = function() return get_python_path() end,
-        django = true,
-        justMyCode = false,
-        console = 'integratedTerminal',
-        env = get_django_env(),
-      },
-      {
-        type = 'python',
-        request = 'launch',
-        name = function()
-          local file = vim.fn.expand('%:p')
-          if file == '' then
-            return '🐍 PYTHON: Current File ([no file])'
-          end
-          local filename = vim.fn.fnamemodify(file, ':t')
-          local workspace = vim.fn.getcwd()
-          -- Try to make it relative to workspace
-          local relative_path = vim.fn.fnamemodify(file, ':.')
-          -- If relative path is the same as absolute, try workspace-relative
-          if relative_path == file then
-            relative_path = vim.fn.fnamemodify(file, ':~:.')
-          end
-          -- Use relative path if it's shorter and different, otherwise just filename
-          if #relative_path < #file and relative_path ~= file then
-            return '🐍 PYTHON: Current File (' .. relative_path .. ')'
+        function()
+          if last_django_command then
+            vim.notify("Rerunning command: " .. table.concat(last_django_command, " "), vim.log.levels.INFO)
+            return last_django_command
           else
-            return '🐍 PYTHON: Current File (' .. filename .. ')'
+            vim.notify("No previous command found. Please run a Django command first.", vim.log.levels.WARN)
+            return {'help'}
           end
-        end,
-        program = '${file}',
-        pythonPath = function() return get_python_path() end,
-        console = 'integratedTerminal',
-        cwd = '${workspaceFolder}',
-        stopOnEntry = false,
-        justMyCode = false,
-      },
-      {
-        type = 'python',
-        request = 'launch',
-        name = '🌐 DJANGO: Run Server (manage.py runserver --noreload)',
-        program = '${workspaceFolder}/manage.py',
-        args = { 'runserver', '--noreload' },
-        pythonPath = function() return get_python_path() end,
-        django = true,
-        justMyCode = false,
-        console = 'integratedTerminal',
-        env = get_django_env(),
-      },
-      {
-        type = 'python',
-        request = 'launch',
-        name = '🧪 DJANGO: Run Tests (manage.py test --keepdb [path])',
-        program = '${workspaceFolder}/manage.py',
-        args = function()
+        end
+      ),
+
+      -- Run Server
+      build_django_config(
+        '🌐 DJANGO: Run Server (manage.py runserver --noreload)',
+        { 'runserver', '--noreload' }
+      ),
+
+      -- Run Tests
+      build_django_config(
+        '🧪 DJANGO: Run Tests (manage.py test --keepdb [path])',
+        function()
           local test_path = vim.fn.input('Test path (empty for all): ')
           local args = {'test', '--keepdb'}
           if test_path ~= '' then
@@ -419,31 +526,19 @@ return {
           last_django_command = args
           vim.notify("Test command stored: test " .. test_path, vim.log.levels.INFO)
           return args
-        end,
-        pythonPath = function() return get_python_path() end,
-        django = true,
-        justMyCode = false,
-        console = 'integratedTerminal',
-        env = get_django_env(),
-      },
-      {
-        type = 'python',
-        request = 'launch',
-        name = '🔮 DJANGO: Shell Plus (manage.py shell_plus --ipython)',
-        program = '${workspaceFolder}/manage.py',
-        args = {'shell_plus', '--ipython'},
-        pythonPath = function() return get_python_path() end,
-        django = true,
-        justMyCode = false,
-        console = 'integratedTerminal',
-        env = get_django_env(),
-      },
-      {
-        type = 'python',
-        request = 'launch',
-        name = '⚙️  DJANGO: Custom Command (manage.py [command])',
-        program = '${workspaceFolder}/manage.py',
-        args = function()
+        end
+      ),
+
+      -- Shell Plus
+      build_django_config(
+        '🔮 DJANGO: Shell Plus (manage.py shell_plus --ipython)',
+        {'shell_plus', '--ipython'}
+      ),
+
+      -- Custom Command
+      build_django_config(
+        '⚙️  DJANGO: Custom Command (manage.py [command])',
+        function()
           local cmd = vim.fn.input('Management command: ')
           if cmd == "" then
             vim.notify("Command cancelled", vim.log.levels.WARN)
@@ -458,80 +553,58 @@ return {
           last_django_command = args
           vim.notify("Command stored: " .. cmd, vim.log.levels.INFO)
           return args
+        end
+      ),
+    }
+
+    -- Python configurations
+    local python_configs = {
+      -- Current File
+      build_python_config(
+        function()
+          local file = vim.fn.expand('%:p')
+          return create_file_name('🐍 PYTHON: Current File', file)
         end,
-        pythonPath = function() return get_python_path() end,
-        django = true,
-        justMyCode = false,
-        console = 'integratedTerminal',
-        env = get_django_env(),
-      },
-      {
-        type = 'python',
-        request = 'launch',
-        name = '🎯 PYTEST: Run All Tests (python -m pytest --verbose)',
-        program = '-m',
-        args = {'pytest', '--verbose'},
-        pythonPath = function() return get_python_path() end,
-        console = 'integratedTerminal',
-        cwd = '${workspaceFolder}',
-        justMyCode = false,
-      },
-      {
-        type = 'python',
-        request = 'launch',
-        name = function()
+        '${file}',
+        nil,
+        { cwd = '${workspaceFolder}', stopOnEntry = false }
+      ),
+    }
+
+    -- Pytest configurations
+    local pytest_configs = {
+      -- Run All Tests
+      build_pytest_config(
+        '🎯 PYTEST: Run All Tests (python -m pytest --verbose)',
+        {'pytest', '--verbose'}
+      ),
+
+      -- Current File
+      build_pytest_config(
+        function()
           local file = vim.fn.expand('%:p')
           if file == '' then
             return '🔍 PYTEST: Current File (python -m pytest [no file] --verbose)'
           end
-          local filename = vim.fn.fnamemodify(file, ':t')
-          local workspace = vim.fn.getcwd()
-          -- Try to make it relative to workspace
-          local relative_path = vim.fn.fnamemodify(file, ':.')
-          -- If relative path is the same as absolute, try workspace-relative
-          if relative_path == file then
-            relative_path = vim.fn.fnamemodify(file, ':~:.')
-          end
-          -- Use relative path if it's shorter and different, otherwise just filename
-          local display_path = (#relative_path < #file and relative_path ~= file) and relative_path or filename
+          local display_path = format_file_path(file)
           return '🔍 PYTEST: Current File (python -m pytest ' .. display_path .. ' --verbose)'
         end,
-        program = '-m',
-        args = function()
-          return {
-            'pytest',
-            '${file}',
-            '--verbose'
-          }
-        end,
-        pythonPath = function() return get_python_path() end,
-        console = 'integratedTerminal',
-        cwd = '${workspaceFolder}',
-        justMyCode = false,
-      },
-      {
-        type = 'python',
-        request = 'launch',
-        name = function()
+        function()
+          return {'pytest', '${file}', '--verbose'}
+        end
+      ),
+
+      -- Function Under Cursor
+      build_pytest_config(
+        function()
           local file = vim.fn.expand('%:p')
           if file == '' then
             return '🎯 PYTEST: Function Under Cursor (python -m pytest -k [no file])'
           end
           local func_name = get_function_under_cursor()
-          if not func_name then
-            return '🎯 PYTEST: Function Under Cursor (python -m pytest -k [no function found])'
-          end
-          local filename = vim.fn.fnamemodify(file, ':t')
-          local workspace = vim.fn.getcwd()
-          local relative_path = vim.fn.fnamemodify(file, ':.')
-          if relative_path == file then
-            relative_path = vim.fn.fnamemodify(file, ':~:.')
-          end
-          local display_path = (#relative_path < #file and relative_path ~= file) and relative_path or filename
-          return '🎯 PYTEST: Function Under Cursor (python -m pytest ' .. display_path .. ' -k "' .. func_name .. '" --verbose)'
+          return create_pytest_function_name(file, func_name)
         end,
-        program = '-m',
-        args = function()
+        function()
           local file = vim.fn.expand('%:p')
           if file == '' then
             vim.notify("No file open", vim.log.levels.WARN)
@@ -546,25 +619,14 @@ return {
           
           vim.notify("Running pytest for function: " .. func_name, vim.log.levels.INFO)
           
-          return {
-            'pytest',
-            '${file}',
-            '-k',
-            func_name,
-            '--verbose'
-          }
-        end,
-        pythonPath = function() return get_python_path() end,
-        console = 'integratedTerminal',
-        cwd = '${workspaceFolder}',
-        justMyCode = false,
-      },
-      {
-        type = 'python',
-        request = 'launch',
-        name = '🛠️ PYTEST: Custom Path/Args (python -m pytest [path] [args])',
-        program = '-m',
-        args = function()
+          return {'pytest', '${file}', '-k', func_name, '--verbose'}
+        end
+      ),
+
+      -- Custom Path/Args
+      build_pytest_config(
+        '🛠️ PYTEST: Custom Path/Args (python -m pytest [path] [args])',
+        function()
           local args = {'pytest'}
           
           local test_path = vim.fn.input('Test path (empty for all): ')
@@ -583,27 +645,24 @@ return {
           
           vim.notify("Running pytest with args: " .. table.concat(args, " "), vim.log.levels.INFO)
           return args
-        end,
-        pythonPath = function() return get_python_path() end,
-        console = 'integratedTerminal',
-        cwd = '${workspaceFolder}',
-        justMyCode = false,
-      },
-      {
-        type = 'python',
-        request = 'launch',
-        name = '🔧 CUSTOM: Run Command (python [script] [args])',
-        program = function()
+        end
+      ),
+    }
+
+    -- Custom configurations
+    local custom_configs = {
+      -- Run Command
+      build_python_config(
+        '🔧 CUSTOM: Run Command (python [script] [args])',
+        function()
           local cmd = vim.fn.input('Command (e.g., python script.py or make run): ')
           if cmd == "" then
             vim.notify("Command cancelled", vim.log.levels.WARN)
             return nil
           end
           
-          -- Store command for rerun
           last_custom_command = cmd
           
-          -- Parse command to extract Python script/module
           local program, args = parse_python_command(cmd)
           
           if not program then
@@ -611,9 +670,7 @@ return {
             return nil
           end
           
-          -- If program is a script path, make it relative to workspace
           if program ~= '-m' and not program:match('^/') then
-            -- Remove leading ./ if present
             if program:match('^%.%/') then
               program = program:sub(3)
             end
@@ -623,31 +680,26 @@ return {
           vim.notify("Running command: " .. cmd, vim.log.levels.INFO)
           return program
         end,
-        args = function()
+        function()
           if not last_custom_command then
             return {}
           end
-          
           local _, args = parse_python_command(last_custom_command)
           return args
         end,
-        pythonPath = function() return get_python_path() end,
-        console = 'integratedTerminal',
-        cwd = '${workspaceFolder}',
-        env = get_django_env(),
-        justMyCode = false,
-      },
-      {
-        type = 'python',
-        request = 'launch',
-        name = function()
+        { cwd = '${workspaceFolder}', env = get_django_env() }
+      ),
+
+      -- Run Last Command
+      build_python_config(
+        function()
           if last_custom_command then
             return '🔧 CUSTOM: Run Last Command (' .. last_custom_command .. ')'
           else
             return '🔧 CUSTOM: Run Last Command ([no previous command])'
           end
         end,
-        program = function()
+        function()
           if not last_custom_command then
             vim.notify("No previous command found. Please run a custom command first.", vim.log.levels.WARN)
             return nil
@@ -662,9 +714,7 @@ return {
             return nil
           end
           
-          -- If program is a script path, make it relative to workspace
           if program ~= '-m' and not program:match('^/') then
-            -- Remove leading ./ if present
             if program:match('^%.%/') then
               program = program:sub(3)
             end
@@ -673,120 +723,150 @@ return {
           
           return program
         end,
-        args = function()
+        function()
           if not last_custom_command then
             return {}
           end
-          
           local _, args = parse_python_command(last_custom_command)
           return args
         end,
-        pythonPath = function() return get_python_path() end,
-        console = 'integratedTerminal',
-        cwd = '${workspaceFolder}',
-        env = get_django_env(),
-        justMyCode = false,
-      },
+        { cwd = '${workspaceFolder}', env = get_django_env() }
+      ),
     }
 
-    -- Wrap configurations to resolve function-based names for display
-    -- Store original configs and create a proxy that resolves names when accessed
-    local original_configs = dap.configurations.python
+    -- Combine all configurations
+    -- Ensure dap.configurations exists
+    if not dap.configurations then
+      dap.configurations = {}
+    end
     
-    local function resolve_name_in_config(config)
-      if not config then return config end
-      -- Ensure we always return a proper table
+    -- Build the configurations array
+    local all_configs = {}
+    for _, config in ipairs(django_configs) do
+      table.insert(all_configs, config)
+    end
+    for _, config in ipairs(python_configs) do
+      table.insert(all_configs, config)
+    end
+    for _, config in ipairs(pytest_configs) do
+      table.insert(all_configs, config)
+    end
+    for _, config in ipairs(custom_configs) do
+      table.insert(all_configs, config)
+    end
+    
+    -- Assign to dap.configurations.python
+    -- Ensure we have at least some configurations
+    if #all_configs == 0 then
+      vim.notify("ERROR: No DAP configurations were created! Check builder functions.", vim.log.levels.ERROR)
+      -- Don't assign empty array - leave it as nil so error is clear
+      return
+    end
+    
+    -- Explicitly ensure dap.configurations exists
+    if not dap.configurations then
+      dap.configurations = {}
+    end
+    
+    -- Verify all configurations are proper tables before assignment
+    for i, config in ipairs(all_configs) do
       if type(config) ~= 'table' then
-        return config
+        vim.notify("ERROR: Configuration " .. i .. " is not a table! Type: " .. type(config), vim.log.levels.ERROR)
+        return
       end
-      if type(config.name) == 'function' then
-        -- Create a shallow copy with resolved name
-        local resolved = {}
-        for k, v in pairs(config) do
-          if k == 'name' then
-            resolved[k] = v()
-          else
-            resolved[k] = v
-          end
+      
+      -- Ensure name is a string, not a function
+      if config.name and type(config.name) == 'function' then
+        vim.notify("WARNING: Configuration " .. i .. " still has function-based name. Resolving now...", vim.log.levels.WARN)
+        config.name = resolve_name(config.name)
+      end
+      
+      -- Ensure env is a table, not a function (if present)
+      if config.env and type(config.env) == 'function' then
+        vim.notify("ERROR: Configuration " .. i .. " has env as function! This should be a table.", vim.log.levels.ERROR)
+        config.env = config.env()  -- Resolve it
+      end
+      
+      -- Verify no other table-expected fields are functions (except args/program/pythonPath which are allowed)
+      local table_fields = {'cwd', 'console', 'django'}
+      for _, field in ipairs(table_fields) do
+        if config[field] and type(config[field]) == 'function' then
+          vim.notify("ERROR: Configuration " .. i .. " has " .. field .. " as function! This should not be a function.", vim.log.levels.ERROR)
+          -- Don't resolve, just remove it to prevent errors
+          config[field] = nil
         end
-        -- Store reference to original for dap.run to find
-        resolved._original_config = config
-        return resolved
       end
-      return config
     end
     
-    -- Create a proxy array that resolves names on access
-    -- Pre-populate with nil values so pairs() iteration works correctly
-    local configs_proxy = {}
-    for i = 1, #original_configs do
-      configs_proxy[i] = nil  -- Will be resolved via __index
+    -- Create a clean array copy to ensure no metatables or wrappers
+    -- This prevents any issues with DAP's iteration
+    local clean_configs = {}
+    for i, config in ipairs(all_configs) do
+      -- Create a clean copy of each config to ensure it's a plain table
+      local clean_config = {}
+      for k, v in pairs(config) do
+        clean_config[k] = v
+      end
+      clean_configs[i] = clean_config
     end
     
-    setmetatable(configs_proxy, {
-      __index = function(t, k)
-        -- Only handle numeric array indices
-        if type(k) == 'number' and k >= 1 and k <= #original_configs then
-          local cached = rawget(t, k)
-          if cached ~= nil then
-            return cached
-          end
-          local resolved = resolve_name_in_config(original_configs[k])
-          -- Cache the resolved version
-          rawset(t, k, resolved)
-          return resolved
-        end
-        -- For non-numeric keys, return nil (don't delegate to original_configs)
-        -- This prevents functions or unexpected values from being returned
-        return nil
-      end,
-      __len = function()
-        return #original_configs
-      end,
-      __newindex = function(t, k, v)
-        -- Allow modifications to be written to original_configs
-        original_configs[k] = v
-        -- Clear cache if modifying a numeric index
-        if type(k) == 'number' then
-          rawset(t, k, nil)
-        end
-      end,
-      -- Ensure pairs() works correctly on the proxy
-      __pairs = function(t)
-        local i = 0
-        return function()
-          i = i + 1
-          if i <= #original_configs then
-            -- Resolve and cache if needed
-            local cached = rawget(t, i)
-            if cached == nil then
-              cached = resolve_name_in_config(original_configs[i])
-              rawset(t, i, cached)
-            end
-            return i, cached
-          end
-        end
-      end,
-      -- Ensure ipairs() works correctly on the proxy
-      __ipairs = function(t)
-        local i = 0
-        return function()
-          i = i + 1
-          if i <= #original_configs then
-            -- Resolve and cache if needed
-            local cached = rawget(t, i)
-            if cached == nil then
-              cached = resolve_name_in_config(original_configs[i])
-              rawset(t, i, cached)
-            end
-            return i, cached
-          end
-        end
-      end,
-    })
+    -- Assign clean configurations (ensure no metatable)
+    dap.configurations.python = clean_configs
+    -- Explicitly remove any metatable that might have been set
+    setmetatable(dap.configurations.python, nil)
     
-    -- Replace the configurations array with our proxy
-    dap.configurations.python = configs_proxy
+    -- Verify assignment worked and test iteration
+    if not dap.configurations.python or #dap.configurations.python == 0 then
+      vim.notify("ERROR: Failed to assign configurations to dap.configurations.python!", vim.log.levels.ERROR)
+      return
+    end
+    
+    -- Test that pairs() works correctly (this is what DAP uses)
+    -- This is critical - if this fails, DAP will fail too
+    local success, err = pcall(function()
+      local pair_count = 0
+      for k, v in pairs(dap.configurations.python) do
+        if type(k) == 'number' and type(v) == 'table' then
+          pair_count = pair_count + 1
+          -- Verify each config is iterable
+          for ck, cv in pairs(v) do
+            -- Just verify we can iterate - don't check types here
+          end
+        elseif type(v) == 'function' then
+          vim.notify("ERROR: Found function at index " .. tostring(k) .. " in configurations array!", vim.log.levels.ERROR)
+        end
+      end
+      
+      -- Test that ipairs() works correctly
+      local ipair_count = 0
+      for i, v in ipairs(dap.configurations.python) do
+        if type(v) == 'table' then
+          ipair_count = ipair_count + 1
+        elseif type(v) == 'function' then
+          vim.notify("ERROR: Found function at index " .. i .. " in configurations array!", vim.log.levels.ERROR)
+        end
+      end
+      
+      if pair_count ~= #dap.configurations.python or ipair_count ~= #dap.configurations.python then
+        vim.notify("WARNING: Configuration iteration test failed. pairs()=" .. pair_count .. ", ipairs()=" .. ipair_count .. ", length=" .. #dap.configurations.python, vim.log.levels.WARN)
+      end
+    end)
+    
+    if not success then
+      vim.notify("ERROR: Failed to iterate configurations! Error: " .. tostring(err), vim.log.levels.ERROR)
+      -- Don't assign if iteration fails
+      dap.configurations.python = {}
+      return
+    end
+    
+    vim.notify("DAP: Successfully created " .. #dap.configurations.python .. " Python configurations", vim.log.levels.INFO)
+
+    -- Note: Names are now resolved at build time, so no proxy wrapper is needed
+    -- This ensures DAP can properly iterate over configurations with pairs()/ipairs()
+
+    -- ============================================================================
+    -- Configuration Resolution
+    -- ============================================================================
 
     -- Helper function to resolve function values in configuration before launch
     local function resolve_config(config)
@@ -805,15 +885,17 @@ return {
     end
     
     -- Override dap.run to resolve functions before launching
-    -- Handle both original configs and resolved copies from the proxy
+    -- Names are already resolved at build time, but args/program/env/pythonPath may still be functions
     local original_run = dap.run
     dap.run = function(config, opts)
-      -- If this is a resolved copy from the proxy, use the original
-      local actual_config = config._original_config or config
-      local resolved_config = resolve_config(actual_config)
+      local resolved_config = resolve_config(config)
       return original_run(resolved_config, opts)
     end
     
+
+    -- ============================================================================
+    -- DAP Event Handlers
+    -- ============================================================================
 
     -- DAP UI event listeners
     dap.listeners.after.event_initialized["dapui_config"] = function()
@@ -831,6 +913,10 @@ return {
       -- This event is sent by debugpy to inform about socket connections
       -- We can safely ignore it as it's informational only
     end
+
+    -- ============================================================================
+    -- Autocmds
+    -- ============================================================================
 
     -- Automatic virtual environment detection on directory change
     vim.api.nvim_create_autocmd({"DirChanged"}, {
