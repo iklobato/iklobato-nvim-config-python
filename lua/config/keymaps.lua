@@ -80,8 +80,17 @@ keymap.set('n', '}', '}zz', { desc = "Next paragraph and center" })
 keymap.set('n', ']m', ']mzz', { desc = "Next method and center" })
 keymap.set('n', '[m', '[mzz', { desc = "Previous method and center" })
 
--- Basic movement - fast, no centering (centering removed for speed)
--- Centering is kept for long-distance movements below (search, page up/down, etc.)
+-- Basic movement with centering
+keymap.set('n', 'h', 'hzz', { desc = "Move left and center" })
+keymap.set('n', 'j', 'jzz', { desc = "Move down and center" })
+keymap.set('n', 'k', 'kzz', { desc = "Move up and center" })
+keymap.set('n', 'l', 'lzz', { desc = "Move right and center" })
+
+-- Arrow keys with centering
+keymap.set('n', '<Left>', 'hzz', { desc = "Move left and center" })
+keymap.set('n', '<Down>', 'jzz', { desc = "Move down and center" })
+keymap.set('n', '<Up>', 'kzz', { desc = "Move up and center" })
+keymap.set('n', '<Right>', 'lzz', { desc = "Move right and center" })
 
 -- External Navigation
 keymap.set("n", "gx", ":!open <c-r><c-a><CR>", { desc = "Open URL under cursor" })
