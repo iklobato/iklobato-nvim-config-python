@@ -1,9 +1,9 @@
 local opt = vim.opt
 
--- Session Management - optimized for faster session restore
--- Removed expensive options: 'blank' (empty buffers), 'help' (help windows), 'terminal' (terminal state)
--- Kept essential: buffers, curdir, folds, tabpages, winsize, winpos, localoptions, resize
-opt.sessionoptions = "buffers,curdir,folds,tabpages,winsize,winpos,localoptions,resize"
+-- Session Management - Recommended sessionoptions for auto-session
+-- See: https://github.com/rmagatti/auto-session
+-- Added 'cursor' to restore cursor positions
+opt.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions,cursor"
 
 -- Line Numbers
 opt.relativenumber = false

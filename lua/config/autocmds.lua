@@ -2,24 +2,40 @@
 -- Autocommands go here
 
 -- Open nvim-tree when opening a directory
+-- Note: This runs after auto-session restoration, so it won't interfere
 vim.api.nvim_create_autocmd({ "VimEnter" }, {
   callback = function(data)
-    -- Check if we opened a directory (e.g., `nvim .` or `nvim /path/to/dir`)
-    local directory = vim.fn.isdirectory(data.file) == 1
+    -- Wait a bit to let auto-session restore first
+    vim.defer_fn(function()
+      -- Check if we opened a directory (e.g., `nvim .` or `nvim /path/to/dir`)
+      local directory = vim.fn.isdirectory(data.file) == 1
 
-    -- Also check if no file was specified (empty buffer means we opened a directory)
-    local bufname = vim.fn.bufname()
-    local no_file = bufname == "" or bufname == nil
+      -- Also check if no file was specified (empty buffer means we opened a directory)
+      local bufname = vim.fn.bufname()
+      local no_file = bufname == "" or bufname == nil
 
-    if directory or no_file then
-      -- Open nvim-tree after a short delay to ensure everything is loaded
-      vim.defer_fn(function()
+      -- Only open nvim-tree if no session was restored (no tabs/windows exist)
+      local tab_count = vim.api.nvim_list_tabpages()
+      local should_open_tree = (directory or no_file) and tab_count <= 1
+
+      if should_open_tree then
         local ok, api = pcall(require, "nvim-tree.api")
         if ok then
-          api.tree.open()
+          -- Check if nvim-tree is already open
+          local tree_open = false
+          for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+            local buf_name = vim.api.nvim_buf_get_name(buf)
+            if buf_name:match("NvimTree") then
+              tree_open = true
+              break
+            end
+          end
+          if not tree_open then
+            api.tree.open()
+          end
         end
-      end, 0)
-    end
+      end
+    end, 500) -- Delay to let auto-session restore first
   end,
 })
 

@@ -125,7 +125,41 @@ local function safe_telescope_lsp(fn_name, fallback_fn)
   end
 end
 
-keymap.set('n', '<leader>gd', safe_telescope_lsp('lsp_definitions', vim.lsp.buf.definition), { desc = "Go to definition" })
+-- Custom function to go to definition in vertical split
+local function goto_definition_vertical_split()
+  -- Use LSP definition with custom jump handler
+  local params = vim.lsp.util.make_position_params()
+  vim.lsp.buf_request(0, 'textDocument/definition', params, function(err, result, ctx, config)
+    if err then
+      vim.notify('Error getting definition: ' .. err.message, vim.log.levels.ERROR)
+      return
+    end
+    
+    if not result or vim.tbl_isempty(result) then
+      vim.notify('No definition found', vim.log.levels.INFO)
+      return
+    end
+    
+    -- Open vertical split first
+    vim.cmd('vsplit')
+    
+    -- Jump to the location (if multiple, use first one)
+    local location = result[1]
+    if location.uri then
+      vim.lsp.util.jump_to_location(location, ctx.client_id)
+      vim.cmd('normal! zz') -- Center the cursor
+    elseif location.targetUri then
+      -- Handle LocationLink format
+      vim.lsp.util.jump_to_location({
+        uri = location.targetUri,
+        range = location.targetRange
+      }, ctx.client_id)
+      vim.cmd('normal! zz') -- Center the cursor
+    end
+  end)
+end
+
+keymap.set('n', '<leader>gd', goto_definition_vertical_split, { desc = "Go to definition" })
 keymap.set('n', '<leader>gD', safe_telescope_lsp('lsp_declarations', vim.lsp.buf.declaration), { desc = "Go to declaration" })
 keymap.set('n', '<leader>gi', safe_telescope_lsp('lsp_implementations', vim.lsp.buf.implementation), { desc = "Go to implementation" })
 keymap.set('n', '<leader>gr', safe_telescope_lsp('lsp_references', vim.lsp.buf.references), { desc = "Find references" })
