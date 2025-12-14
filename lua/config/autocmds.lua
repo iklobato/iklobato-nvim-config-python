@@ -261,3 +261,75 @@ vim.api.nvim_create_autocmd('User', {
     end
   end,
 })
+
+-------------------------------------------------------------------------------
+-- Auto-reveal file in nvim-tree when opening/switching files
+-------------------------------------------------------------------------------
+
+-- Function to check if nvim-tree is open
+local function is_nvim_tree_open()
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    local buf_name = vim.api.nvim_buf_get_name(buf)
+    if buf_name:match("NvimTree") then
+      -- Check if the buffer is visible in a window
+      local win_id = vim.fn.bufwinid(buf)
+      if win_id ~= -1 then
+        return true
+      end
+    end
+  end
+  return false
+end
+
+-- Auto-reveal and highlight current file in nvim-tree
+vim.api.nvim_create_autocmd({ 'BufEnter', 'BufWinEnter' }, {
+  callback = function(args)
+    -- Skip if this is a special buffer (no file, terminal, etc.)
+    local buftype = vim.api.nvim_buf_get_option(args.buf, 'buftype')
+    if buftype ~= '' then
+      return
+    end
+    
+    -- Skip if this is nvim-tree itself
+    local buf_name = vim.api.nvim_buf_get_name(args.buf)
+    if buf_name:match("NvimTree") then
+      return
+    end
+    
+    -- Skip if buffer has no file path
+    if buf_name == '' or buf_name == nil then
+      return
+    end
+    
+    -- Only reveal if nvim-tree is open
+    if is_nvim_tree_open() then
+      -- Load plugin if needed and reveal/highlight file
+      local function reveal_file()
+        local ok, api = pcall(require, 'nvim-tree.api')
+        if ok then
+          -- Use find_file to reveal and highlight the file in the tree
+          -- This will scroll to the file and highlight it
+          api.tree.find_file({ 
+            open = false,      -- Don't open the file (already open in buffer)
+            focus = false,     -- Don't focus the tree window (stay in current buffer)
+            update_root = false -- Don't change the root directory
+          })
+        else
+          -- Plugin not loaded yet, load it first then reveal
+          require('lazy').load({ plugins = { 'nvim-tree.lua' } })
+          vim.defer_fn(function()
+            local api = require('nvim-tree.api')
+            api.tree.find_file({ 
+              open = false, 
+              focus = false, 
+              update_root = false 
+            })
+          end, 100)
+        end
+      end
+      
+      -- Small delay to ensure nvim-tree is ready
+      vim.defer_fn(reveal_file, 50)
+    end
+  end,
+})
