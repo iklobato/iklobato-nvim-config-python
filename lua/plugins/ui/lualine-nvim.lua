@@ -2,6 +2,8 @@
 return {
   -- https://github.com/nvim-lualine/lualine.nvim
   'nvim-lualine/lualine.nvim',
+  event = "VeryLazy", -- Defer loading until after startup
+  priority = 600, -- Medium-high priority: UI enhancement
   dependencies = {
     -- https://github.com/nvim-tree/nvim-web-devicons
     'nvim-tree/nvim-web-devicons', -- fancy icons

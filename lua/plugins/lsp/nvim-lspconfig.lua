@@ -1,5 +1,7 @@
 return {
     "neovim/nvim-lspconfig",
+    event = "VeryLazy", -- Defer LSP loading until after startup
+    priority = 700, -- High priority: essential for development
     dependencies = {
         "hrsh7th/nvim-cmp",        
         "hrsh7th/cmp-nvim-lsp",    

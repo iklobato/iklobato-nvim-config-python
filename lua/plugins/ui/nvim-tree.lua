@@ -2,6 +2,7 @@
 return {
   -- https://github.com/nvim-tree/nvim-tree.lua
   'nvim-tree/nvim-tree.lua',
+  cmd = { "NvimTreeToggle", "NvimTreeOpen", "NvimTreeFindFile", "NvimTreeFocus" },
   dependencies = {
     -- https://github.com/nvim-tree/nvim-web-devicons
     'nvim-tree/nvim-web-devicons', -- Fancy icon support
