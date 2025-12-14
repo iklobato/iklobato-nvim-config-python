@@ -9,7 +9,7 @@ return {
   },
   opts = {
     view = {
-      width = 50,  -- Set width to 40 columns (default is 30)
+      width = 50,  -- Set width to 50 columns
     },
     actions = {
       open_file = {
@@ -18,6 +18,10 @@ return {
         },
       }
     },
+    -- Sync root with current working directory
+    sync_root_with_cwd = true,
+    -- Respect buffer directory
+    respect_buf_cwd = true,
   },
   config = function (_, opts)
     require("nvim-tree").setup(opts)
