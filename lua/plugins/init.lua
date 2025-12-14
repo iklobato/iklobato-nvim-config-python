@@ -5,6 +5,7 @@ return {
   { import = "plugins.git" },
   { import = "plugins.linter" },
   { import = "plugins.lsp" },
+  { import = "plugins.markdown" },
   { import = "plugins.misc" },
   { import = "plugins.syntax" },
   { import = "plugins.ui" },

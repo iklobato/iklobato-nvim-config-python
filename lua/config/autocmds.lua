@@ -15,7 +15,8 @@ vim.api.nvim_create_autocmd({ "VimEnter" }, {
       local no_file = bufname == "" or bufname == nil
 
       -- Only open nvim-tree if no session was restored (no tabs/windows exist)
-      local tab_count = vim.api.nvim_list_tabpages()
+      local tab_pages = vim.api.nvim_list_tabpages()
+      local tab_count = #tab_pages
       local should_open_tree = (directory or no_file) and tab_count <= 1
 
       if should_open_tree then
