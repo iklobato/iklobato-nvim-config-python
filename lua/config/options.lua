@@ -115,7 +115,8 @@ opt.foldexpr = "nvim_treesitter#foldexpr()" -- Utilize Treesitter folds
 -- Quality of Life configurations
 opt.scrolloff = 5                  -- Reduced from 8 for better performance
 opt.sidescrolloff = 5              -- Reduced from 8 for better performance
-opt.timeoutlen = 200               -- Faster key sequence completion (reduced from 300ms)
+opt.timeoutlen = 1000              -- Time to wait for key sequence completion (leader key combinations)
+opt.ttimeoutlen = 100              -- Time to wait for key codes (separate from timeoutlen)
 opt.updatetime = 30                -- Faster cursor updates (reduced from 50ms for better responsiveness)
 
 -- Optimize cursor rendering for maximum speed
