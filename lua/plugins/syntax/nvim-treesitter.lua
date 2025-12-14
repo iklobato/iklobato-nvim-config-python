@@ -3,6 +3,7 @@ return {
   -- https://github.com/nvim-treesitter/nvim-treesitter
   'nvim-treesitter/nvim-treesitter',
   event = 'VeryLazy',
+  priority = 600, -- Medium-high priority: syntax highlighting
   dependencies = {
     -- https://github.com/nvim-treesitter/nvim-treesitter-textobjects
     'nvim-treesitter/nvim-treesitter-textobjects',

@@ -3,6 +3,7 @@ return {
   -- https://github.com/hrsh7th/nvim-cmp
   'hrsh7th/nvim-cmp',
   event = 'InsertEnter',
+  priority = 700, -- High priority: essential for editing
   dependencies = {
     -- LSP completion capabilities
     -- https://github.com/hrsh7th/cmp-nvim-lsp

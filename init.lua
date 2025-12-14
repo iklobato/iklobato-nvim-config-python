@@ -23,7 +23,22 @@ vim.g.mapleader = " "
 
 -- Load plugins with lazy.nvim
 require("lazy").setup("plugins", {
-   change_detection = {
+  performance = {
+    rtp = {
+      -- Disable some default plugins we don't use
+      disabled_plugins = {
+        "gzip",
+        "matchit",
+        "matchparen",
+        "netrwPlugin",
+        "tarPlugin",
+        "tohtml",
+        "tutor",
+        "zipPlugin",
+      },
+    },
+  },
+  change_detection = {
     enabled = true,
     notify = false,
   },
@@ -33,4 +48,5 @@ require("lazy").setup("plugins", {
 require("config.options")
 require("config.keymaps")
 require("config.autocmds")
+require("config.startup") -- Startup profiling
 

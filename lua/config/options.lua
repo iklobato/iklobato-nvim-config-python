@@ -29,53 +29,56 @@ opt.incsearch = true
 opt.cursorline = false
 
 -- Enable cursorline only when not moving fast (performance optimization)
-local cursorline_timer = nil
-local function enable_cursorline()
-  if cursorline_timer then
-    cursorline_timer:stop()
-    cursorline_timer:close()
-  end
-  
-  -- Disable cursorline immediately on movement
-  opt.cursorline = false
-  
-  -- Re-enable after a short delay (when cursor is idle)
-  cursorline_timer = vim.loop.new_timer()
-  cursorline_timer:start(300, 0, function()
-    vim.schedule(function()
-      opt.cursorline = true
-      if cursorline_timer then
-        cursorline_timer:close()
-        cursorline_timer = nil
-      end
+-- Defer cursorline setup to avoid startup cost
+vim.defer_fn(function()
+  local cursorline_timer = nil
+  local function enable_cursorline()
+    if cursorline_timer then
+      cursorline_timer:stop()
+      cursorline_timer:close()
+    end
+    
+    -- Disable cursorline immediately on movement
+    opt.cursorline = false
+    
+    -- Re-enable after a short delay (when cursor is idle)
+    cursorline_timer = vim.loop.new_timer()
+    cursorline_timer:start(300, 0, function()
+      vim.schedule(function()
+        opt.cursorline = true
+        if cursorline_timer then
+          cursorline_timer:close()
+          cursorline_timer = nil
+        end
+      end)
     end)
-  end)
-end
+  end
 
--- Create autocommand group for cursorline optimization
-local cursorline_group = vim.api.nvim_create_augroup('CursorlineOptimization', { clear = true })
+  -- Create autocommand group for cursorline optimization
+  local cursorline_group = vim.api.nvim_create_augroup('CursorlineOptimization', { clear = true })
 
-vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI', 'WinEnter' }, {
-  group = cursorline_group,
-  callback = enable_cursorline,
-})
+  vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI', 'WinEnter' }, {
+    group = cursorline_group,
+    callback = enable_cursorline,
+  })
 
-vim.api.nvim_create_autocmd({ 'InsertEnter' }, {
-  group = cursorline_group,
-  callback = function()
-    opt.cursorline = false -- Disable during insert mode for performance
-  end,
-})
+  vim.api.nvim_create_autocmd({ 'InsertEnter' }, {
+    group = cursorline_group,
+    callback = function()
+      opt.cursorline = false -- Disable during insert mode for performance
+    end,
+  })
 
-vim.api.nvim_create_autocmd({ 'InsertLeave' }, {
-  group = cursorline_group,
-  callback = function()
-    -- Re-enable after leaving insert mode
-    vim.defer_fn(function()
-      opt.cursorline = true
-    end, 100)
-  end,
-})
+  vim.api.nvim_create_autocmd({ 'InsertLeave' }, {
+    group = cursorline_group,
+    callback = function()
+      -- Re-enable after leaving insert mode
+      vim.defer_fn(function()
+        opt.cursorline = true
+      end, 100)
+    end,
+  })
+end, 100) -- Defer by 100ms to not block startup
 
 -- Appearance
 opt.termguicolors = true

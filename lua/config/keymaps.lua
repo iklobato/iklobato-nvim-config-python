@@ -99,13 +99,23 @@ keymap.set("n", "gx", ":!open <c-r><c-a><CR>", { desc = "Open URL under cursor" 
 -- Telescope Helper Functions
 -------------------------------------------------------------------------------
 
--- Cache Telescope builtin module for performance
+-- Cache Telescope builtin module for performance (lazy load)
 local telescope_builtin = nil
 local function get_telescope_builtin()
   if not telescope_builtin then
     telescope_builtin = require('telescope.builtin')
   end
   return telescope_builtin
+end
+
+-- Lazy load telescope on first use to avoid startup cost
+local function safe_telescope(fn_name, ...)
+  local ok, builtin = pcall(require, 'telescope.builtin')
+  if ok and builtin[fn_name] then
+    return builtin[fn_name](...)
+  else
+    vim.notify('Telescope not loaded yet', vim.log.levels.WARN)
+  end
 end
 
 -------------------------------------------------------------------------------
@@ -211,10 +221,19 @@ keymap.set("v", "<leader>S", "y:%s/<C-r>\"/<C-r>\"/gI<Left><Left><Left>", { desc
 -- UI Controls
 -------------------------------------------------------------------------------
 
--- File Explorer (Nvim-tree)
-keymap.set('n', '<leader>ee', function() require('nvim-tree.api').tree.toggle() end, { desc = "Toggle file explorer" })
-keymap.set('n', '<leader>ef', function() require('nvim-tree.api').tree.find_file({ open = true, focus = true }) end, { desc = "Find file in explorer" })
-keymap.set('n', '<leader>er', function() require('nvim-tree.api').tree.focus() end, { desc = "Focus file explorer" })
+-- File Explorer (Nvim-tree) - lazy loaded
+keymap.set('n', '<leader>ee', function()
+  require('lazy').load({ plugins = { 'nvim-tree.lua' } })
+  vim.schedule(function() require('nvim-tree.api').tree.toggle() end)
+end, { desc = "Toggle file explorer" })
+keymap.set('n', '<leader>ef', function()
+  require('lazy').load({ plugins = { 'nvim-tree.lua' } })
+  vim.schedule(function() require('nvim-tree.api').tree.find_file({ open = true, focus = true }) end)
+end, { desc = "Find file in explorer" })
+keymap.set('n', '<leader>er', function()
+  require('lazy').load({ plugins = { 'nvim-tree.lua' } })
+  vim.schedule(function() require('nvim-tree.api').tree.focus() end)
+end, { desc = "Focus file explorer" })
 
 -- Split Windows
 keymap.set("n", "<leader>sv", "<C-w>v", { desc = "Split vertical" })
