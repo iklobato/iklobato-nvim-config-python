@@ -74,7 +74,7 @@ return {
       pattern = { "typescript", "typescriptreact", "typescript.tsx" },
       callback = function()
         -- Disable Vim syntax to let Treesitter handle it completely
-        vim.wo.syntax = "OFF"
+        vim.bo.syntax = "OFF"
       end,
     })
   end
