@@ -81,16 +81,16 @@ keymap.set('n', ']m', ']mzz', { desc = "Next method and center" })
 keymap.set('n', '[m', '[mzz', { desc = "Previous method and center" })
 
 -- Basic movement with centering
-keymap.set('n', 'h', 'hzz', { desc = "Move left and center" })
-keymap.set('n', 'j', 'jzz', { desc = "Move down and center" })
-keymap.set('n', 'k', 'kzz', { desc = "Move up and center" })
-keymap.set('n', 'l', 'lzz', { desc = "Move right and center" })
+-- keymap.set('n', 'h', 'hzz', { desc = "Move left and center" })
+-- keymap.set('n', 'j', 'jzz', { desc = "Move down and center" })
+-- keymap.set('n', 'k', 'kzz', { desc = "Move up and center" })
+-- keymap.set('n', 'l', 'lzz', { desc = "Move right and center" })
 
 -- Arrow keys with centering
-keymap.set('n', '<Left>', 'hzz', { desc = "Move left and center" })
-keymap.set('n', '<Down>', 'jzz', { desc = "Move down and center" })
-keymap.set('n', '<Up>', 'kzz', { desc = "Move up and center" })
-keymap.set('n', '<Right>', 'lzz', { desc = "Move right and center" })
+-- keymap.set('n', '<Left>', 'hzz', { desc = "Move left and center" })
+-- keymap.set('n', '<Down>', 'jzz', { desc = "Move down and center" })
+-- keymap.set('n', '<Up>', 'kzz', { desc = "Move up and center" })
+-- keymap.set('n', '<Right>', 'lzz', { desc = "Move right and center" })
 
 -- External Navigation
 keymap.set("n", "gx", ":!open <c-r><c-a><CR>", { desc = "Open URL under cursor" })
@@ -189,6 +189,9 @@ keymap.set('n', '<leader>e', function()
     vim.diagnostic.open_float()
   end
 end, { desc = "Show diagnostics" })
+keymap.set('n', '<leader>E', function()
+  vim.diagnostic.open_float({ focus = true })
+end, { desc = "Show diagnostic (focused)" })
 keymap.set('n', '<leader>gn', vim.diagnostic.goto_next, { desc = "Next diagnostic" })
 keymap.set('n', '<leader>gp', vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
 keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = "Next diagnostic" })
