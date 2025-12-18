@@ -33,6 +33,14 @@ return {
           select = true,
         },
         ['<Tab>'] = cmp.mapping(function(fallback)
+          -- Check for copilot suggestion first
+          local copilot_suggestion = vim.fn['copilot#Accept']()
+          if copilot_suggestion and copilot_suggestion ~= '' and type(copilot_suggestion) == 'string' then
+            -- Copilot suggestion is available, accept it
+            vim.api.nvim_feedkeys(copilot_suggestion, 'i', true)
+            return
+          end
+          -- Then check for nvim-cmp completion
           if cmp.visible() then
             cmp.select_next_item()
           else

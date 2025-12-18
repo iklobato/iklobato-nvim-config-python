@@ -39,3 +39,6 @@ Thumbs.db
 # Brewfile
 Brewfile.backup.*
 **/connections.json
+.cursor/
+.specify/
+

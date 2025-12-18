@@ -251,6 +251,12 @@ keymap.set("n", "<leader>to", ":tabnew<CR>", { desc = "New tab" })
 keymap.set("n", "<leader>tx", ":tabclose<CR>", { desc = "Close tab" })
 keymap.set("n", "<leader>tn", ":tabn<CR>", { desc = "Next tab" })
 keymap.set("n", "<leader>tb", ":tabp<CR>", { desc = "Previous tab" })
+keymap.set("n", "<leader>tp", ":tabp<CR>", { desc = "Previous tab" })
+
+-- Quick tab navigation with Alt/Option + number (1-9)
+for i = 1, 9 do
+  keymap.set("n", string.format("<A-%d>", i), string.format(":tabn %d<CR>", i), { desc = "Go to tab " .. i })
+end
 
 -- Quickfix List
 keymap.set("n", "<leader>qo", ":copen<CR>", { desc = "Open quickfix" })
@@ -426,12 +432,39 @@ keymap.set('v', '<leader>dq', ':DBUIExecuteQuery<CR>', { desc = "Execute selecte
 -- REST Client Operations
 -------------------------------------------------------------------------------
 
+-- REST Client keymaps - only work in HTTP/REST files
 keymap.set("n", "<leader>rg", "<Plug>VrcRequestGet", { desc = "Execute GET request" })
 keymap.set("n", "<leader>rp", "<Plug>VrcRequestPost", { desc = "Execute POST request" })
 keymap.set("n", "<leader>ru", "<Plug>VrcRequestPut", { desc = "Execute PUT request" })
 keymap.set("n", "<leader>rd", "<Plug>VrcRequestDelete", { desc = "Execute DELETE request" })
-keymap.set("n", "<leader>xr", ":call VrcQuery()<CR>", { desc = "Run REST query" })
-keymap.set("n", "<leader>xj", ":call VrcJson()<CR>", { desc = "Format as JSON" })
+keymap.set("n", "<leader>xr", function()
+  -- Ensure plugin is loaded before calling function
+  if vim.fn.exists('*VrcQuery') == 1 then
+    vim.cmd('call VrcQuery()')
+  else
+    -- Try to load the plugin via Lazy
+    local lazy_ok, lazy = pcall(require, 'lazy')
+    if lazy_ok and lazy then
+      lazy.load({ plugins = { 'diepm/vim-rest-console' } })
+      vim.defer_fn(function()
+        if vim.fn.exists('*VrcQuery') == 1 then
+          vim.cmd('call VrcQuery()')
+        else
+          vim.notify('vim-rest-console not loaded. Open an HTTP file or run :Lazy load vim-rest-console', vim.log.levels.WARN)
+        end
+      end, 100)
+    else
+      vim.notify('vim-rest-console not loaded. Please open an HTTP/REST file first.', vim.log.levels.WARN)
+    end
+  end
+end, { desc = "Run REST query" })
+keymap.set("n", "<leader>xj", function()
+  if vim.fn.exists('*VrcJson') == 1 then
+    vim.cmd('call VrcJson()')
+  else
+    vim.notify('vim-rest-console not loaded. Please open an HTTP/REST file first.', vim.log.levels.WARN)
+  end
+end, { desc = "Format as JSON" })
 
 -------------------------------------------------------------------------------
 -- Treesitter Integration
