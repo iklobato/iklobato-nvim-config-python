@@ -429,42 +429,14 @@ keymap.set('n', '<leader>dq', '<cmd>DBUIExecuteQuery<CR>', { desc = "Execute que
 keymap.set('v', '<leader>dq', ':DBUIExecuteQuery<CR>', { desc = "Execute selected query" })
 
 -------------------------------------------------------------------------------
--- REST Client Operations
+-- HTTP Client Operations (rest-nvim)
 -------------------------------------------------------------------------------
 
--- REST Client keymaps - only work in HTTP/REST files
-keymap.set("n", "<leader>rg", "<Plug>VrcRequestGet", { desc = "Execute GET request" })
-keymap.set("n", "<leader>rp", "<Plug>VrcRequestPost", { desc = "Execute POST request" })
-keymap.set("n", "<leader>ru", "<Plug>VrcRequestPut", { desc = "Execute PUT request" })
-keymap.set("n", "<leader>rd", "<Plug>VrcRequestDelete", { desc = "Execute DELETE request" })
-keymap.set("n", "<leader>xr", function()
-  -- Ensure plugin is loaded before calling function
-  if vim.fn.exists('*VrcQuery') == 1 then
-    vim.cmd('call VrcQuery()')
-  else
-    -- Try to load the plugin via Lazy
-    local lazy_ok, lazy = pcall(require, 'lazy')
-    if lazy_ok and lazy then
-      lazy.load({ plugins = { 'diepm/vim-rest-console' } })
-      vim.defer_fn(function()
-        if vim.fn.exists('*VrcQuery') == 1 then
-          vim.cmd('call VrcQuery()')
-        else
-          vim.notify('vim-rest-console not loaded. Open an HTTP file or run :Lazy load vim-rest-console', vim.log.levels.WARN)
-        end
-      end, 100)
-    else
-      vim.notify('vim-rest-console not loaded. Please open an HTTP/REST file first.', vim.log.levels.WARN)
-    end
-  end
-end, { desc = "Run REST query" })
-keymap.set("n", "<leader>xj", function()
-  if vim.fn.exists('*VrcJson') == 1 then
-    vim.cmd('call VrcJson()')
-  else
-    vim.notify('vim-rest-console not loaded. Please open an HTTP/REST file first.', vim.log.levels.WARN)
-  end
-end, { desc = "Format as JSON" })
+
+-- HTTP Client keymaps - work in HTTP files
+keymap.set("n", "<leader>rr", ":Rest run<CR>", { desc = "Run REST request under cursor" })
+keymap.set("n", "<leader>rp", ":Rest open<CR>", { desc = "Open REST result pane" })
+keymap.set("n", "<leader>rl", ":Rest last<CR>", { desc = "Run last REST request" })
 
 -------------------------------------------------------------------------------
 -- Treesitter Integration

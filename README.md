@@ -12,7 +12,7 @@ A modern Neovim configuration focused on Python/Django development with extensiv
   - [Telescope Fuzzy Finder](#telescope-fuzzy-finder)
   - [DAP (Debug Adapter Protocol)](#dap-debug-adapter-protocol)
   - [Auto-Session](#auto-session)
-  - [Vim-REST Console](#vim-rest-console)
+  - [REST Client](#4-api-testing-with-rest-client)
   - [Database Interface](#database-interface-vim-dadbod)
   - [Git Blame Integration](#git-blame-integration)
   - [Treesitter Integration](#treesitter-integration)
@@ -38,7 +38,7 @@ A modern Neovim configuration focused on Python/Django development with extensiv
 - **Intelligent Code Completion**: Context-aware suggestions via nvim-cmp with various sources
 - **AI Code Assistant**: Integration with Avante AI for code explanations, fixes, test generation, and intelligent code refactoring
 - **Database Integration**: SQL query execution and database management via vim-dadbod
-- **REST Client**: HTTP request testing and JSON formatting
+- **REST Client**: HTTP request testing with rest-nvim
 - **Session Management**: Automatic session saving and restoration
 
 ## Installation
@@ -148,7 +148,7 @@ fc-list | grep -i "meslo.*nerd"
   - `lua/plugins/linter/`: Configuration for linting plugins (e.g., `nvim-lint` for Terraform).
   - `lua/plugins/lsp/`: Configuration for LSP-related plugins (e.g., `nvim-lspconfig`, `nvim-dap-ui`).
   - `lua/plugins/syntax/`: Configuration for syntax highlighting and parsing (e.g., `nvim-treesitter`).
-  - `lua/plugins/database/`: Configuration for database interaction plugins (e.g., `nvim-sql`, `vim-rest-console`).
+  - `lua/plugins/database/`: Configuration for database interaction plugins (e.g., `nvim-sql`).
   - `lua/plugins/formatter/`: Configuration for code formatting plugins (e.g., `conform-nvim`).
   - `lua/plugins/misc/`: Miscellaneous plugin configurations.
 - `lua/lsp/`: Individual Language Server Protocol (LSP) client configurations.
@@ -464,14 +464,13 @@ This section details how to effectively use the integrated AI assistant (Avante 
 
 ### 4. API Testing with REST Client
 
-This section explains how to use the integrated REST client (`vim-rest-console`) for testing APIs. For keyboard shortcuts, see [Plugin Shortcuts Cheatsheet - Database & API](#database--api).
+This section explains how to use the integrated REST client (rest-nvim) for testing APIs. For keyboard shortcuts, see [Plugin Shortcuts Cheatsheet - Database & API](#database--api).
 
 1.  **Create or Open a Request File:**
-    *   Create a new file with a `.rest` or `.http` extension (e.g., `api_test.rest`)
+    *   Create a new file with a `.http` or `.rest` extension (e.g., `api_test.http`)
     *   Write your HTTP request in this file. For example:
         ```http
         GET https://jsonplaceholder.typicode.com/posts/1
-        Content-Type: application/json
 
         ###
 
@@ -483,30 +482,46 @@ This section explains how to use the integrated REST client (`vim-rest-console`)
           "body": "bar",
           "userId": 1
         }
+
+        ###
+
+        PUT https://jsonplaceholder.typicode.com/posts/1
+        Content-Type: application/json
+
+        {
+          "title": "updated title"
+        }
+
+        ###
+
+        DELETE https://jsonplaceholder.typicode.com/posts/1
         ```
 
 2.  **Execute Requests:**
     *   Place your cursor on the line of the request you want to execute.
-    *   Execute a GET request: `<leader>rg`
-    *   Execute a POST request: `<leader>rp`
-    *   Execute a PUT request: `<leader>ru`
-    *   Execute a DELETE request: `<leader>rd`
-    *   Alternatively, use `<leader>xr` to execute the request under the cursor (works for any method).
+    *   Press `<leader>rr` to execute the request under the cursor.
+    *   Press `<leader>rp` to preview the request before sending.
+    *   Press `<leader>rl` to re-run the last request.
 
-3.  **View and Format Response:**
-    *   The API response will open in a new split window (e.g., `_OUTPUT.json`).
-    *   If the response is JSON, it will be automatically formatted.
-    *   If you need to reformat the JSON (e.g., after manual edits), press `<leader>xj`.
+3.  **Environment Variables:**
+    *   Create a `.env` file in your project directory
+    *   Use variables with `{{VAR_NAME}}` syntax
+    *   Example: `GET {{API_BASE_URL}}/users`
+    *   Variables are automatically loaded from `.env` files
+
+4.  **View Response:**
+    *   The API response will open in a horizontal split window below.
+    *   Response includes HTTP headers and formatted JSON/XML body.
 
 #### Example: Testing a Public API
 
-1.  Create a file named `test_api.rest`.
+1.  Create a file named `test_api.http`.
 2.  Add the following content:
     ```http
     GET https://api.github.com/users/octocat
     ```
-3.  Place your cursor on the `GET` line and press `<leader>rg`.
-4.  A new buffer will open with the JSON response from the GitHub API, showing details for the `octocat` user.
+3.  Place your cursor on the `GET` line and press `<leader>rr`.
+4.  A horizontal split window will open below with the HTTP response from the GitHub API, showing details for the `octocat` user.
 
 ### 5. Session Management
 
@@ -1857,21 +1872,24 @@ Auto-pairs automatically closes brackets, parentheses, and quotes. No shortcuts 
 - `R` - Refresh
 - `d` - Delete connection (when on connection)
 
-#### vim-rest-console (REST Client)
+#### REST Client (rest-nvim)
 | Shortcut | Mode | Description |
 |----------|------|-------------|
-| `<leader>rg` | n | Execute GET request |
-| `<leader>rp` | n | Execute POST request |
-| `<leader>ru` | n | Execute PUT request |
-| `<leader>rd` | n | Execute DELETE request |
-| `<leader>xr` | n | Execute request under cursor (any method) |
-| `<leader>xj` | n | Format as JSON |
+| `<leader>rr` | n | Execute HTTP request under cursor |
+| `<leader>rp` | n | Preview HTTP request |
+| `<leader>rl` | n | Run last HTTP request |
+
+**Commands:**
+| Command | Description |
+|---------|-------------|
+| `:HttpFormatHelp` | Show REST client help and syntax |
 
 **Usage:**
-- Create `.rest` or `.http` file
-- Write HTTP request (e.g., `GET https://api.example.com/users`)
-- Place cursor on request line and press shortcut
-- Response opens in `_OUTPUT.json` buffer
+- Create `.http` or `.rest` file
+- Create `.env` file for variables (optional)
+- Write HTTP requests separated by `###` (e.g., `GET {{API_BASE_URL}}/users`)
+- Place cursor on request line and press `<leader>rr`
+- Response opens in horizontal split with headers and formatted body
 
 ### Code Quality
 

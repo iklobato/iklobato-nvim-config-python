@@ -327,9 +327,65 @@ vim.api.nvim_create_autocmd({ 'BufEnter', 'BufWinEnter' }, {
           end, 100)
         end
       end
-      
+
       -- Small delay to ensure nvim-tree is ready
       vim.defer_fn(reveal_file, 50)
     end
   end,
 })
+
+-------------------------------------------------------------------------------
+-- HTTP Client Setup
+-------------------------------------------------------------------------------
+
+-- Set up HTTP filetype detection
+vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+  pattern = { "*.http", "*.rest" },
+  callback = function()
+    vim.bo.filetype = "http"
+  end,
+})
+
+-- Create user command for HTTP help
+vim.api.nvim_create_user_command('HttpFormatHelp', function()
+  local help_text = {
+    'REST Client format (rest-nvim):',
+    '',
+    'GET https://api.example.com/users',
+    '',
+    '###',
+    'POST https://api.example.com/users',
+    'Content-Type: application/json',
+    '',
+    '{',
+    '  "name": "John Doe",',
+    '  "email": "john@example.com"',
+    '}',
+    '',
+    '###',
+    'PUT https://api.example.com/users/1',
+    'Authorization: Bearer {{API_TOKEN}}',
+    'Content-Type: application/json',
+    '',
+    '{',
+    '  "name": "Jane Doe"',
+    '}',
+    '',
+    'Environment Variables:',
+    '- Create .env file: API_BASE_URL=https://api.example.com',
+    '- Use variables: {{API_BASE_URL}}/users',
+    '- System env vars also work',
+    '',
+    'Keymaps:',
+    '- <leader>rr - Run request under cursor',
+    '- <leader>rp - Preview request',
+    '- <leader>rl - Run last request',
+    '',
+    'Features:',
+    '- Place cursor on request line',
+    '- Press <leader>rr to execute',
+    '- Response opens in horizontal split',
+    '- Variables are automatically replaced',
+  }
+  vim.notify(table.concat(help_text, '\n'), vim.log.levels.INFO)
+end, { desc = 'Show HTTP format help' })
