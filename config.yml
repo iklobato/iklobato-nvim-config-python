@@ -1,0 +1,14 @@
+# ~/Library/Application\ Support/lazygit/config.yml
+git:
+    paging:
+        colorArg: always
+        pager: delta --dark --paging=never --syntax-theme base16-256 --side-by-side
+        useConfig: false
+    diffContext: 3
+gui:
+    splitDiff: auto
+    showCommandLog: true
+    mainPanelSplitMode: vertical
+    sidePanelWidth: 0.25
+    expandedSidePanelWeight: 2
+    enlargedSideViewLocation: top
