@@ -29,9 +29,9 @@ keymap.set("n", "<leader>wq", ":wq<CR>", { desc = "Save and quit" })
 keymap.set("n", "<leader>qq", ":q!<CR>", { desc = "Quit without saving" })
 
 -- Buffer Navigation
-keymap.set('n', '<leader>bn', ':bnext<CR>', { desc = "Next buffer" })
-keymap.set('n', '<leader>bp', ':bprevious<CR>', { desc = "Previous buffer" })
-keymap.set('n', '<leader>bd', ':bdelete<CR>', { desc = "Delete buffer" })
+-- keymap.set('n', '<leader>bn', ':bnext<CR>', { desc = "Next buffer" })
+-- keymap.set('n', '<leader>bp', ':bprevious<CR>', { desc = "Previous buffer" })
+-- keymap.set('n', '<leader>bd', ':bdelete<CR>', { desc = "Delete buffer" })
 
 -- Session Management (handled by auto-session plugin)
 -- <leader>ss - Search sessions
@@ -42,30 +42,30 @@ keymap.set('n', '<leader>bd', ':bdelete<CR>', { desc = "Delete buffer" })
 -------------------------------------------------------------------------------
 
 -- Function to center cursor both vertically and horizontally
-local function center_cursor()
-  -- Center vertically (middle of screen height)
-  vim.cmd('normal! zz')
-  -- Center horizontally (middle of screen width)
-  local win_width = vim.api.nvim_win_get_width(0)
-  local middle_col = math.floor(win_width / 2)
-  local tolerance = 2  -- Allow 2 columns of tolerance
-  
-  -- Iteratively scroll until cursor is centered (within tolerance)
-  for _ = 1, 10 do  -- Max 10 iterations to avoid infinite loop
-    local screen_col = vim.fn.wincol()  -- Current screen column of cursor
-    local diff = screen_col - middle_col
-    
-    if math.abs(diff) <= tolerance then
-      break  -- Close enough to center
-    elseif diff > 0 then
-      -- Cursor is to the right of center, scroll right
-      vim.cmd('normal! zl')
-    else
-      -- Cursor is to the left of center, scroll left
-      vim.cmd('normal! zh')
-    end
-  end
-end
+-- local function center_cursor()
+--   -- Center vertically (middle of screen height)
+--   vim.cmd('normal! zz')
+--   -- Center horizontally (middle of screen width)
+--   local win_width = vim.api.nvim_win_get_width(0)
+--   local middle_col = math.floor(win_width / 2)
+--   local tolerance = 2  -- Allow 2 columns of tolerance
+--   
+--   -- Iteratively scroll until cursor is centered (within tolerance)
+--   for _ = 1, 10 do  -- Max 10 iterations to avoid infinite loop
+--     local screen_col = vim.fn.wincol()  -- Current screen column of cursor
+--     local diff = screen_col - middle_col
+--     
+--     if math.abs(diff) <= tolerance then
+--       break  -- Close enough to center
+--     elseif diff > 0 then
+--       -- Cursor is to the right of center, scroll right
+--       vim.cmd('normal! zl')
+--     else
+--       -- Cursor is to the left of center, scroll left
+--       vim.cmd('normal! zh')
+--     end
+--   end
+-- end
 
 -- Cursor Centering (for long-distance movements)
 keymap.set('n', '<C-d>', '<C-d>zz', { desc = "Page down and center" })
@@ -144,15 +144,12 @@ local function goto_definition_vertical_split()
       vim.notify('Error getting definition: ' .. err.message, vim.log.levels.ERROR)
       return
     end
-    
     if not result or vim.tbl_isempty(result) then
       vim.notify('No definition found', vim.log.levels.INFO)
       return
     end
-    
     -- Open vertical split first
     vim.cmd('vsplit')
-    
     -- Jump to the location (if multiple, use first one)
     local location = result[1]
     if location.uri then
@@ -194,8 +191,8 @@ keymap.set('n', '<leader>E', function()
 end, { desc = "Show diagnostic (focused)" })
 keymap.set('n', '<leader>gn', vim.diagnostic.goto_next, { desc = "Next diagnostic" })
 keymap.set('n', '<leader>gp', vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
-keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = "Next diagnostic" })
-keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
+-- keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = "Next diagnostic" })
+-- keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
 keymap.set('n', '<leader>q', function()
   local builtin = get_telescope_builtin()
   if builtin.diagnostics then
@@ -241,7 +238,7 @@ end, { desc = "Focus file explorer" })
 -- Split Windows
 keymap.set("n", "<leader>sv", "<C-w>v", { desc = "Split vertical" })
 keymap.set("n", "<leader>sh", "<C-w>s", { desc = "Split horizontal" })
-keymap.set("n", "<leader>sx", ":close<CR>", { desc = "Close split" })
+-- keymap.set("n", "<leader>sx", ":close<CR>", { desc = "Close split" })
 keymap.set("n", "<leader>se", "<C-w>=", { desc = "Make splits equal" })
 keymap.set("n", "<leader>sm", ":MaximizerToggle<CR>", { desc = "Toggle maximize" })
 keymap.set("n", "<leader>sw", "<C-w>T", { desc = "Move split to tab" })
