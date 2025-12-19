@@ -5,10 +5,12 @@ git:
         pager: delta --dark --paging=never --syntax-theme base16-256 --side-by-side
         useConfig: false
     diffContext: 3
+    fetchAll: true
 gui:
     splitDiff: auto
     showCommandLog: true
     mainPanelSplitMode: vertical
     sidePanelWidth: 0.25
     expandedSidePanelWeight: 2
+    scrollHeight: 5
     enlargedSideViewLocation: top
