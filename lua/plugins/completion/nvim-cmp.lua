@@ -33,12 +33,16 @@ return {
           select = true,
         },
         ['<Tab>'] = cmp.mapping(function(fallback)
-          -- Check for copilot suggestion first
-          local copilot_suggestion = vim.fn['copilot#Accept']()
-          if copilot_suggestion and copilot_suggestion ~= '' and type(copilot_suggestion) == 'string' then
-            -- Copilot suggestion is available, accept it
-            vim.api.nvim_feedkeys(copilot_suggestion, 'i', true)
-            return
+          -- Check for copilot suggestion first, but only if copilot is available and not causing issues
+          -- Skip copilot in avante buffers to prevent conflicts
+          local filetype = vim.bo.filetype
+          if vim.fn.exists('*copilot#Accept') == 1 and filetype ~= 'Avante' and filetype ~= 'AvanteInput' and filetype ~= 'http' then
+            local ok, copilot_suggestion = pcall(vim.fn['copilot#Accept'])
+            if ok and copilot_suggestion and copilot_suggestion ~= '' and type(copilot_suggestion) == 'string' then
+              -- Copilot suggestion is available, accept it
+              vim.api.nvim_feedkeys(copilot_suggestion, 'i', false)
+              return
+            end
           end
           -- Then check for nvim-cmp completion
           if cmp.visible() then
