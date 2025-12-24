@@ -18,7 +18,7 @@ return {
     -- Browser settings
     vim.g.mkdp_open_to_the_world = 0       -- Only localhost
     vim.g.mkdp_open_ip = ''                -- Use default
-    vim.g.mkdp_port = ''                   -- Use random port
+    vim.g.mkdp_port = '8080'               -- Use port 8080 to avoid conflict with Tor (9051)
     vim.g.mkdp_browser = ''                -- Use system default browser
     vim.g.mkdp_echo_preview_url = 1        -- Echo preview URL in command line
     

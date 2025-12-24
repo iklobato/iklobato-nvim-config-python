@@ -12,6 +12,12 @@ return {
       -- javascript = { "eslint" },
       terraform = { "tflint" },
       hcl = { "tflint" },
+      
+      -- C/C++ linters
+      c = { "clang_tidy", "cppcheck" },
+      cpp = { "clang_tidy", "cppcheck" },
+      objc = { "clang_tidy" },
+      objcpp = { "clang_tidy" },
     }
 
     -- Auto-lint disabled - removed automatic linting on BufEnter, BufWritePre, and InsertLeave

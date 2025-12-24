@@ -30,6 +30,12 @@ return {
                 -- Terraform formatters
                 terraform = { "terraform_fmt" },
                 hcl = { "terraform_fmt" },
+                
+                -- C/C++ formatters
+                c = { "clang_format" },
+                cpp = { "clang_format" },
+                objc = { "clang_format" },
+                objcpp = { "clang_format" },
             },
             
             -- Format on save disabled
@@ -55,6 +61,12 @@ return {
                     condition = function(ctx)
                         -- Only format if terraform is available
                         return vim.fn.executable("terraform") == 1
+                    end,
+                },
+                clang_format = {
+                    condition = function(ctx)
+                        -- Only format if clang-format is available
+                        return vim.fn.executable("clang-format") == 1
                     end,
                 },
             },
