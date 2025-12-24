@@ -160,30 +160,59 @@ return {
         local lsp_config_dir = vim.fn.stdpath('config') .. '/lua/lsp'
         local lsp_configs = vim.fn.globpath(lsp_config_dir, '*.lua', false, true)
         local servers_to_enable = {}
-        
+
         for _, lsp_config_file in ipairs(lsp_configs) do
-            local server_name = vim.fn.fnamemodify(lsp_config_file, ':t:r')
-            local server_opts = require('lsp.' .. server_name)
-            
-            -- Merge with common config
-            local merged_opts = vim.tbl_deep_extend('force', {
-                on_attach = on_attach,
-                capabilities = capabilities,
-            }, server_opts)
-            
-            -- For Pyright, set PYTHONPATH environment variable from detected configuration
-            if server_name == 'pyright' then
-                merged_opts.env = merged_opts.env or {}
-                if _G._pyright_pythonpath then
-                    merged_opts.env.PYTHONPATH = _G._pyright_pythonpath
-                else
-                    merged_opts.env.PYTHONPATH = vim.fn.getcwd()
-                end
+            local config_name = vim.fn.fnamemodify(lsp_config_file, ':t:r')
+            local config_opts = require('lsp.' .. config_name)
+
+            -- Handle both single server configs and grouped configs (arrays)
+            local server_configs = {}
+            if config_opts.name then
+                -- Single server config
+                server_configs = { config_opts }
+            elseif #config_opts > 0 and config_opts[1].name then
+                -- Grouped server configs (array)
+                server_configs = config_opts
+            else
+                -- Invalid config format
+                vim.notify("Invalid LSP config format in " .. config_name, vim.log.levels.WARN)
+                goto continue
             end
-            
-            -- Use new Neovim 0.11+ API
-            vim.lsp.config(server_name, merged_opts)
-            table.insert(servers_to_enable, server_name)
+
+            for _, server_opts in ipairs(server_configs) do
+                local server_name = server_opts.name
+
+                -- Remove the name field before merging
+                local opts_without_name = vim.deepcopy(server_opts)
+                opts_without_name.name = nil
+
+                -- Merge with common config
+                local merged_opts = vim.tbl_deep_extend('force', {
+                    on_attach = on_attach,
+                    capabilities = capabilities,
+                }, opts_without_name)
+
+                -- Special handling for Pyright PYTHONPATH
+                if server_name == 'pyright' then
+                    merged_opts.env = merged_opts.env or {}
+                    if _G._pyright_pythonpath then
+                        merged_opts.env.PYTHONPATH = _G._pyright_pythonpath
+                    else
+                        merged_opts.env.PYTHONPATH = vim.fn.getcwd()
+                    end
+                end
+
+                -- Handle settings function for dynamic configs
+                if type(merged_opts.settings) == 'function' then
+                    merged_opts.settings = merged_opts.settings()
+                end
+
+                -- Use new Neovim 0.11+ API
+                vim.lsp.config(server_name, merged_opts)
+                table.insert(servers_to_enable, server_name)
+            end
+
+            ::continue::
         end
         
         -- Enable all configured servers
