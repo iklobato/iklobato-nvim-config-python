@@ -16,13 +16,11 @@ return {
       end
       -- Get directory of the file
       local dir = vim.fs.dirname(path)
-      
       -- Look for compile_commands.json (CMake, Bear, etc.)
       local compile_commands = vim.fs.find("compile_commands.json", { path = dir, upward = true })[1]
       if compile_commands then
         return vim.fs.dirname(compile_commands)
       end
-      
       -- Look for build system files
       local build_markers = {
         "CMakeLists.txt",
@@ -37,7 +35,6 @@ return {
           return vim.fs.dirname(found)
         end
       end
-      
       return vim.fn.getcwd()
     end,
     -- clangd configuration via command-line flags

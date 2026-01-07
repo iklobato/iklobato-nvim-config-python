@@ -3,20 +3,19 @@ return {
     event = "VeryLazy", -- Defer LSP loading until after startup
     priority = 700, -- High priority: essential for development
     dependencies = {
-        "hrsh7th/nvim-cmp",        
-        "hrsh7th/cmp-nvim-lsp",    
-        "hrsh7th/cmp-buffer",      
-        "hrsh7th/cmp-path",        
-        "hrsh7th/cmp-cmdline",     
-        "williamboman/mason.nvim",  
+        "hrsh7th/nvim-cmp",
+        "hrsh7th/cmp-nvim-lsp",
+        "hrsh7th/cmp-buffer",
+        "hrsh7th/cmp-path",
+        "hrsh7th/cmp-cmdline",
+        "williamboman/mason.nvim",
         "williamboman/mason-lspconfig.nvim",
-        "j-hui/fidget.nvim",       
-        "folke/neodev.nvim",       
+        "j-hui/fidget.nvim",
+        "folke/neodev.nvim",
     },
     config = function()
         -- Setup Lua development
         require("neodev").setup()
-
         -- Setup fidget for LSP progress
         require("fidget").setup({
             notification = {
@@ -32,7 +31,6 @@ return {
                 },
             },
         })
-
         -- Setup Mason package manager
         require("mason").setup({
             ui = {
@@ -44,22 +42,18 @@ return {
                 }
             }
         })
-
         -- Setup Mason-LSPconfig
         require("mason-lspconfig").setup({
             automatic_installation = true,
             -- ensure_installed not needed when automatic_installation is true
             -- Servers will be automatically installed when configured in lua/lsp/
         })
-
         -- Note: cmp.setup() is configured in lua/plugins/completion/nvim-cmp.lua
         -- This avoids duplicate configuration and conflicts
-
         -- Setup buffer-local mappings and options
         local on_attach = function(client, bufnr)
             -- Enable completion triggered by <c-x><c-o>
             vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
-
             -- Document highlighting with debouncing for performance
             -- Only enable for specific filetypes to reduce overhead
             if client.server_capabilities.documentHighlightProvider then
@@ -69,28 +63,9 @@ return {
                     'python', 'javascript', 'typescript', 'javascriptreact', 'typescriptreact',
                     'lua', 'rust', 'go', 'java', 'cpp', 'c', 'vue', 'svelte'
                 }, filetype)
-                
                 if enable_highlighting then
                     -- Use CursorHoldI with longer delay to reduce frequency
                     -- CursorHoldI only triggers in insert mode, reducing overhead
-                    local highlight_timer = nil
-                    local function debounced_highlight()
-                        if highlight_timer then
-                            highlight_timer:stop()
-                            highlight_timer:close()
-                        end
-                        highlight_timer = vim.loop.new_timer()
-                        highlight_timer:start(500, 0, function()
-                            vim.schedule(function()
-                                vim.lsp.buf.document_highlight()
-                                if highlight_timer then
-                                    highlight_timer:close()
-                                    highlight_timer = nil
-                                end
-                            end)
-                        end)
-                    end
-                    
                     vim.cmd('augroup LspHighlight')
                     vim.cmd('autocmd! * <buffer>')
                     -- Use CursorHold with longer updatetime delay
@@ -99,7 +74,6 @@ return {
                     vim.cmd('augroup END')
                 end
             end
-
             -- Inlay hints - only enable for specific filetypes for performance
             if client.server_capabilities.inlayHintProvider then
                 local filetype = vim.api.nvim_buf_get_option(bufnr, 'filetype')
@@ -108,25 +82,20 @@ return {
                     'typescript', 'typescriptreact', 'javascript', 'javascriptreact',
                     'rust', 'go'
                 }, filetype)
-                
                 if enable_inlay_hints then
                     vim.lsp.inlay_hint.enable(bufnr, true)
                 end
             end
-
             -- Formatting is handled by conform.nvim (format_on_save)
             -- Removed duplicate BufWritePre autocmd to prevent double formatting
         end
-
         -- Setup LSP handlers with borders
         vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(
             vim.lsp.handlers.hover, { border = "rounded" }
         )
-
         vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(
             vim.lsp.handlers.signature_help, { border = "rounded" }
         )
-
         -- Diagnostic configuration - optimized for performance
         vim.diagnostic.config({
             virtual_text = {
@@ -150,23 +119,19 @@ return {
             update_in_insert = false, -- Don't update diagnostics while typing (performance)
             severity_sort = true,
         })
-
         -- Setup capabilities
         local capabilities = require('cmp_nvim_lsp').default_capabilities()
         capabilities.textDocument.completion.completionItem.snippetSupport = true
-
         -- Load LSP configurations from lua/lsp/
         -- Cache config path to avoid repeated globpath calls
         local lsp_config_dir = vim.fn.stdpath('config') .. '/lua/lsp'
         local lsp_configs = vim.fn.globpath(lsp_config_dir, '*.lua', false, true)
         local servers_to_enable = {}
-
         for _, lsp_config_file in ipairs(lsp_configs) do
             local config_name = vim.fn.fnamemodify(lsp_config_file, ':t:r')
             local config_opts = require('lsp.' .. config_name)
-
             -- Handle both single server configs and grouped configs (arrays)
-            local server_configs = {}
+            local server_configs
             if config_opts.name then
                 -- Single server config
                 server_configs = { config_opts }
@@ -178,20 +143,16 @@ return {
                 vim.notify("Invalid LSP config format in " .. config_name, vim.log.levels.WARN)
                 goto continue
             end
-
             for _, server_opts in ipairs(server_configs) do
                 local server_name = server_opts.name
-
                 -- Remove the name field before merging
                 local opts_without_name = vim.deepcopy(server_opts)
                 opts_without_name.name = nil
-
                 -- Merge with common config
                 local merged_opts = vim.tbl_deep_extend('force', {
                     on_attach = on_attach,
                     capabilities = capabilities,
                 }, opts_without_name)
-
                 -- Special handling for Pyright PYTHONPATH
                 if server_name == 'pyright' then
                     merged_opts.env = merged_opts.env or {}
@@ -201,20 +162,16 @@ return {
                         merged_opts.env.PYTHONPATH = vim.fn.getcwd()
                     end
                 end
-
                 -- Handle settings function for dynamic configs
                 if type(merged_opts.settings) == 'function' then
                     merged_opts.settings = merged_opts.settings()
                 end
-
                 -- Use new Neovim 0.11+ API
                 vim.lsp.config(server_name, merged_opts)
                 table.insert(servers_to_enable, server_name)
             end
-
             ::continue::
         end
-        
         -- Enable all configured servers
         vim.lsp.enable(servers_to_enable)
     end

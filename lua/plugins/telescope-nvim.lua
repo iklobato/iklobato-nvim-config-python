@@ -5,7 +5,6 @@ local function get_find_command()
   if cached_find_command then
     return cached_find_command
   end
-  
   -- Check executables once and cache the result
   if vim.fn.executable('fd') == 1 then
     cached_find_command = { 'fd', '--type', 'f', '--hidden', '--follow', '--exclude', '.git', '--exclude', 'node_modules' }
@@ -14,10 +13,8 @@ local function get_find_command()
   else
     cached_find_command = nil  -- Use Telescope's built-in Lua finder
   end
-  
   return cached_find_command
 end
-
 return {
   'nvim-telescope/telescope.nvim',
   -- Keys are defined in lua/config/keymaps.lua, so we don't need lazy-loading here
@@ -35,24 +32,19 @@ return {
   opts = function()
     local actions = require('telescope.actions')
     local action_state = require('telescope.actions.state')
-    
     -- Custom action to navigate to existing buffer or open new file
     local function smart_file_select(prompt_bufnr)
       local picker = action_state.get_current_picker(prompt_bufnr)
       local entry = action_state.get_selected_entry()
-      
       if not entry then
         return
       end
-      
       local filename = entry.path or entry.value
       if not filename then
         return
       end
-      
       -- Get absolute path
       local abs_path = vim.fn.fnamemodify(filename, ':p')
-      
       -- Check if file is already open in a buffer
       local target_bufnr = nil
       for _, buf in ipairs(vim.api.nvim_list_bufs()) do
@@ -64,13 +56,11 @@ return {
           end
         end
       end
-      
       -- If buffer exists, find window containing it and navigate there
       if target_bufnr then
         -- Check all tabs and windows
         local target_win = nil
         local target_tab = nil
-        
         for _, tab in ipairs(vim.api.nvim_list_tabpages()) do
           for _, win in ipairs(vim.api.nvim_tabpage_list_wins(tab)) do
             if vim.api.nvim_win_get_buf(win) == target_bufnr then
@@ -83,7 +73,6 @@ return {
             break
           end
         end
-        
         -- Navigate to the window/tab containing the buffer
         if target_win and target_tab then
           -- Close telescope before navigating to avoid picker context issues
@@ -113,11 +102,9 @@ return {
           return
         end
       end
-      
       -- If not found, open file normally
       actions.select_default(prompt_bufnr)
     end
-    
     return {
     defaults = {
       layout_config = {

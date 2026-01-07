@@ -14,22 +14,18 @@ return {
     vim.g.mkdp_auto_close = 1              -- Auto-close when leaving markdown buffer
     vim.g.mkdp_refresh_slow = 0            -- Fast refresh
     vim.g.mkdp_command_for_global = 0      -- Only for markdown filetype
-    
     -- Browser settings
     vim.g.mkdp_open_to_the_world = 0       -- Only localhost
     vim.g.mkdp_open_ip = ''                -- Use default
     vim.g.mkdp_port = '8080'               -- Use port 8080 to avoid conflict with Tor (9051)
     vim.g.mkdp_browser = ''                -- Use system default browser
     vim.g.mkdp_echo_preview_url = 1        -- Echo preview URL in command line
-    
     -- Appearance
     vim.g.mkdp_theme = 'dark'              -- Dark theme
     vim.g.mkdp_page_title = '「${name}」'  -- Page title format
-    
     -- Custom CSS (leave empty to use defaults)
     vim.g.mkdp_markdown_css = ''
     vim.g.mkdp_highlight_css = ''
-    
     -- Preview options
     vim.g.mkdp_preview_options = {
       mkit = {},
