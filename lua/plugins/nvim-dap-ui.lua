@@ -81,15 +81,23 @@ return {
     -- Setup DAP UI with provided options
     dapui.setup(opts)
 
-    -- Automatically open/close DAP UI
+    -- Automatically open DAP UI when debug session starts
     dap.listeners.after.event_initialized['dapui_config'] = function()
       dapui.open()
     end
+    
+    -- Don't automatically close on termination (user can manually close)
+    -- This allows inspection of state even after errors
     dap.listeners.before.event_terminated['dapui_config'] = function()
-      dapui.close()
+      -- Keep UI open - user can manually close with :DapUIToggle or <leader>dt
+      -- dapui.close() -- Commented out to prevent auto-close
     end
+    
+    -- Don't automatically close on exit (especially for errors)
+    -- This keeps the UI open so you can inspect what went wrong
     dap.listeners.before.event_exited['dapui_config'] = function()
-      dapui.close()
+      -- Keep UI open - user can manually close with :DapUIToggle or <leader>dt
+      -- dapui.close() -- Commented out to prevent auto-close
     end
   end,
 }
