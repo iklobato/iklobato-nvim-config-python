@@ -249,7 +249,6 @@ keymap.set("n", "<leader>to", ":tabnew<CR>", { desc = "New tab" })
 keymap.set("n", "<leader>tx", ":tabclose<CR>", { desc = "Close tab" })
 keymap.set("n", "<leader>tn", ":tabn<CR>", { desc = "Next tab" })
 keymap.set("n", "<leader>tb", ":tabp<CR>", { desc = "Previous tab" })
-keymap.set("n", "<leader>tp", ":tabp<CR>", { desc = "Previous tab" })
 
 -- Quick tab navigation with Alt/Option + number (1-9)
 for i = 1, 9 do
@@ -333,8 +332,9 @@ keymap.set("n", "<leader>dj", "<cmd>lua require'dap'.step_over()<cr>", { desc = 
 keymap.set("n", "<leader>dk", "<cmd>lua require'dap'.step_into()<cr>", { desc = "Step into" })
 keymap.set("n", "<leader>do", "<cmd>lua require'dap'.step_out()<cr>", { desc = "Step out" })
 keymap.set("n", "<leader>dl", "<cmd>lua require'dap'.run_last()<cr>", { desc = "Run last debug config" })
-keymap.set("n", "<leader>dt", function() require('dap').terminate(); require('dapui').close(); end, { desc = "Terminate debug session" })
-keymap.set("n", '<leader>dd', function() require('dap').disconnect(); require('dapui').close(); end, { desc = "Disconnect debugger" })
+keymap.set("n", "<leader>dt", function() require('dap').terminate() end, { desc = "Terminate debug session" })
+keymap.set("n", '<leader>dd', function() require('dap').disconnect() end, { desc = "Disconnect debugger" })
+keymap.set("n", '<leader>du', function() require('dapui').toggle() end, { desc = "Toggle DAP UI" })
 
 -- Debug Info and UI
 keymap.set("n", '<leader>di', function() require "dap.ui.widgets".hover() end, { desc = "Variable information" })
@@ -478,6 +478,92 @@ keymap.set("n", "<leader>rj", function()
     vim.notify("No rest-nvim JSON markers found in current buffer", vim.log.levels.WARN)
   end
 end, { desc = "Format JSON in rest-nvim result" })
+
+-------------------------------------------------------------------------------
+-- Test Runner (Neotest)
+-------------------------------------------------------------------------------
+
+keymap.set('n', '<leader>ten', function()
+  local ok, neotest = pcall(require, 'neotest')
+  if ok then
+    neotest.run.run()
+  else
+    vim.notify('Neotest not loaded. Run :Lazy sync', vim.log.levels.WARN)
+  end
+end, { desc = 'Test Execute Nearest' })
+
+keymap.set('n', '<leader>tef', function()
+  local ok, neotest = pcall(require, 'neotest')
+  if ok then
+    neotest.run.run(vim.fn.expand('%'))
+  else
+    vim.notify('Neotest not loaded. Run :Lazy sync', vim.log.levels.WARN)
+  end
+end, { desc = 'Test Execute File' })
+
+keymap.set('n', '<leader>tel', function()
+  local ok, neotest = pcall(require, 'neotest')
+  if ok then
+    neotest.run.run_last()
+  else
+    vim.notify('Neotest not loaded. Run :Lazy sync', vim.log.levels.WARN)
+  end
+end, { desc = 'Test Execute Last' })
+
+keymap.set('n', '<leader>tes', function()
+  local ok, neotest = pcall(require, 'neotest')
+  if ok then
+    neotest.summary.toggle()
+  else
+    vim.notify('Neotest not loaded. Run :Lazy sync', vim.log.levels.WARN)
+  end
+end, { desc = 'Test Execute Summary' })
+
+keymap.set('n', '<leader>teo', function()
+  local ok, neotest = pcall(require, 'neotest')
+  if ok then
+    neotest.output.open()
+  else
+    vim.notify('Neotest not loaded. Run :Lazy sync', vim.log.levels.WARN)
+  end
+end, { desc = 'Test Execute Output' })
+
+keymap.set('n', '<leader>tex', function()
+  local ok, neotest = pcall(require, 'neotest')
+  if ok then
+    neotest.run.stop()
+  else
+    vim.notify('Neotest not loaded. Run :Lazy sync', vim.log.levels.WARN)
+  end
+end, { desc = 'Test Execute Stop' })
+
+-- Test Debug keymaps
+keymap.set('n', '<leader>tdn', function()
+  local ok, neotest = pcall(require, 'neotest')
+  if ok then
+    neotest.run.run({ strategy = 'dap' })
+  else
+    vim.notify('Neotest not loaded. Run :Lazy sync', vim.log.levels.WARN)
+  end
+end, { desc = 'Test Debug Nearest' })
+
+keymap.set('n', '<leader>tdf', function()
+  local ok, neotest = pcall(require, 'neotest')
+  if ok then
+    neotest.run.run(vim.fn.expand('%'), { strategy = 'dap' })
+  else
+    vim.notify('Neotest not loaded. Run :Lazy sync', vim.log.levels.WARN)
+  end
+end, { desc = 'Test Debug File' })
+
+keymap.set('n', '<leader>tdl', function()
+  local ok, neotest = pcall(require, 'neotest')
+  if ok then
+    neotest.run.run_last({ strategy = 'dap' })
+  else
+    vim.notify('Neotest not loaded. Run :Lazy sync', vim.log.levels.WARN)
+  end
+end, { desc = 'Test Debug Last' })
 
 -------------------------------------------------------------------------------
 -- Treesitter Integration

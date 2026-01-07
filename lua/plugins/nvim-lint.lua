@@ -7,6 +7,9 @@ return {
 
     -- Configure linters
     lint.linters_by_ft = {
+      -- Lua linter
+      lua = { "luacheck" },
+      
       -- Add other file types as needed
       -- python = { "pylint" },
       -- javascript = { "eslint" },

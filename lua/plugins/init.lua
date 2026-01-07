@@ -18,6 +18,7 @@ return {
   { import = "plugins.conform-nvim" },
   { import = "plugins.nvim-lint" },
   { import = "plugins.nvim-treesitter" },
+  { import = "plugins.neotest" },
 
   -- Debugging
   { import = "plugins.nvim-dap" },

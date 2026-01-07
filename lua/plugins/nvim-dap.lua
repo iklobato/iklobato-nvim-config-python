@@ -141,6 +141,8 @@ return {
         pythonPath = get_python_path,
         console = 'integratedTerminal',
         justMyCode = false,
+        stopOnEntry = false,
+        showReturnValue = true,
       },
       {
         type = 'python',
@@ -201,6 +203,71 @@ return {
           local port = tonumber(vim.fn.input('Port [5678]: ')) or 5678
           return { host = host, port = port }
         end,
+      },
+      {
+        type = 'python',
+        request = 'launch',
+        name = '🧪 PYTEST: Run All Tests',
+        module = 'pytest',
+        args = {},
+        pythonPath = get_python_path,
+        console = 'integratedTerminal',
+        justMyCode = false,
+        stopOnEntry = false,
+        showReturnValue = true,
+      },
+      {
+        type = 'python',
+        request = 'launch',
+        name = '🧪 PYTEST: Current File',
+        module = 'pytest',
+        args = { '${file}' },
+        pythonPath = get_python_path,
+        console = 'integratedTerminal',
+        justMyCode = false,
+        stopOnEntry = false,
+        showReturnValue = true,
+      },
+      {
+        type = 'python',
+        request = 'launch',
+        name = '🧪 PYTEST: Current Test',
+        module = 'pytest',
+        args = function()
+          local file = vim.fn.expand('%')
+          local line = vim.fn.line('.')
+          return { file .. '::' .. line }
+        end,
+        pythonPath = get_python_path,
+        console = 'integratedTerminal',
+        justMyCode = false,
+        stopOnEntry = false,
+        showReturnValue = true,
+      },
+      {
+        type = 'python',
+        request = 'launch',
+        name = '🧪 PYTEST: Custom Path/Args',
+        module = 'pytest',
+        args = function()
+          local test_path = vim.fn.input('Test path (e.g., test_file.py::test_function): ')
+          if test_path == '' then
+            return {}
+          end
+          local extra_args = vim.fn.input('Extra args (optional, e.g., -v -k "test_name"): ')
+          local args = { test_path }
+          if extra_args ~= '' then
+            for arg in extra_args:gmatch('%S+') do
+              table.insert(args, arg)
+            end
+          end
+          return args
+        end,
+        pythonPath = get_python_path,
+        console = 'integratedTerminal',
+        justMyCode = false,
+        stopOnEntry = false,
+        showReturnValue = true,
       },
     }
 
