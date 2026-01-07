@@ -5,11 +5,9 @@ return {
   event = 'VeryLazy',
   config = function()
     local dap = require('dap')
-
     -- Configure logging - set to ERROR to suppress telemetry messages
     -- Available levels: TRACE, DEBUG, INFO, WARN, ERROR
     dap.set_log_level('ERROR')
-
     -- Signs configuration
     vim.fn.sign_define('DapBreakpoint', {
       text = '🔴',
@@ -41,11 +39,9 @@ return {
       linehl = 'DapStoppedLine',
       numhl = 'DapStopped'
     })
-
     -- Python path detection function
     local function get_python_path()
       local cwd = vim.fn.getcwd()
-      
       -- Check for pipenv environment
       if vim.fn.executable('pipenv') == 1 then
         local handle = io.popen('cd "' .. cwd .. '" && pipenv --py 2>/dev/null')
@@ -57,7 +53,6 @@ return {
           end
         end
       end
-      
       -- Check for poetry environment
       if vim.fn.executable('poetry') == 1 then
         local handle = io.popen('cd "' .. cwd .. '" && poetry env info -p 2>/dev/null')
@@ -72,7 +67,6 @@ return {
           end
         end
       end
-      
       -- Check for local virtual environments
       local venv_patterns = {
         cwd .. '/.venv/bin/python',
@@ -84,7 +78,6 @@ return {
           return path
         end
       end
-      
       -- Check for activated virtual environment
       local virtual_env = vim.env.VIRTUAL_ENV
       if virtual_env and virtual_env ~= '' then
@@ -93,15 +86,12 @@ return {
           return venv_python
         end
       end
-      
       -- Fallback to system python3 or python
       if vim.fn.executable('python3') == 1 then
         return 'python3'
       end
-      
       return 'python'
     end
-
     -- Python debugpy adapter configuration
     -- Official debugpy documentation: https://github.com/microsoft/debugpy
     dap.adapters.python = function(callback, config)
@@ -129,7 +119,6 @@ return {
         })
       end
     end
-
     -- Python configurations
     -- Official debugpy configuration options: https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings
     dap.configurations.python = {
@@ -270,7 +259,6 @@ return {
         showReturnValue = true,
       },
     }
-
     -- Update Python path on directory change
     vim.api.nvim_create_autocmd('DirChanged', {
       callback = function()

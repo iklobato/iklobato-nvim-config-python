@@ -22,25 +22,20 @@ return {
                 jsonc = { "prettierd", "prettier" },
                 vue = { "prettierd", "prettier" },
                 svelte = { "prettierd", "prettier" },
-                
                 -- Ensure existing formatters aren't overridden
                 lua = { "stylua" },
                 python = { "ruff", "black" },
-                
                 -- Terraform formatters
                 terraform = { "terraform_fmt" },
                 hcl = { "terraform_fmt" },
-                
                 -- C/C++ formatters
                 c = { "clang_format" },
                 cpp = { "clang_format" },
                 objc = { "clang_format" },
                 objcpp = { "clang_format" },
             },
-            
             -- Format on save disabled
             format_on_save = false,
-            
             -- Customize formatters
             formatters = {
                 prettier = {
@@ -71,7 +66,6 @@ return {
                 },
             },
         })
-        
         -- Ensure formatters are installed in Mason
         require("mason-registry"):on("package:install:success", function()
             vim.defer_fn(function()

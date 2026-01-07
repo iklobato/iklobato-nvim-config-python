@@ -15,29 +15,24 @@ return {
         right_mouse_command = "tabclose %d",
         left_mouse_command = "tabn %d",
         middle_mouse_command = nil,
-        
         -- Indicator
         indicator = {
           icon = '▎',
           style = 'icon', -- 'icon' | 'underline' | 'none'
         },
-        
         -- Buffer close icons
         buffer_close_icon = '󰅖',
         modified_icon = '●',
         close_icon = '',
         left_trunc_marker = '',
         right_trunc_marker = '',
-        
         -- Name formatting
         max_name_length = 18,
         max_prefix_length = 15,
         truncate_names = true,
         tab_size = 18,
-        
         -- Diagnostics
         diagnostics = false,
-        
         -- Offsets for file explorer
         offsets = {
           {
@@ -53,7 +48,6 @@ return {
             separator = true
           }
         },
-        
         -- Separators
         separator_style = "thin", -- "slant" | "slope" | "thick" | "thin" | { 'any', 'any' }
         enforce_regular_tabs = false,
@@ -64,17 +58,14 @@ return {
         show_tab_indicators = true,
         show_duplicate_prefix = true,
         persist_buffer_sort = true,
-        
         -- Sorting
         sort_by = 'id',
-        
         -- Make tabs fill width proportionally
         style_preset = {
           bufferline.style_preset.no_italic,
           bufferline.style_preset.no_bold,
         },
       },
-      
       highlights = {
         fill = {
           bg = '#1e1e1e',

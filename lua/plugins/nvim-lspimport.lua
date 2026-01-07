@@ -11,7 +11,6 @@ return {
       noremap = true,
       silent = true,
     })
-    
     -- Also works in insert mode
     vim.keymap.set("i", "<C-i>", function()
       require("lspimport").import()
@@ -22,4 +21,3 @@ return {
     })
   end,
 }
-
