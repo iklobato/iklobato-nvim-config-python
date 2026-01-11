@@ -1,6 +1,9 @@
 -- Neotest: Modern test runner for Neovim
 return {
   'nvim-neotest/neotest',
+  -- Lazy-load on first use via keymaps (defined in keymaps.lua) or commands
+  -- The keymaps in keymaps.lua will trigger lazy loading when they call require('neotest')
+  cmd = { 'Neotest', 'NeotestSummary', 'NeotestOutput', 'NeotestRun', 'NeotestStop' },
   dependencies = {
     'nvim-neotest/nvim-nio',
     'nvim-lua/plenary.nvim',

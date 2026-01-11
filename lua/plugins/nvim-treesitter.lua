@@ -2,8 +2,8 @@
 return {
   -- https://github.com/nvim-treesitter/nvim-treesitter
   'nvim-treesitter/nvim-treesitter',
-  event = 'VeryLazy',
-  priority = 600, -- Medium-high priority: syntax highlighting
+  lazy = false,  -- Load early to ensure parsers are available for session restore
+  priority = 800, -- High priority: needed before session restoration
   dependencies = {
     -- https://github.com/nvim-treesitter/nvim-treesitter-textobjects
     'nvim-treesitter/nvim-treesitter-textobjects',
@@ -30,7 +30,8 @@ return {
       'vim',
       'xml',
       'csv',
-      'hcl'
+      'hcl',
+      'http',
     },
     -- Textobjects configuration - lazy loaded for performance
     textobjects = {

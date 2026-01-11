@@ -1,4 +1,13 @@
 local opt = vim.opt
+
+-- Filetype detection for config files
+vim.filetype.add({
+  extension = {
+    conf = 'conf',
+    config = 'conf',
+  },
+})
+
 -- Session Management - Recommended sessionoptions for auto-session
 -- See: https://github.com/rmagatti/auto-session
 -- Added 'cursor' to restore cursor positions
@@ -22,7 +31,7 @@ opt.incsearch = true
 -- Disabled by default, enabled only when cursor is idle
 opt.cursorline = false
 -- Enable cursorline only when not moving fast (performance optimization)
--- Defer cursorline setup to avoid startup cost
+-- Defer cursorline setup to avoid startup cost (increased delay for faster startup)
 vim.defer_fn(function()
   local cursorline_timer = nil
   local function enable_cursorline()
@@ -65,7 +74,7 @@ vim.defer_fn(function()
       end, 100)
     end,
   })
-end, 100) -- Defer by 100ms to not block startup
+end, 500) -- Defer by 500ms to not block startup (increased for faster initial load)
 -- Appearance
 opt.termguicolors = true
 opt.background = "dark"

@@ -42,6 +42,11 @@ require("lazy").setup("plugins", {
     enabled = true,
     notify = false,
   },
+  -- Optimize for faster startup
+  concurrency = 20, -- Increase concurrent plugin loading
+  git = {
+    timeout = 120, -- Increase timeout for git operations
+  },
 })
 
 -- Load core options and keymaps
