@@ -17,8 +17,9 @@ local function get_find_command()
 end
 return {
   'nvim-telescope/telescope.nvim',
-  -- Keys are defined in lua/config/keymaps.lua, so we don't need lazy-loading here
-  -- This ensures telescope is always available when keymaps are called
+  -- Lazy-load on first use via keymaps (defined in keymaps.lua) or commands
+  -- The keymaps in keymaps.lua will trigger lazy loading when they call require('telescope.builtin')
+  cmd = { 'Telescope' },
   dependencies = {
     { 'nvim-lua/plenary.nvim' },
     {
