@@ -372,48 +372,49 @@ keymap.set('v', '<leader>dq', ':DBUIExecuteQuery<CR>', { desc = "Execute selecte
 -- HTTP Client Operations (rest-nvim)
 -------------------------------------------------------------------------------
 -- HTTP Client keymaps - work in HTTP files
-keymap.set("n", "<leader>rr", ":Rest run<CR>", { desc = "Run REST request under cursor" })
-keymap.set("n", "<leader>rp", ":Rest open<CR>", { desc = "Open REST result pane" })
-keymap.set("n", "<leader>rl", ":Rest last<CR>", { desc = "Run last REST request" })
-keymap.set("n", "<leader>rj", function()
-  -- Manual JSON formatting for rest-nvim result buffers
-  local buf = vim.api.nvim_get_current_buf()
-  local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-  -- Find JSON between markers
-  local start_marker, end_marker
-  for i, line in ipairs(lines) do
-    if line:match("# @_RES") then
-      start_marker = i
-    elseif line:match("# @_END") then
-      end_marker = i
-      break
-    end
-  end
-  if start_marker and end_marker then
-    -- Extract JSON content between markers
-    local json_lines = {}
-    for i = start_marker + 1, end_marker - 1 do
-      table.insert(json_lines, lines[i])
-    end
-    local json_body = table.concat(json_lines, "\n")
-    -- Format with jq if available
-    if vim.fn.executable('jq') == 1 and json_body ~= "" then
-      local formatted = vim.fn.system('echo ' .. vim.fn.shellescape(json_body) .. ' | jq . 2>/dev/null')
-      if vim.v.shell_error == 0 and formatted ~= "" then
-        local formatted_lines = vim.split(formatted:gsub("\n$", ""), "\n")
-        -- Replace the JSON content between markers
-        vim.api.nvim_buf_set_lines(buf, start_marker + 1, end_marker - 1, false, formatted_lines)
-        vim.notify("JSON formatted with jq", vim.log.levels.INFO)
-      else
-        vim.notify("Failed to format JSON with jq", vim.log.levels.WARN)
-      end
-    else
-      vim.notify("jq not available for JSON formatting", vim.log.levels.WARN)
-    end
-  else
-    vim.notify("No rest-nvim JSON markers found in current buffer", vim.log.levels.WARN)
-  end
-end, { desc = "Format JSON in rest-nvim result" })
+keymap.set("n", "<leader>rr", ":horizontal Rest run<CR>", { desc = "Run REST request under cursor" })
+keymap.set("n", "<leader>rp", ":horizontal Rest open<CR>", { desc = "Open REST result pane" })
+keymap.set("n", "<leader>rl", ":horizontal Rest last<CR>", { desc = "Run last REST request" })
+-- keymap.set("n", "<leader>rj", function()
+--   -- Manual JSON formatting for rest-nvim result buffers
+--   local buf = vim.api.nvim_get_current_buf()
+--   local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+--   -- Find JSON between markers
+--   local start_marker, end_marker
+--   for i, line in ipairs(lines) do
+--     if line:match("# @_RES") then
+--       start_marker = i
+--     elseif line:match("# @_END") then
+--       end_marker = i
+--       break
+--     end
+--   end
+--   if start_marker and end_marker then
+--     -- Extract JSON content between markers
+--     local json_lines = {}
+--     for i = start_marker + 1, end_marker - 1 do
+--       table.insert(json_lines, lines[i])
+--     end
+--     local json_body = table.concat(json_lines, "\n")
+--     -- Format with jq if available
+--     if vim.fn.executable('jq') == 1 and json_body ~= "" then
+--       local formatted = vim.fn.system('echo ' .. vim.fn.shellescape(json_body) .. ' | jq . 2>/dev/null')
+--       if vim.v.shell_error == 0 and formatted ~= "" then
+--         local formatted_lines = vim.split(formatted:gsub("\n$", ""), "\n")
+--         -- Replace the JSON content between markers
+--         vim.api.nvim_buf_set_lines(buf, start_marker + 1, end_marker - 1, false, formatted_lines)
+--         vim.notify("JSON formatted with jq", vim.log.levels.INFO)
+--       else
+--         vim.notify("Failed to format JSON with jq", vim.log.levels.WARN)
+--       end
+--     else
+--       vim.notify("jq not available for JSON formatting", vim.log.levels.WARN)
+--     end
+--   else
+--     vim.notify("No rest-nvim JSON markers found in current buffer", vim.log.levels.WARN)
+--   end
+-- end, { desc = "Format JSON in rest-nvim result" })
+
 -------------------------------------------------------------------------------
 -- Test Runner (Neotest)
 -------------------------------------------------------------------------------
