@@ -115,3 +115,10 @@ vim.opt.swapfile = false
 -- Disable netrw (using nvim-tree instead)
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
+
+-- Font Configuration
+-- For GUI Neovim (Neovide, nvim-qt, etc.)
+opt.guifont = "JetBrainsMonoNerdFont-Regular:h13"
+
+-- Note: For terminal Neovim, font is controlled by your terminal emulator (iTerm2)
+-- iTerm2 is configured to use JetBrains Mono Nerd Font (includes icon glyphs)
