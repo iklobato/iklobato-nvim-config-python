@@ -12,5 +12,5 @@ gui:
     mainPanelSplitMode: vertical
     sidePanelWidth: 0.25
     expandedSidePanelWeight: 2
-    scrollHeight: 5
+    scrollHeight: 10
     enlargedSideViewLocation: top

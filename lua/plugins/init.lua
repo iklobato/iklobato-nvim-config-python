@@ -32,7 +32,7 @@ return {
 
   -- AI and utilities
   { import = "plugins.nvim-avante" },
-  { import = "plugins._copilot" },
+  { import = "plugins.copilot" },
   { import = "plugins.schemastore-nvim" },
   { import = "plugins.nvim-lspimport" },
 

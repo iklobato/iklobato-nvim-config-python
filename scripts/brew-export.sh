@@ -6,7 +6,7 @@
 set -e
 
 # Default values
-OUTPUT_FILE="${HOMEBREW_BUNDLE_FILE:-Brewfile}"
+OUTPUT_FILE="${HOMEBREW_BUNDLE_FILE:-system/Brewfile}"
 INCLUDE_MAS=false
 WITH_VERSIONS=false
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
