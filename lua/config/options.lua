@@ -10,8 +10,10 @@ vim.filetype.add({
 
 -- Session Management - Recommended sessionoptions for auto-session
 -- See: https://github.com/rmagatti/auto-session
--- Added 'cursor' to restore cursor positions
-opt.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions,cursor"
+-- Added 'cursor' to restore cursor positions.
+-- Note: 'terminal' is excluded - restoring buftype=terminal causes E474 (invalid argument)
+-- because terminal buffers can only be created by opening a terminal, not via setlocal.
+opt.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,localoptions,cursor"
 -- Line Numbers
 opt.relativenumber = false
 opt.number = true
@@ -78,7 +80,8 @@ end, 500) -- Defer by 500ms to not block startup (increased for faster initial l
 -- Appearance
 opt.termguicolors = true
 opt.background = "dark"
-opt.signcolumn = "yes"
+-- Reserve 2 columns so gitsigns/diagnostics always have space (icons visible)
+opt.signcolumn = "yes:2"
 vim.diagnostic.config {
   float = { border = "rounded" }, -- add border to diagnostic popups
 }
