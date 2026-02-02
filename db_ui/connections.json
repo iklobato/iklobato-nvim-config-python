@@ -1,1 +1,0 @@
-[{"url": "postgresql://postgres:postgres@localhost:5432/pylight_test", "name": "postgres_pylight-test"}, {"url": "postgresql://postgres:postgres@localhost:5432/magellan", "name": "postgres:postgres@localhost:5432"}]
