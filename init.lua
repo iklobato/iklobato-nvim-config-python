@@ -1,10 +1,4 @@
--- Enable Lua bytecode caching for faster startup (Neovim 0.11.0+)
--- Must be called before any requires
-if vim.loader then
-    vim.loader.enable()
-end
-
--- Setup lazy.nvim
+-- Bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
   vim.fn.system({
@@ -18,40 +12,33 @@ if not vim.loop.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
--- Set leader key (Only set here, not in keymaps.lua)
+-- Leader key
 vim.g.mapleader = " "
 
--- Load plugins with lazy.nvim
-require("lazy").setup("plugins", {
-  performance = {
-    rtp = {
-      -- Disable some default plugins we don't use
-      disabled_plugins = {
-        "gzip",
-        "matchit",
-        "matchparen",
-        "netrwPlugin",
-        "tarPlugin",
-        "tohtml",
-        "tutor",
-        "zipPlugin",
-      },
-    },
-  },
-  change_detection = {
-    enabled = true,
-    notify = false,
-  },
-  -- Optimize for faster startup
-  concurrency = 20, -- Increase concurrent plugin loading
-  git = {
-    timeout = 120, -- Increase timeout for git operations
-  },
+-- Disable netrw (use nvim-tree)
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+
+require("options")
+require("keymaps")
+require("plugins")
+require("lsp")
+require("autocmds")
+
+vim.api.nvim_create_autocmd("VimEnter", {
+  callback = function(data)
+    vim.defer_fn(function()
+      local directory = vim.fn.isdirectory(data.file) == 1
+      local bufname = vim.fn.bufname()
+      local no_file = bufname == "" or bufname == nil
+      local tab_count = #vim.api.nvim_list_tabpages()
+      local should_open = (directory or no_file) and tab_count <= 1
+      if should_open then
+        local ok, api = pcall(require, "nvim-tree.api")
+        if ok then
+          api.tree.open()
+        end
+      end
+    end, 500)
+  end,
 })
-
--- Load core options and keymaps
-require("config.options")
-require("config.keymaps")
-require("config.autocmds")
-require("config.startup") -- Startup profiling
-
