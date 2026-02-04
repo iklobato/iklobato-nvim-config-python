@@ -292,6 +292,22 @@ local plugins = {
       date_format = "%m/%d/%y %H:%M:%S",
     },
   },
+  {
+    "szw/vim-maximizer",
+  },
+  {
+    "tpope/vim-dadbod",
+    dependencies = {
+      "kristijanhusak/vim-dadbod-ui",
+      "kristijanhusak/vim-dadbod-completion",
+    },
+    config = function()
+      -- Database connections
+      vim.g.dbs = {
+        default_postgres = "postgresql://postgres:postgres@localhost:5432/postgres",
+      }
+    end,
+  },
 }
 
 require("lazy").setup(plugins)

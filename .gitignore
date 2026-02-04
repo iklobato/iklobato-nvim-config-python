@@ -39,6 +39,8 @@ Thumbs.db
 # Brewfile
 Brewfile.backup.*
 **/connections.json
+# Avante environment variables
+system/avante.env
 .cursor/
 .specify/
 

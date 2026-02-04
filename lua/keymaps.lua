@@ -20,6 +20,8 @@ end, { desc = "Buffers" })
 map("n", "<leader>e", vim.diagnostic.open_float, { desc = "Diagnostic float" })
 map("n", "[d", vim.diagnostic.goto_prev, { desc = "Prev diagnostic" })
 map("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
+map("n", "<leader>gp", vim.diagnostic.goto_prev, { desc = "Prev diagnostic" })
+map("n", "<leader>gn", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
 
 -- Git
 map("n", "<leader>gb", "<cmd>GitBlameToggle<CR>", { desc = "Toggle git blame" })
@@ -38,6 +40,7 @@ map("n", "<leader>se", function()
   end
   vim.api.nvim_set_current_tabpage(cur_tab)
 end, { desc = "Equalize splits" })
+map("n", "<leader>sm", "<cmd>MaximizerToggle<CR>", { desc = "Maximize split" })
 map("n", "<leader>to", ":tabnew<CR>", { desc = "New tab" })
 map("n", "<leader>tn", ":tabn<CR>", { desc = "Next tab" })
 
@@ -96,3 +99,8 @@ end, { desc = "Debug UI" })
 
 -- Avante
 map("n", "<leader>aa", "<cmd>AvanteToggle<CR>", { desc = "Avante" })
+
+-- Database
+map("n", "<leader>db", "<cmd>DBUIToggle<CR>", { desc = "Toggle DB UI" })
+map("n", "<leader>dq", "<cmd>DBUIExecuteQuery<CR>", { desc = "Execute query" })
+map("v", "<leader>dq", ":DBUIExecuteQuery<CR>", { desc = "Execute selected query" })
