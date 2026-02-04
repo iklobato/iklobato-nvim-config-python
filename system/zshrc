@@ -139,3 +139,8 @@ complete -o nospace -C /usr/local/bin/terraform terraform
 export PATH=$PATH:$HOME/.config/lsp/lua-language-server/bin
 
 export ENVIRONMENT=local
+
+# Avante.nvim environment variables (keep secrets in avante.env)
+if [ -f "$HOME/.config/nvim/system/avante.env" ]; then
+  source "$HOME/.config/nvim/system/avante.env"
+fi
