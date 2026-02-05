@@ -15,7 +15,9 @@ local plugins = {
     lazy = false,
     dependencies = { "nvim-tree/nvim-web-devicons" },
     opts = {
-      view = { width = 50 },
+      view = {
+        width = math.max(30, math.floor(vim.o.columns * 0.2)),
+      },
       actions = { open_file = { window_picker = { enable = false } } },
       sync_root_with_cwd = true,
       respect_buf_cwd = true,

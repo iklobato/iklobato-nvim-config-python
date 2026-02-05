@@ -33,7 +33,9 @@ map("n", "<leader>gn", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
 map("n", "<leader>gb", "<cmd>GitBlameToggle<CR>", { desc = "Toggle git blame" })
 
 -- File explorer
+map("n", "<leader>ee", "<cmd>NvimTreeToggle<CR>", { desc = "Toggle file explorer" })
 map("n", "<leader>ef", "<cmd>NvimTreeFindFile<CR>", { desc = "Reveal file" })
+-- map("n", "<leader>er", "<cmd>NvimTreeFocus<CR>", { desc = "Focus file explorer" })
 
 -- Windows and tabs
 map("n", "<leader>sv", "<C-w>v", { desc = "Split vertical" })
