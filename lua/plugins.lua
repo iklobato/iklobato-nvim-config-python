@@ -185,6 +185,9 @@ local plugins = {
     },
     config = function()
       local dapui = require("dapui")
+      local cols = vim.o.columns
+      local left_size = math.max(0.12, math.min(0.28, 0.10 + cols * 0.0004))
+      local right_size = math.max(0.25, math.min(0.45, 0.22 + cols * 0.0005))
       dapui.setup({
         controls = {
           element = "repl",
@@ -218,12 +221,11 @@ local plugins = {
         layouts = {
           {
             elements = {
-              { id = "scopes", size = 0.50, wrap = false },
-              { id = "stacks", size = 0.30, wrap = false },
-              { id = "watches", size = 0.10, wrap = false },
-              { id = "breakpoints", size = 0.10, wrap = false },
+              { id = "scopes", size = 0.5, wrap = false },
+              { id = "watches", size = 0.25, wrap = false },
+              { id = "breakpoints", size = 0.25, wrap = false },
             },
-            size = 0.20,
+            size = left_size,
             position = "left",
           },
           {
@@ -231,7 +233,7 @@ local plugins = {
               { id = "repl", size = 0.5, wrap = false },
               { id = "console", size = 0.5, wrap = false },
             },
-            size = 0.30,
+            size = right_size,
             position = "right",
           },
         },
@@ -258,6 +260,13 @@ local plugins = {
       dap.listeners.before.event_exited["dapui"] = function()
         dapui.close()
       end
+      vim.api.nvim_create_autocmd("BufEnter", {
+        callback = function(data)
+          if vim.bo[data.buf].filetype == "dap-repl" then
+            vim.bo[data.buf].modifiable = true
+          end
+        end,
+      })
     end,
   },
   {
