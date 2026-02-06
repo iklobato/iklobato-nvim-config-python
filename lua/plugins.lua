@@ -65,6 +65,13 @@ local plugins = {
     end,
   },
   {
+    "github/copilot.vim",
+    event = "VimEnter",
+    config = function()
+      vim.g.copilot_no_tab_map = true
+    end,
+  },
+  {
     "hrsh7th/nvim-cmp",
     dependencies = {
       "hrsh7th/cmp-nvim-lsp",
@@ -81,6 +88,36 @@ local plugins = {
           ["<C-f>"] = cmp.mapping.scroll_docs(4),
           ["<C-Space>"] = cmp.mapping.complete(),
           ["<CR>"] = cmp.mapping.confirm({ select = true }),
+          ["<Tab>"] = cmp.mapping(function(fallback)
+            local filetype = vim.bo.filetype
+            if vim.fn.exists("*copilot#Accept") == 1
+              and filetype ~= "Avante"
+              and filetype ~= "AvanteInput"
+              and filetype ~= "http"
+            then
+              local ok, copilot_suggestion = pcall(vim.fn["copilot#Accept"])
+              if ok
+                and copilot_suggestion
+                and copilot_suggestion ~= ""
+                and type(copilot_suggestion) == "string"
+              then
+                vim.api.nvim_feedkeys(copilot_suggestion, "i", false)
+                return
+              end
+            end
+            if cmp.visible() then
+              cmp.select_next_item()
+            else
+              fallback()
+            end
+          end, { "i", "s" }),
+          ["<S-Tab>"] = cmp.mapping(function(fallback)
+            if cmp.visible() then
+              cmp.select_prev_item()
+            else
+              fallback()
+            end
+          end, { "i", "s" }),
         }),
         sources = {
           { name = "nvim_lsp" },
