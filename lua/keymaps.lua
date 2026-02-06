@@ -19,6 +19,7 @@ map("n", "<leader>fo", function()
   local w = vim.api.nvim_win_get_width(0)
   require("telescope.builtin").lsp_document_symbols({
     symbol_width = math.max(40, math.floor(w * 0.5)),
+    symbol_type_width = math.max(8, math.floor(w * 0.15)), -- category column (Variable, Function, Class, ...)
   })
 end, { desc = "Find symbols" })
 
@@ -36,6 +37,10 @@ map("n", "<leader>gb", "<cmd>GitBlameToggle<CR>", { desc = "Toggle git blame" })
 map("n", "<leader>ee", "<cmd>NvimTreeToggle<CR>", { desc = "Toggle file explorer" })
 map("n", "<leader>ef", "<cmd>NvimTreeFindFile<CR>", { desc = "Reveal file" })
 -- map("n", "<leader>er", "<cmd>NvimTreeFocus<CR>", { desc = "Focus file explorer" })
+
+-- Markdown preview
+map("n", "<leader>mp", "<cmd>MarkdownPreview<CR>", { desc = "Markdown preview" })
+map("n", "<leader>mP", "<cmd>MarkdownPreviewStop<CR>", { desc = "Markdown preview stop" })
 
 -- Windows and tabs
 map("n", "<leader>sv", "<C-w>v", { desc = "Split vertical" })
@@ -65,6 +70,101 @@ map("v", "<leader>f", function()
 end, { desc = "Format selection" })
 
 -- Debugging
+local function dap_pytest_python_path()
+  if vim.env.VIRTUAL_ENV then
+    return vim.env.VIRTUAL_ENV .. "/bin/python"
+  end
+  return "python3"
+end
+
+local function dap_run_pytest(selector)
+  if selector == nil or selector == "" then
+    return
+  end
+  local file_path = vim.api.nvim_buf_get_name(0)
+  if file_path == nil or file_path == "" then
+    vim.notify("No buffer path", vim.log.levels.WARN)
+    return
+  end
+  require("dap").run({
+    type = "python",
+    request = "launch",
+    name = "Pytest: " .. selector,
+    module = "pytest",
+    args = { file_path .. "::" .. selector },
+    pythonPath = dap_pytest_python_path,
+  })
+end
+
+local function dap_pytest_selectors_from_lsp(callback)
+  local bufnr = vim.api.nvim_get_current_buf()
+  local uri = vim.uri_from_bufnr(bufnr)
+  vim.lsp.buf_request(bufnr, "textDocument/documentSymbol", { textDocument = { uri = uri } }, function(_, result)
+    if result == nil or not vim.tbl_islist(result) then
+      callback({})
+      return
+    end
+    local selectors = {}
+    local kind = vim.lsp.protocol.SymbolKind
+    local function collect(symbols, class_name)
+      for _, sym in ipairs(symbols) do
+        local name = sym.name or ""
+        local sym_kind = sym.kind or 0
+        if class_name then
+          if sym_kind == kind.Method and name:match("^test_") then
+            table.insert(selectors, class_name .. "::" .. name)
+          end
+          if sym.children and #sym.children > 0 then
+            collect(sym.children, class_name)
+          end
+        else
+          if sym_kind == kind.Function and name:match("^test_") then
+            table.insert(selectors, name)
+          end
+          if sym_kind == kind.Class and name:match("^Test") and sym.children and #sym.children > 0 then
+            collect(sym.children, name)
+          end
+        end
+      end
+    end
+    collect(result, nil)
+    callback(selectors)
+  end)
+end
+
+local function dap_pytest_picker()
+  dap_pytest_selectors_from_lsp(function(selectors)
+    local items = { { value = "__manual__", display = "Manual (type pytest target)..." } }
+    for _, s in ipairs(selectors) do
+      table.insert(items, { value = s, display = s })
+    end
+    vim.ui.select(items, {
+      prompt = "Pytest target:",
+      format_item = function(item)
+        return item.display or item.value
+      end,
+    }, function(choice)
+      if choice == nil then
+        return
+      end
+      local selector
+      if choice == "__manual__" then
+        selector = vim.fn.input("Pytest target (e.g. test_foo or TestClass::test_method): ")
+      else
+        selector = choice
+      end
+      if selector ~= nil and selector ~= "" then
+        dap_run_pytest(selector)
+      end
+    end)
+  end)
+end
+
+map("n", "<leader>dp", dap_pytest_picker, { desc = "Debug pytest (picker)" })
+map("n", "<leader>df", function()
+  local word = vim.fn.expand("<cword>")
+  dap_run_pytest(word)
+end, { desc = "Debug pytest function under cursor" })
 map("n", "<leader>dc", function()
   require("dap").continue()
 end, { desc = "Debug continue" })
