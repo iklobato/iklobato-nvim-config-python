@@ -15,6 +15,12 @@ vim.opt.rtp:prepend(lazypath)
 -- Leader key
 vim.g.mapleader = " "
 
+-- Use rest.nvim rocks (mimetypes, xml2lua, nio, fidget) installed by lazy + hererocks.
+local rocks_dir = vim.fn.stdpath("data") .. "/lazy-rocks/rest.nvim/share/lua/5.1"
+if vim.loop.fs_stat(rocks_dir) then
+  package.path = package.path .. ";" .. rocks_dir .. "/?.lua;" .. rocks_dir .. "/?/init.lua"
+end
+
 -- Disable netrw (use nvim-tree)
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
