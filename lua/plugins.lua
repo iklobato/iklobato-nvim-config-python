@@ -68,7 +68,14 @@ local plugins = {
     "github/copilot.vim",
     event = "VimEnter",
     config = function()
-      vim.g.copilot_no_tab_map = true
+      -- Tab is handled by copilot.vim; fallback to cmp next or literal Tab when no suggestion.
+      vim.g.copilot_tab_fallback = function()
+        local ok, cmp = pcall(require, "cmp")
+        if ok and cmp.visible() then
+          return vim.api.nvim_replace_termcodes("<C-N>", true, false, true)
+        end
+        return vim.api.nvim_replace_termcodes("<Tab>", true, false, true)
+      end
     end,
   },
   {
@@ -88,29 +95,6 @@ local plugins = {
           ["<C-f>"] = cmp.mapping.scroll_docs(4),
           ["<C-Space>"] = cmp.mapping.complete(),
           ["<CR>"] = cmp.mapping.confirm({ select = true }),
-          ["<Tab>"] = cmp.mapping(function(fallback)
-            local filetype = vim.bo.filetype
-            if vim.fn.exists("*copilot#Accept") == 1
-              and filetype ~= "Avante"
-              and filetype ~= "AvanteInput"
-              and filetype ~= "http"
-            then
-              local ok, copilot_suggestion = pcall(vim.fn["copilot#Accept"])
-              if ok
-                and copilot_suggestion
-                and copilot_suggestion ~= ""
-                and type(copilot_suggestion) == "string"
-              then
-                vim.api.nvim_feedkeys(copilot_suggestion, "i", false)
-                return
-              end
-            end
-            if cmp.visible() then
-              cmp.select_next_item()
-            else
-              fallback()
-            end
-          end, { "i", "s" }),
           ["<S-Tab>"] = cmp.mapping(function(fallback)
             if cmp.visible() then
               cmp.select_prev_item()
@@ -133,6 +117,7 @@ local plugins = {
       formatters_by_ft = {
         lua = { "stylua" },
         python = { "ruff_format" },
+        c = { "clang_format" },
       },
     },
   },
@@ -343,6 +328,28 @@ local plugins = {
   {
     "szw/vim-maximizer",
   },
+  -- rest.nvim: git + rocks; http parser from nvim-treesitter.
+  -- .http format: METHOD URL HTTP/1.1 then blank line, then optional headers/body. Put cursor on request line or inside block. cURL (6) = DNS failed, check hostname and network.
+  {
+    "rest-nvim/rest.nvim",
+    dependencies = {
+      "nvim-neotest/nvim-nio",
+      "j-hui/fidget.nvim",
+      {
+        "nvim-treesitter/nvim-treesitter",
+        opts = function(_, opts)
+          opts.ensure_installed = opts.ensure_installed or {}
+          table.insert(opts.ensure_installed, "http")
+        end,
+      },
+    },
+    ft = { "http", "rest" },
+    config = function()
+      vim.g.rest_nvim = vim.tbl_extend("force", vim.g.rest_nvim or {}, {
+        _log_level = vim.log.levels.WARN,
+      })
+    end,
+  },
   {
     "iamcco/markdown-preview.nvim",
     build = function()
@@ -405,8 +412,29 @@ local plugins = {
       vim.g.dbs = {
         default_postgres = "postgresql://postgres:postgres@localhost:5432/postgres",
       }
+
+      -- Resize query result output window to 50% of screen
+      vim.api.nvim_create_autocmd("BufReadPost", {
+        pattern = "*.dbout",
+        callback = function()
+          if vim.bo.filetype == "dbout" then
+            local bufnr = vim.api.nvim_get_current_buf()
+            vim.defer_fn(function()
+              local winid = vim.fn.bufwinid(bufnr)
+              if winid and winid > 0 then
+                local total_lines = vim.o.lines - 2
+                local height = math.max(10, math.floor(total_lines * 0.75))
+                pcall(vim.api.nvim_win_set_height, winid, height)
+              end
+            end, 100)
+          end
+        end,
+      })
     end,
   },
 }
 
-require("lazy").setup(plugins)
+require("lazy").setup(plugins, {
+  -- rest.nvim and other rockspec plugins need Lua 5.1 + luarocks; hererocks provides them.
+  rocks = { hererocks = true },
+})
