@@ -37,7 +37,7 @@ lua/
 
 - Search: `<leader>ff`, `<leader>fg`, `<leader>fb`
 - File ops: `<leader>ww`, `<leader>wq`, `<leader>qq`
-- Diagnostics: `<leader>e`, `[d`, `]d`
+- Diagnostics: `<leader>e`, `<leader>E`, `[d`, `]d`
 - Git: `<leader>gb`
 - File explorer: `<leader>ef`
 - Windows: `<leader>sv`, `<leader>sh`, `<leader>se`
