@@ -25,7 +25,7 @@ end
 
 require("mason").setup()
 require("mason-lspconfig").setup({
-  ensure_installed = { "pyright", "ruff", "lua_ls" },
+  ensure_installed = { "pyright", "ruff", "lua_ls", "clangd", "ts_ls" },
 })
 
 vim.lsp.config("*", {
@@ -44,5 +44,11 @@ vim.lsp.config("lua_ls", {
 
 vim.lsp.config("pyright", {})
 vim.lsp.config("ruff", {})
+vim.lsp.config("clangd", {})
 
-vim.lsp.enable({ "pyright", "ruff", "lua_ls" })
+-- React/TypeScript LSP: also attach to html for React in <script> tags (e.g. index.html with JSX)
+vim.lsp.config("ts_ls", {
+  filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "html" },
+})
+
+vim.lsp.enable({ "pyright", "ruff", "lua_ls", "clangd", "ts_ls" })
