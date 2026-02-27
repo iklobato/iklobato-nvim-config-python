@@ -29,6 +29,11 @@ map("n", "[d", vim.diagnostic.goto_prev, { desc = "Prev diagnostic" })
 map("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
 map("n", "<leader>gp", vim.diagnostic.goto_prev, { desc = "Prev diagnostic" })
 map("n", "<leader>gn", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
+map("n", "<leader>E", function()
+  vim.diagnostic.open_float({
+    float = { focusable = true, focus = true },
+  })
+end, { desc = "Diagnostic float (focus to copy)" })
 
 -- Git
 map("n", "<leader>gb", "<cmd>GitBlameToggle<CR>", { desc = "Toggle git blame" })
@@ -41,6 +46,9 @@ map("n", "<leader>ef", "<cmd>NvimTreeFindFile<CR>", { desc = "Reveal file" })
 -- Markdown preview
 map("n", "<leader>mp", "<cmd>MarkdownPreview<CR>", { desc = "Markdown preview" })
 map("n", "<leader>mP", "<cmd>MarkdownPreviewStop<CR>", { desc = "Markdown preview stop" })
+
+-- HTTP client (rest-nvim, .http / rest files)
+map("n", "<leader>rr", "<cmd>hor Rest run<CR>", { desc = "Run REST request under cursor (horizontal split)" })
 
 -- Windows and tabs
 map("n", "<leader>sv", "<C-w>v", { desc = "Split vertical" })
