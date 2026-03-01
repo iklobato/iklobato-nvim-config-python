@@ -349,6 +349,12 @@ local plugins = {
       vim.g.rest_nvim = vim.tbl_extend("force", vim.g.rest_nvim or {}, {
         _log_level = vim.log.levels.WARN,
       })
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = "json",
+        callback = function()
+          vim.bo.formatprg = "jq ."
+        end,
+      })
     end,
   },
   {
