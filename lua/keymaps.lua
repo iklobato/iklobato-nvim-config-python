@@ -7,7 +7,7 @@ map("n", "<leader>qq", ":q!<CR>", { desc = "Quit without saving" })
 
 -- Search
 map("n", "<leader>ff", function()
-  require("telescope.builtin").find_files()
+  require("telescope.builtin").find_files({ no_ignore = true })
 end, { desc = "Find files" })
 map("n", "<leader>fg", function()
   require("telescope.builtin").live_grep()
