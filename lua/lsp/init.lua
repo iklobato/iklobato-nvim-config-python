@@ -33,22 +33,10 @@ vim.lsp.config("*", {
   on_attach = on_attach,
 })
 
-vim.lsp.config("lua_ls", {
-  settings = {
-    Lua = {
-      diagnostics = { globals = { "vim" } },
-      workspace = { checkThirdParty = false },
-    },
-  },
-})
-
-vim.lsp.config("pyright", {})
-vim.lsp.config("ruff", {})
-vim.lsp.config("clangd", {})
-
--- React/TypeScript LSP: also attach to html for React in <script> tags (e.g. index.html with JSX)
-vim.lsp.config("ts_ls", {
-  filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "html" },
-})
+-- Load server-specific configurations
+require("lsp.servers.lua")
+require("lsp.servers.python")
+require("lsp.servers.typescript")
+require("lsp.servers.c")
 
 vim.lsp.enable({ "pyright", "ruff", "lua_ls", "clangd", "ts_ls" })

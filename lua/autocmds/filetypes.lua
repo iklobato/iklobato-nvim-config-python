@@ -1,0 +1,21 @@
+-- Filetype-specific autocmds
+
+-- JSON formatting with jq
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "json",
+  callback = function()
+    vim.bo.formatprg = "jq ."
+  end,
+})
+
+-- Markdown preview plugin loading
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "markdown",
+  callback = function()
+    local plugin_path = vim.fn.stdpath("data")
+      .. "/lazy/markdown-preview.nvim/plugin/mkdp.vim"
+    if vim.fn.filereadable(plugin_path) == 1 then
+      vim.cmd("source " .. plugin_path)
+    end
+  end,
+})

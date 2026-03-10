@@ -6,12 +6,50 @@ Treesitter, Conform, and Avante.
 ## Structure
 
 ```
-init.lua
+init.lua                    # Main entry point
 lua/
-  options.lua
-  keymaps.lua
-  plugins.lua
-  lsp.lua
+  core/                     # Core configuration
+    init.lua
+    options.lua
+  plugins/                  # Modular plugin configurations
+    init.lua                # Plugin loader
+    core.lua                # Core plugins (treesitter, telescope, cmp, conform)
+    ui.lua                  # UI plugins (theme, nvim-tree)
+    lsp.lua                 # LSP plugins
+    dap.lua                 # Debugging plugins
+    tools.lua               # Utility plugins
+  keymaps/                  # Categorized keymaps
+    init.lua                # Keymap loader
+    navigation.lua          # Window/tab navigation
+    search.lua              # Telescope and search
+    editing.lua             # Formatting and replace
+    debug.lua               # Debugging keymaps
+    git.lua                 # Git operations
+    tools.lua               # Various tool keymaps
+  lsp/                      # Enhanced LSP configuration
+    init.lua                # Main LSP setup
+    servers/                # Server-specific configurations
+      python.lua
+      lua.lua
+      typescript.lua
+      c.lua
+  autocmds/                 # Organized autocommands
+    init.lua                # Autocmd loader
+    filetypes.lua           # Filetype-specific settings
+    session.lua             # Session management
+    ui.lua                  # UI-related autocommands
+  config/                   # Plugin-specific configurations
+    telescope.lua
+    treesitter.lua
+    cmp.lua
+    conform.lua
+    dap.lua
+    dapui.lua
+  utils/                    # Utility functions
+    init.lua                # Utility loader
+    mappings.lua            # Keymap helpers
+    plugin_loader.lua       # Plugin loading utilities
+    diagnostics.lua         # Diagnostic utilities
 ```
 
 ## Plugins

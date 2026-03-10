@@ -1,83 +1,6 @@
 local map = vim.keymap.set
 
--- File operations
-map("n", "<leader>ww", ":w<CR>", { desc = "Save file" })
-map("n", "<leader>wq", ":wq<CR>", { desc = "Save and quit" })
-map("n", "<leader>qq", ":q!<CR>", { desc = "Quit without saving" })
-
--- Search
-map("n", "<leader>ff", function()
-  require("telescope.builtin").find_files({ no_ignore = true })
-end, { desc = "Find files" })
-map("n", "<leader>fg", function()
-  require("telescope.builtin").live_grep()
-end, { desc = "Live grep" })
-map("n", "<leader>fb", function()
-  require("telescope.builtin").buffers()
-end, { desc = "Buffers" })
-map("n", "<leader>fo", function()
-  local w = vim.api.nvim_win_get_width(0)
-  require("telescope.builtin").lsp_document_symbols({
-    symbol_width = math.max(40, math.floor(w * 0.5)),
-    symbol_type_width = math.max(8, math.floor(w * 0.15)), -- category column (Variable, Function, Class, ...)
-  })
-end, { desc = "Find symbols" })
-
--- Diagnostics
-map("n", "<leader>e", vim.diagnostic.open_float, { desc = "Diagnostic float" })
-map("n", "[d", vim.diagnostic.goto_prev, { desc = "Prev diagnostic" })
-map("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
-map("n", "<leader>gp", vim.diagnostic.goto_prev, { desc = "Prev diagnostic" })
-map("n", "<leader>gn", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
-map("n", "<leader>E", function()
-  vim.diagnostic.open_float({
-    float = { focusable = true, focus = true },
-  })
-end, { desc = "Diagnostic float (focus to copy)" })
-
--- Git
-map("n", "<leader>gb", "<cmd>GitBlameToggle<CR>", { desc = "Toggle git blame" })
-
--- File explorer
-map("n", "<leader>ee", "<cmd>NvimTreeToggle<CR>", { desc = "Toggle file explorer" })
-map("n", "<leader>ef", "<cmd>NvimTreeFindFile<CR>", { desc = "Reveal file" })
--- map("n", "<leader>er", "<cmd>NvimTreeFocus<CR>", { desc = "Focus file explorer" })
-
--- Markdown preview
-map("n", "<leader>mp", "<cmd>MarkdownPreview<CR>", { desc = "Markdown preview" })
-map("n", "<leader>mP", "<cmd>MarkdownPreviewStop<CR>", { desc = "Markdown preview stop" })
-
--- HTTP client (rest-nvim, .http / rest files)
-map("n", "<leader>rr", "<cmd>hor Rest run<CR>", { desc = "Run REST request under cursor (horizontal split)" })
-
--- Windows and tabs
-map("n", "<leader>sv", "<C-w>v", { desc = "Split vertical" })
-map("n", "<leader>sh", "<C-w>s", { desc = "Split horizontal" })
-map("n", "<leader>se", function()
-  local cur_tab = vim.api.nvim_get_current_tabpage()
-  for _, tab in ipairs(vim.api.nvim_list_tabpages()) do
-    vim.api.nvim_set_current_tabpage(tab)
-    vim.cmd("wincmd =")
-  end
-  vim.api.nvim_set_current_tabpage(cur_tab)
-end, { desc = "Equalize splits" })
-map("n", "<leader>sm", "<cmd>MaximizerToggle<CR>", { desc = "Maximize split" })
-map("n", "<leader>to", ":tabnew<CR>", { desc = "New tab" })
-map("n", "<leader>tn", ":tabn<CR>", { desc = "Next tab" })
-
--- Replace
-map("n", "<leader>S", ":%s/\\<<C-r><C-w>\\>/<C-r><C-w>/gI<Left><Left><Left>", { desc = "Replace word" })
-map("v", "<leader>S", "y:%s/<C-r>\"/<C-r>\"/gI<Left><Left><Left>", { desc = "Replace selection" })
-
--- Formatting
-map("n", "<leader>f", function()
-  require("conform").format({ lsp_fallback = false })
-end, { desc = "Format" })
-map("v", "<leader>f", function()
-  require("conform").format({ lsp_fallback = false })
-end, { desc = "Format selection" })
-
--- Debugging
+-- Debugging helper functions
 local function dap_pytest_python_path()
   if vim.env.VIRTUAL_ENV then
     return vim.env.VIRTUAL_ENV .. "/bin/python"
@@ -168,6 +91,7 @@ local function dap_pytest_picker()
   end)
 end
 
+-- Debug keymaps
 map("n", "<leader>dp", dap_pytest_picker, { desc = "Debug pytest (picker)" })
 map("n", "<leader>df", function()
   local word = vim.fn.expand("<cword>")
@@ -212,11 +136,3 @@ end, { desc = "Disconnect debugger" })
 map("n", "<leader>du", function()
   require("dapui").toggle()
 end, { desc = "Debug UI" })
-
--- Avante
-map("n", "<leader>aa", "<cmd>AvanteToggle<CR>", { desc = "Avante" })
-
--- Database
-map("n", "<leader>db", "<cmd>DBUIToggle<CR>", { desc = "Toggle DB UI" })
-map("n", "<leader>dq", "<cmd>DBUIExecuteQuery<CR>", { desc = "Execute query" })
-map("v", "<leader>dq", ":DBUIExecuteQuery<CR>", { desc = "Execute selected query" })
