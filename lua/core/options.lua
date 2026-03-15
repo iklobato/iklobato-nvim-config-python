@@ -17,19 +17,27 @@ opt.clipboard:append("unnamedplus")
 
 opt.mouse = ""
 opt.swapfile = false
+vim.cmd("filetype plugin on")
+vim.g.loaded_syntax_hl = 1
 
--- Tabline: show filename (tail) per tab
-local function tabline_build()
-  local cur, parts = vim.api.nvim_get_current_tabpage(), {}
-  for i, tab in ipairs(vim.api.nvim_list_tabpages()) do
-    local buf = vim.api.nvim_win_get_buf(vim.api.nvim_tabpage_get_win(tab))
-    local path = vim.api.nvim_buf_get_name(buf)
-    local name = (path == "" or path == nil) and "[No Name]" or vim.fn.fnamemodify(path, ":t")
-    name = (string.gsub(name, "%%", "%%%%"))
-    parts[#parts + 1] = ("%s%%%dT %s %%X"):format(tab == cur and "%#TabLineSel#" or "%#TabLine#", i, name)
-  end
-  parts[#parts + 1] = "%#TabLineFill#%T"
-  return table.concat(parts, "")
-end
-_G.tabline_build = tabline_build
-vim.opt.tabline = "%!v:lua.tabline_build()"
+opt.scrolloff = 8
+opt.sidescrolloff = 8
+
+opt.ttyfast = true
+opt.lazyredraw = true
+opt.updatetime = 300
+opt.timeoutlen = 300
+opt.redrawtime = 1500
+
+opt.cursorline = false
+opt.cursorcolumn = false
+opt.hlsearch = true
+opt.incsearch = true
+
+vim.cmd('hi! link CurSearch Search')
+
+opt.signcolumn = "yes"
+opt.shortmess:append("c")
+opt.pumheight = 10
+opt.hidden = true
+opt.autoread = false

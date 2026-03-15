@@ -13,4 +13,11 @@ vim.list_extend(plugins, tools_plugins)
 
 require("lazy").setup(plugins, {
   rocks = { hererocks = true },
+  performance = {
+    rtp = {
+      disabled_plugins = {
+        "gzip", "matchit", "matchparen", "netrw", "tarPlugin", "zipPlugin", "rrhelper", "tohtml"
+      }
+    }
+  }
 })
