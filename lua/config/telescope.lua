@@ -2,7 +2,11 @@ local M = {}
 
 function M.setup()
   local telescope = require("telescope")
-  telescope.setup({})
+  telescope.setup({
+    defaults = {
+      file_ignore_patterns = { "node_modules", ".git", "dist", "build" },
+    },
+  })
   pcall(telescope.load_extension, "dap")
 end
 

@@ -1,32 +1,16 @@
 return {
   {
     "github/copilot.vim",
-    event = "VimEnter",
+    cmd = "Copilot",
     config = function()
       vim.g.copilot_tab_fallback = function()
-        local ok, cmp = pcall(require, "cmp")
-        if ok and cmp.visible() then
+        local ok, blink = pcall(require, "blink.cmp")
+        if ok and blink and blink.status then
           return vim.api.nvim_replace_termcodes("<C-N>", true, false, true)
         end
         return vim.api.nvim_replace_termcodes("<Tab>", true, false, true)
       end
     end,
-  },
-  {
-    "yetone/avante.nvim",
-    build = vim.fn.has("win32") ~= 0
-        and "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false"
-      or "make",
-    event = "VeryLazy",
-    cmd = { "AvanteAsk", "AvanteToggle", "AvanteChat", "AvanteEdit" },
-    opts = {
-      instructions_file = "avante.md",
-      behaviour = { auto_set_keymaps = false },
-    },
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-      "MunifTanjim/nui.nvim",
-    },
   },
   {
     "rmagatti/auto-session",
@@ -39,21 +23,14 @@ return {
     end,
   },
   {
-    "f-person/git-blame.nvim",
-    event = "VeryLazy",
-    opts = {
-      enabled = false,
-      date_format = "%m/%d/%y %H:%M:%S",
-    },
-  },
-  {
     "szw/vim-maximizer",
+    lazy = true,
+    cmd = "MaximizerToggle",
   },
   {
     "rest-nvim/rest.nvim",
     dependencies = {
       "nvim-neotest/nvim-nio",
-      "j-hui/fidget.nvim",
       {
         "nvim-treesitter/nvim-treesitter",
         opts = function(_, opts)
@@ -128,9 +105,16 @@ return {
   },
   {
     "tpope/vim-dadbod",
+    cmd = { "DB", "DBUI", "DBUIToggle" },
     dependencies = {
-      "kristijanhusak/vim-dadbod-ui",
-      "kristijanhusak/vim-dadbod-completion",
+      {
+        "kristijanhusak/vim-dadbod-ui",
+        cmd = { "DBUI", "DBUIToggle" },
+      },
+      {
+        "kristijanhusak/vim-dadbod-completion",
+        ft = { "sql", "mysql", "postgres" },
+      },
     },
     config = function()
       vim.g.dbs = {
