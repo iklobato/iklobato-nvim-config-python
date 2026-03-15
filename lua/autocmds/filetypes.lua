@@ -1,5 +1,13 @@
 -- Filetype-specific autocmds
 
+-- Python: disable tree-sitter indent, use vim indent
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "python",
+  callback = function()
+    vim.b.ts_disable = true
+  end,
+})
+
 -- JSON formatting with jq
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "json",
