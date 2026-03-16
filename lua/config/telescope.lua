@@ -7,7 +7,6 @@ function M.setup()
       file_ignore_patterns = { "node_modules", ".git", "dist", "build" },
     },
   })
-  pcall(telescope.load_extension, "dap")
 end
 
 return M
