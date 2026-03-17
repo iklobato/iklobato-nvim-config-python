@@ -5,22 +5,25 @@ local capabilities = vim.tbl_deep_extend(
   require("blink.cmp").get_lsp_capabilities()
 )
 
+-- Global LSP keymaps (work without LSP attached)
+vim.keymap.set("n", "<leader>gd", function()
+  vim.cmd("vsplit")
+  vim.lsp.buf.definition()
+end, { desc = "Go to definition (vsplit)" })
+
+vim.keymap.set("n", "<leader>gr", function()
+  require("telescope.builtin").lsp_references({
+    show_line = false,
+    include_declaration = false,
+  })
+end, { desc = "References (Telescope)" })
+
 local function on_attach(_, bufnr)
   local map = function(mode, lhs, rhs, desc)
     vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, desc = desc })
   end
 
   map("n", "gd", vim.lsp.buf.definition, "Go to definition")
-  map("n", "<leader>gd", function()
-    vim.cmd("vsplit")
-    vim.lsp.buf.definition()
-  end, "Go to definition (vsplit)")
-  map("n", "<leader>gr", function()
-    require("telescope.builtin").lsp_references({
-      show_line = false,
-      include_declaration = false,
-    })
-  end, "References (Telescope)")
   map("n", "gr", vim.lsp.buf.references, "References")
   map("n", "gi", vim.lsp.buf.implementation, "Implementation")
   map("n", "K", vim.lsp.buf.hover, "Hover")
