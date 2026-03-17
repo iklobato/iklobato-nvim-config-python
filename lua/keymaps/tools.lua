@@ -19,9 +19,6 @@ map("n", "<leader>mP", "<cmd>MarkdownPreviewStop<CR>", { desc = "Markdown previe
 -- HTTP client (rest-nvim, .http / rest files)
 map("n", "<leader>rr", "<cmd>vert Rest run<CR>", { desc = "Run REST request under cursor (vertical split)" })
 
--- Avante
-map("n", "<leader>aa", "<cmd>AvanteToggle<CR>", { desc = "Avante" })
-
 -- Database
 map("n", "<leader>db", "<cmd>DBUIToggle<CR>", { desc = "Toggle DB UI" })
 map("n", "<leader>dq", "<cmd>DBUIExecuteQuery<CR>", { desc = "Execute query" })
