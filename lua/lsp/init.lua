@@ -34,11 +34,14 @@ end
 require("mason").setup()
 require("mason-lspconfig").setup({
   ensure_installed = { "lua_ls", "ts_ls", "pyright", "ruff" },
-})
-
-vim.lsp.config("*", {
-  capabilities = capabilities,
-  on_attach = on_attach,
+  handlers = {
+    function(server_name)
+      require("lspconfig")[server_name].setup({
+        capabilities = capabilities,
+        on_attach = on_attach,
+      })
+    end,
+  },
 })
 
 -- LSP diagnostics performance
@@ -59,5 +62,3 @@ vim.lsp.handlers["textDocument/diagnostic"] = vim.lsp.with(
 require("lsp.servers.lua")
 require("lsp.servers.python")
 require("lsp.servers.typescript")
-
-vim.lsp.enable({ "lua_ls", "ts_ls", "pyright", "ruff" })
