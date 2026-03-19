@@ -3,6 +3,7 @@ return {
     "github/copilot.vim",
     event = "InsertEnter",
     config = function()
+      vim.g.copilot_no_tab_map = true
       vim.g.copilot_tab_fallback = function()
         local ok, blink = pcall(require, "blink.cmp")
         if ok and blink.is_menu_visible then
