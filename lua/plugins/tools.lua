@@ -1,12 +1,12 @@
 return {
   {
     "github/copilot.vim",
-    cmd = "Copilot",
+    event = "InsertEnter",
     config = function()
       vim.g.copilot_tab_fallback = function()
         local ok, blink = pcall(require, "blink.cmp")
-        if ok and blink and blink.status then
-          return vim.api.nvim_replace_termcodes("<C-N>", true, false, true)
+        if ok and blink.is_menu_visible then
+          return blink.accept()
         end
         return vim.api.nvim_replace_termcodes("<Tab>", true, false, true)
       end
