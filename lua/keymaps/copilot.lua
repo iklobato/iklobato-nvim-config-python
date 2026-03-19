@@ -2,12 +2,7 @@ local map = vim.keymap.set
 
 -- Copilot: Tab to accept suggestion
 map("i", "<Tab>", function()
-  local filetype = vim.bo.filetype
-  if vim.fn.exists("*copilot#Accept") == 1
-    and filetype ~= "Avante"
-    and filetype ~= "AvanteInput"
-    and filetype ~= "http"
-  then
+  if vim.fn.exists("*copilot#Accept") == 1 then
     local ok, copilot_suggestion = pcall(vim.fn["copilot#Accept"])
     if ok and copilot_suggestion and copilot_suggestion ~= "" and type(copilot_suggestion) == "string" then
       vim.api.nvim_feedkeys(copilot_suggestion, "i", false)
