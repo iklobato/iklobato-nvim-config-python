@@ -8,10 +8,11 @@ local capabilities = vim.tbl_deep_extend(
 -- Global LSP keymaps (work without LSP attached)
 vim.keymap.set("n", "<leader>gd", function()
   vim.cmd("vsplit")
-  vim.lsp.buf.definition()
+  pcall(vim.lsp.buf.definition)
 end, { desc = "Go to definition (vsplit)" })
 
 vim.keymap.set("n", "<leader>gr", function()
+  pcall(vim.lsp.buf.references)
   require("telescope.builtin").lsp_references({
     show_line = false,
     include_declaration = false,
