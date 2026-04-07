@@ -12,10 +12,8 @@ vim.keymap.set("n", "<leader>gd", function()
 end, { desc = "Go to definition (vsplit)" })
 
 vim.keymap.set("n", "<leader>gr", function()
-  pcall(vim.lsp.buf.references)
   require("telescope.builtin").lsp_references({
     show_line = false,
-    include_declaration = false,
   })
 end, { desc = "References (Telescope)" })
 
