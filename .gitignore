@@ -43,3 +43,4 @@ Brewfile.backup.*
 .specify/
 
 db_ui/connections.json
+.aider*

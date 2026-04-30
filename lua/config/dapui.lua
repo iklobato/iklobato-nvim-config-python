@@ -5,7 +5,7 @@ function M.setup()
   local cols = vim.o.columns
   local left_size = math.max(0.12, math.min(0.28, 0.10 + cols * 0.0004))
   local right_size = math.max(0.25, math.min(0.45, 0.22 + cols * 0.0005))
-  
+
   dapui.setup({
     controls = {
       element = "repl",
@@ -68,7 +68,7 @@ function M.setup()
       max_value_lines = 100,
     },
   })
-  
+
   local dap = require("dap")
   dap.listeners.after.event_initialized["dapui"] = function()
     dapui.open()
@@ -79,8 +79,8 @@ function M.setup()
   dap.listeners.before.event_exited["dapui"] = function()
     dapui.close()
   end
-  
-  -- Make dap-repl buffer modifiable
+
+  -- dap-repl needs to be modifiable for input
   vim.api.nvim_create_autocmd("BufEnter", {
     callback = function(data)
       if vim.bo[data.buf].filetype == "dap-repl" then

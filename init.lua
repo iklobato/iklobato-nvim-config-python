@@ -42,8 +42,13 @@ require("keymaps")
 -- Load plugins
 require("plugins")
 
--- Load LSP configuration
-require("lsp")
+-- Load LSP configuration (deferred — mason is heavy, LSP isn't needed until a buffer opens)
+vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
+  once = true,
+  callback = function()
+    require("lsp")
+  end,
+})
 
 -- Load autocmds
 require("autocmds")

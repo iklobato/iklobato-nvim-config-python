@@ -15,6 +15,6 @@ vim.api.nvim_create_autocmd("VimEnter", {
           api.tree.open()
         end
       end
-    end, 500)
+    end, 100)
   end,
 })

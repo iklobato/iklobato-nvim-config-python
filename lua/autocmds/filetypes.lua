@@ -7,3 +7,11 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.bo.formatprg = "jq ."
   end,
 })
+
+-- Taskfile detection
+vim.api.nvim_create_autocmd("BufRead", {
+  pattern = { "Taskfile.yml", "Taskfile.yaml", "taskfile.yml", "taskfile.yaml" },
+  callback = function(args)
+    vim.bo.filetype = "yaml"
+  end,
+})

@@ -27,7 +27,9 @@ opt.ttyfast = true
 opt.lazyredraw = true
 opt.updatetime = 300
 opt.timeoutlen = 300
+opt.ttimeoutlen = 50
 opt.redrawtime = 1500
+opt.timeout = false
 
 opt.cursorline = false
 opt.cursorcolumn = false

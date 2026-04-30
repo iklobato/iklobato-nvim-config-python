@@ -23,10 +23,12 @@ function M.setup()
       "toml",
       "yaml",
       "requirements",
+      "dockerfile",
+      "make",
+      "tmux",
     },
     highlight = {
       enable = true,
-      use_languagetree = true,
       disable = function(lang, buf)
         local max_filesize = 1024 * 1024
         local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
