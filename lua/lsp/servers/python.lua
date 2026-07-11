@@ -12,15 +12,9 @@ vim.lsp.config("pyright", {
 })
 
 vim.lsp.config("ruff", {
-  cmd = { "ruff-lsp" },
-  filetypes = { "python" },
-  root_dir = function(fname)
-    return vim.loop.cwd()
-  end,
-  settings = {
-    ruff = {
+  init_options = {
+    settings = {
       lineLength = 88,
-      indentTab = false,
     },
   },
 })

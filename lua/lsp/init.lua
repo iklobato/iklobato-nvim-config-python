@@ -61,3 +61,4 @@ vim.lsp.handlers["textDocument/diagnostic"] = vim.lsp.with(
 require("lsp.servers.lua")
 require("lsp.servers.python")
 require("lsp.servers.typescript")
+require("lsp.servers.terraform")

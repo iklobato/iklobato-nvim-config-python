@@ -42,11 +42,16 @@ require("keymaps")
 -- Load plugins
 require("plugins")
 
--- Load LSP configuration (deferred — mason is heavy, LSP isn't needed until a buffer opens)
+-- Load LSP configuration (deferred: mason is heavy, LSP isn't needed until a buffer opens)
 vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
   once = true,
   callback = function()
     require("lsp")
+    -- vim.lsp.enable() ran after this buffer's FileType event, so re-fire
+    -- it for already-open buffers (nvim only does this after VimEnter)
+    vim.schedule(function()
+      pcall(vim.cmd.doautoall, "nvim.lsp.enable FileType")
+    end)
   end,
 })
 
