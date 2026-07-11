@@ -96,23 +96,25 @@ return {
     end,
   },
   {
-    "tpope/vim-dadbod",
-    cmd = { "DB", "DBUI", "DBUIToggle" },
+    "kristijanhusak/vim-dadbod-ui",
+    cmd = { "DBUI", "DBUIToggle", "DBUIAddConnection", "DBUIFindBuffer" },
     dependencies = {
       {
-        "kristijanhusak/vim-dadbod-ui",
-        cmd = { "DBUI", "DBUIToggle" },
+        "tpope/vim-dadbod",
+        lazy = true,
+        cmd = { "DB" },
       },
       {
         "kristijanhusak/vim-dadbod-completion",
         ft = { "sql", "mysql", "postgres" },
       },
     },
-    config = function()
+    init = function()
       vim.g.dbs = {
         default_postgres = "postgresql://postgres:postgres@localhost:5432/postgres",
       }
-
+    end,
+    config = function()
       vim.api.nvim_create_autocmd("BufReadPost", {
         pattern = "*.dbout",
         callback = function()
