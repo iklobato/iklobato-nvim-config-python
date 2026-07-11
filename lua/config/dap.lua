@@ -1,5 +1,12 @@
 local M = {}
 
+function M.python_path()
+  if vim.env.VIRTUAL_ENV then
+    return vim.env.VIRTUAL_ENV .. "/bin/python"
+  end
+  return "python3"
+end
+
 function M.setup()
   local dap = require("dap")
   dap.set_log_level("ERROR")
@@ -24,15 +31,7 @@ function M.setup()
     return path .. "/venv/bin/python"
   end
 
-  local function python_path()
-    if vim.env.VIRTUAL_ENV then
-      return vim.env.VIRTUAL_ENV .. "/bin/python"
-    end
-    return "python3"
-  end
-
   dap.adapters.python = function(cb, config)
-    local adapter_python = debugpy_adapter()
     if config.request == "attach" then
       cb({
         type = "server",
@@ -42,7 +41,7 @@ function M.setup()
     else
       cb({
         type = "executable",
-        command = adapter_python or python_path(),
+        command = debugpy_adapter() or M.python_path(),
         args = { "-m", "debugpy.adapter" },
       })
     end
@@ -54,7 +53,7 @@ function M.setup()
       request = "launch",
       name = "Launch file",
       program = "${file}",
-      pythonPath = python_path,
+      pythonPath = M.python_path,
     },
     {
       type = "python",
@@ -63,7 +62,7 @@ function M.setup()
       program = "${workspaceFolder}/manage.py",
       args = { "runserver", "--noreload" },
       django = true,
-      pythonPath = python_path,
+      pythonPath = M.python_path,
     },
     {
       type = "python",
@@ -71,7 +70,7 @@ function M.setup()
       name = "Pytest file",
       module = "pytest",
       args = { "${file}" },
-      pythonPath = python_path,
+      pythonPath = M.python_path,
     },
   }
 end

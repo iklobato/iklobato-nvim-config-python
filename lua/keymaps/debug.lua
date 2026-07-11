@@ -1,13 +1,6 @@
 local map = vim.keymap.set
 
 -- Debugging helper functions
-local function dap_pytest_python_path()
-  if vim.env.VIRTUAL_ENV then
-    return vim.env.VIRTUAL_ENV .. "/bin/python"
-  end
-  return "python3"
-end
-
 local function dap_run_pytest(selector)
   if selector == nil or selector == "" then
     return
@@ -23,7 +16,7 @@ local function dap_run_pytest(selector)
     name = "Pytest: " .. selector,
     module = "pytest",
     args = { file_path .. "::" .. selector },
-    pythonPath = dap_pytest_python_path,
+    pythonPath = require("config.dap").python_path,
   })
 end
 
@@ -31,7 +24,7 @@ local function dap_pytest_selectors_from_lsp(callback)
   local bufnr = vim.api.nvim_get_current_buf()
   local uri = vim.uri_from_bufnr(bufnr)
   vim.lsp.buf_request(bufnr, "textDocument/documentSymbol", { textDocument = { uri = uri } }, function(_, result)
-    if result == nil or not vim.tbl_islist(result) then
+    if result == nil or not vim.islist(result) then
       callback({})
       return
     end
@@ -95,7 +88,15 @@ end
 map("n", "<leader>dp", dap_pytest_picker, { desc = "Debug pytest (picker)" })
 map("n", "<leader>df", function()
   local word = vim.fn.expand("<cword>")
-  dap_run_pytest(word)
+  dap_pytest_selectors_from_lsp(function(selectors)
+    for _, s in ipairs(selectors) do
+      if s == word or s:match("::" .. vim.pesc(word) .. "$") then
+        dap_run_pytest(s)
+        return
+      end
+    end
+    dap_run_pytest(word)
+  end)
 end, { desc = "Debug pytest function under cursor" })
 map("n", "<leader>dc", function()
   require("dap").continue()
@@ -113,7 +114,8 @@ map("n", "<leader>br", function()
   require("dap").clear_breakpoints()
 end, { desc = "Clear breakpoints" })
 map("n", "<leader>ba", function()
-  require("telescope").extensions.dap.list_breakpoints()
+  require("dap").list_breakpoints()
+  vim.cmd.copen()
 end, { desc = "List breakpoints" })
 map("n", "<leader>dj", function()
   require("dap").step_over()
@@ -132,6 +134,7 @@ map("n", "<leader>dt", function()
 end, { desc = "Terminate debug session" })
 map("n", "<leader>dd", function()
   require("dap").disconnect()
+  require("dapui").close()
 end, { desc = "Disconnect debugger" })
 map("n", "<leader>du", function()
   require("dapui").toggle()
