@@ -1,14 +1,45 @@
 return {
   {
-    "rebelot/kanagawa.nvim",
+    "xiantang/darcula-dark.nvim",
     lazy = false,
     priority = 1000,
+    dependencies = { "nvim-treesitter/nvim-treesitter" },
     config = function()
-      require("kanagawa").setup({
-        background = { dark = "wave" },
-      })
-      vim.cmd.colorscheme("kanagawa")
+      vim.cmd.colorscheme("darcula-dark")
     end,
+  },
+  {
+    "akinsho/bufferline.nvim",
+    event = "VeryLazy",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    opts = {
+      options = {
+        separator_style = "slant",
+        diagnostics = "nvim_lsp",
+        offsets = {
+          { filetype = "NvimTree", text = "Project", text_align = "left" },
+        },
+      },
+    },
+  },
+  {
+    "nvim-lualine/lualine.nvim",
+    event = "VeryLazy",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    opts = {
+      options = {
+        theme = "auto",
+        globalstatus = true,
+      },
+      sections = {
+        lualine_x = { "encoding", "fileformat", "filetype" },
+      },
+    },
+  },
+  {
+    "lewis6991/gitsigns.nvim",
+    event = { "BufReadPre", "BufNewFile" },
+    opts = {},
   },
   {
     "nvim-tree/nvim-tree.lua",
