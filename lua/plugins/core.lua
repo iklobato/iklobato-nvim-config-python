@@ -51,6 +51,7 @@ return {
   {
     "nvim-telescope/telescope.nvim",
     cmd = "Telescope",
+    cmd = "Telescope",
     dependencies = {
       "nvim-lua/plenary.nvim",
     },
@@ -61,6 +62,7 @@ return {
   {
     "saghen/blink.cmp",
     version = "*",
+    event = { "InsertEnter", "CmdlineEnter" },
     config = function()
       require("config.blink").setup()
     end,

@@ -28,6 +28,8 @@ return {
       require("auto-session").setup({
         auto_save_enabled = true,
         auto_restore_enabled = true,
+        -- don't pull the telescope picker in at startup; it loads on :SessionSearch
+        session_lens = { load_on_setup = false },
       })
     end,
   },
