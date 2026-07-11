@@ -2,6 +2,11 @@ return {
   {
     "github/copilot.vim",
     event = "InsertEnter",
+    init = function()
+      -- default is npx @github/copilot-language-server, which dies when the
+      -- npm registry is unreachable; always run the bundled server
+      vim.g.copilot_npx = false
+    end,
     config = function()
       vim.g.copilot_no_tab_map = false
     end,
