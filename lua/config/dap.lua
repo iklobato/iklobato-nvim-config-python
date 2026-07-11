@@ -43,6 +43,8 @@ function M.setup()
         type = "executable",
         command = debugpy_adapter() or M.python_path(),
         args = { "-m", "debugpy.adapter" },
+        -- cold start of the mason debugpy venv exceeds the 4s default here
+        options = { initialize_timeout_sec = 20 },
       })
     end
   end
