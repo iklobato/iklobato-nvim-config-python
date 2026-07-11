@@ -24,7 +24,6 @@ opt.scrolloff = 8
 opt.sidescrolloff = 8
 
 opt.ttyfast = true
-opt.lazyredraw = true
 opt.updatetime = 300
 opt.timeoutlen = 300
 opt.ttimeoutlen = 50
