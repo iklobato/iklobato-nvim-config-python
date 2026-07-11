@@ -11,7 +11,11 @@ function M.setup()
     fuzzy = {
       implementation = "prefer_rust",
     },
-    max_view_entries = 15,
+    completion = {
+      list = {
+        max_items = 15,
+      },
+    },
   })
 end
 
