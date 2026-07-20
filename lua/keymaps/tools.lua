@@ -16,8 +16,8 @@ end, { desc = "Diagnostic float (focus to copy)" })
 map("n", "<leader>mp", "<cmd>MarkdownPreview<CR>", { desc = "Markdown preview" })
 map("n", "<leader>mP", "<cmd>MarkdownPreviewStop<CR>", { desc = "Markdown preview stop" })
 
--- HTTP client (rest-nvim, .http / rest files)
-map("n", "<leader>rr", "<cmd>vert Rest run<CR>", { desc = "Run REST request under cursor (vertical split)" })
+-- HTTP client (kulala, .http / rest files)
+map("n", "<leader>rr", "<cmd>lua require('kulala').run()<CR>", { desc = "Run HTTP request under cursor" })
 
 -- Database
 map("n", "<leader>db", "<cmd>DBUIToggle<CR>", { desc = "Toggle DB UI" })

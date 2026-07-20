@@ -119,14 +119,20 @@ local checks = {
     expect(vim.fn.exists(":Copilot") == 2, ":Copilot not defined")
   end },
 
-  -- rest.nvim (http-file-gated)
-  { "rest.nvim: loads on http file", function()
+  -- kulala (http-file-gated)
+  { "kulala: loads on http file", function()
     edit("t.http", { "GET https://example.com" })
-    local plugin = require("lazy.core.config").plugins["rest.nvim"]
+    local plugin = require("lazy.core.config").plugins["kulala.nvim"]
     vim.wait(2000, function()
       return plugin._.loaded ~= nil
     end)
-    expect(plugin._.loaded, "rest.nvim plugin not loaded for .http")
+    expect(plugin._.loaded, "kulala plugin not loaded for .http")
+    expect(pcall(require, "kulala"), "kulala module failed to load")
+  end },
+
+  -- luarocks is disabled: a rockspec build failure aborts the whole config
+  { "lazy: luarocks disabled", function()
+    expect(require("lazy.core.config").options.rocks.enabled == false, "rocks still enabled")
   end },
 
   -- autocmds

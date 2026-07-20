@@ -11,6 +11,7 @@ function M.setup()
       "typescript",
       "tsx",
       "html",
+      "http",
       "css",
       "json",
       "markdown",

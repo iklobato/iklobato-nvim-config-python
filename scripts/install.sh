@@ -20,7 +20,18 @@ if [[ "${1:-}" == "--no-dotfiles" ]]; then
   INSTALL_DOTFILES=false
 fi
 
-say() { echo "==> $1"; }
+LOG_FILE="${LOG_FILE:-$HOME/nvim-install-$(date +%Y%m%d-%H%M%S).log}"
+
+setup_logging() {
+  : >"$LOG_FILE"
+  exec > >(tee -a "$LOG_FILE") 2>&1
+  exec 3>>"$LOG_FILE"
+  export BASH_XTRACEFD=3
+  export PS4='+ ${BASH_SOURCE##*/}:${LINENO}:${FUNCNAME[0]:-main}: '
+  set -x
+}
+
+say() { echo "==> $(date +%H:%M:%S) $1"; }
 has() { command -v "$1" >/dev/null 2>&1; }
 
 nvim_ok() {
@@ -71,7 +82,6 @@ install_deps_macos() {
   node_ok || install_node_macos
   has rg || brew install ripgrep
   has python3 || brew install python3
-  has luarocks || brew install luarocks
   has delta || brew install git-delta
   brew list --cask font-meslo-lg-nerd-font >/dev/null 2>&1 ||
     brew install --cask font-meslo-lg-nerd-font
@@ -96,7 +106,7 @@ install_deps_ubuntu() {
   say "installing dependencies (sudo may ask for your password)"
   apt_get update -qq || true
   apt_get install software-properties-common curl git unzip build-essential \
-    ripgrep python3 python3-pip luarocks git-delta
+    ripgrep python3 python3-pip python3-venv git-delta
 
   if ! nvim_ok; then
     sudo DEBIAN_FRONTEND=noninteractive add-apt-repository -y ppa:neovim-ppa/unstable
@@ -171,8 +181,10 @@ require("lsp")
 local registry = require("mason-registry")
 registry.refresh()
 
+local tools = { $(printf '"%s", ' "${MASON_TOOLS[@]}") }
+
 local pending = {}
-for _, name in ipairs({ $(printf '"%s", ' "${MASON_TOOLS[@]}") }) do
+for _, name in ipairs(tools) do
   local found, pkg = pcall(registry.get_package, name)
   if found and not pkg:is_installed() then
     pending[name] = true
@@ -185,11 +197,52 @@ end
 vim.wait(10 * 60 * 1000, function()
   return vim.tbl_isempty(pending)
 end, 500)
+
+local failed = {}
+for _, name in ipairs(tools) do
+  local found, pkg = pcall(registry.get_package, name)
+  if not found or not pkg:is_installed() then
+    table.insert(failed, name)
+  end
+end
+
+if #failed > 0 then
+  io.stderr:write("mason failed to install: " .. table.concat(failed, ", ") .. "\n")
+  vim.cmd("cquit")
+end
 EOF
 
   say "installing LSP servers, debugpy and formatters"
   nvim --headless -c "luafile $script" -c "qa!" || say "mason incomplete, finishes on first launch"
 }
+
+report_state() (
+  set +e
+  say "final state"
+  echo "--- system ---"
+  uname -a
+  echo "--- versions ---"
+  for cmd in nvim node npm rg python3 git delta zsh; do
+    printf '%-8s %s\n' "$cmd" "$(command -v "$cmd" || echo MISSING)"
+  done
+  nvim --version | head -1
+  node --version
+  echo "--- config ---"
+  ls -la "$NVIM_CONFIG_DIR/init.lua"
+  echo "--- dotfiles ---"
+  ls -la "$HOME/.zshrc" 2>&1
+  echo "--- plugins ($(find "$HOME/.local/share/nvim/lazy" -maxdepth 1 -mindepth 1 2>/dev/null | wc -l)) ---"
+  ls "$HOME/.local/share/nvim/lazy" 2>&1
+  echo "--- mason binaries ---"
+  ls "$HOME/.local/share/nvim/mason/bin" 2>&1
+  echo "--- expected mason tools ---"
+  printf '%s\n' "${MASON_TOOLS[@]}"
+  echo "--- config load check ---"
+  nvim --headless "+lua vim.cmd('quitall')" 2>&1 && echo "(no output above = clean)"
+)
+
+setup_logging
+say "log: $LOG_FILE"
 
 case "$(uname -s)" in
   Darwin) install_deps_macos ;;
@@ -202,5 +255,7 @@ if [[ "$INSTALL_DOTFILES" == true ]]; then
   install_dotfiles
 fi
 bootstrap_plugins
+report_state
 
 say "done. Set your terminal font to 'MesloLGS Nerd Font'."
+say "full log: $LOG_FILE"

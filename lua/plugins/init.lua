@@ -12,7 +12,8 @@ vim.list_extend(plugins, dap_plugins)
 vim.list_extend(plugins, tools_plugins)
 
 require("lazy").setup(plugins, {
-  rocks = { hererocks = true },
+  -- No plugin needs luarocks; leaving it on lets a broken rockspec abort startup.
+  rocks = { enabled = false },
   performance = {
     rtp = {
       disabled_plugins = {

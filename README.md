@@ -80,7 +80,7 @@ tests/
 - conform.nvim
 - nvim-dap + nvim-dap-ui (nvim-nio) + mason-nvim-dap
 - auto-session
-- rest.nvim (HTTP client)
+- kulala.nvim (HTTP client, pure Lua, no luarocks)
 - vim-dadbod + vim-dadbod-ui (SQL client)
 - markdown-preview.nvim (random free port)
 - github/copilot.vim (bundled language server, no npx)
@@ -174,8 +174,8 @@ is moved to a timestamped `.bak_<date>` first.
 
 What it sets up:
 
-- **Dependencies**: Neovim 0.11+, git, Node 22+, ripgrep, python3, luarocks
-  (rest.nvim rocks), git-delta (lazygit pager), Meslo LG Nerd Font
+- **Dependencies**: Neovim 0.11+, git, Node 22+, ripgrep, python3, git-delta
+  (lazygit pager), Meslo LG Nerd Font
 - **Config**: this repo at `~/.config/nvim`
 - **Dotfiles**: `system/zshrc` → `~/.zshrc` and `system/lazygit.yml` → the
   platform lazygit path, plus oh-my-zsh and the zsh-syntax-highlighting plugin
