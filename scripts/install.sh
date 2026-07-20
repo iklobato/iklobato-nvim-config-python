@@ -1,539 +1,200 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#
+# Installs this Neovim config + the system dotfiles from scratch.
+#
+#   Local:  ./scripts/install.sh [--no-dotfiles]
+#   Remote: curl -fsSL https://raw.githubusercontent.com/iklobato/iklobato-nvim-config-python/main/scripts/install.sh | bash
+#
+set -euo pipefail
 
-set -e  # Exit on error
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
-
-# Configuration
 REPO_URL="https://github.com/iklobato/iklobato-nvim-config-python.git"
-NVIM_CONFIG_DIR="$HOME/.config/nvim"
-TEMP_DIR=$(mktemp -d)
+NVIM_CONFIG_DIR="${NVIM_CONFIG_DIR:-$HOME/.config/nvim}"
 
-# Function to print colored messages
-print_success() {
-    echo -e "${GREEN}✓${NC} $1"
-}
+NVIM_MIN_MINOR=11
+NODE_MIN_MAJOR=22
 
-print_error() {
-    echo -e "${RED}✗${NC} $1"
-}
+MASON_TOOLS=(lua-language-server pyright ruff typescript-language-server stylua debugpy)
 
-print_info() {
-    echo -e "${YELLOW}ℹ${NC} $1"
-}
-
-# Cleanup function
-cleanup() {
-    if [ -d "$TEMP_DIR" ]; then
-        rm -rf "$TEMP_DIR"
-    fi
-}
-trap cleanup EXIT
-
-# OS Detection Function
-detect_os() {
-    case "$(uname -s)" in
-        Darwin*)
-            echo "macos"
-            ;;
-        Linux*)
-            if [ -f /etc/os-release ]; then
-                . /etc/os-release
-                if [[ "$ID" == "ubuntu" ]] || [[ "$ID" == "debian" ]]; then
-                    echo "ubuntu"
-                else
-                    echo "linux"
-                fi
-            else
-                echo "linux"
-            fi
-            ;;
-        *)
-            echo "unknown"
-            ;;
-    esac
-}
-
-# Dependency Check Functions
-check_command() {
-    command -v "$1" >/dev/null 2>&1
-}
-
-check_neovim_version() {
-    if check_command nvim; then
-        local version=$(nvim --version | head -n 1 | grep -oE '[0-9]+\.[0-9]+' | head -n 1)
-        local major=$(echo "$version" | cut -d. -f1)
-        local minor=$(echo "$version" | cut -d. -f2)
-        if [ "$major" -gt 0 ] || ([ "$major" -eq 0 ] && [ "$minor" -ge 11 ]); then
-            return 0  # Version >= 0.11.0
-        fi
-    fi
-    return 1  # Not installed or version too old
-}
-
-check_node_version() {
-    if check_command node; then
-        local version=$(node --version | sed 's/v//')
-        local major=$(echo "$version" | cut -d. -f1)
-        if [ "$major" -ge 22 ]; then
-            return 0  # Version >= 22.0.0
-        fi
-    fi
-    return 1  # Not installed or version too old
-}
-
-check_nerd_font_installed() {
-    # Check if any Nerd Font is installed
-    if fc-list | grep -i "nerd font" >/dev/null 2>&1; then
-        return 0
-    fi
-    # Check for common Nerd Font names
-    local font_names=("MesloLGS" "FiraCode" "JetBrainsMono" "UbuntuMono" "Hack" "SourceCodePro")
-    for font in "${font_names[@]}"; do
-        if fc-list | grep -i "$font.*nerd" >/dev/null 2>&1; then
-            return 0
-        fi
-    done
-    return 1
-}
-
-install_nerd_font_ubuntu() {
-    print_info "Installing Nerd Font for proper icon display..."
-    
-    # Create fonts directory
-    local fonts_dir="$HOME/.local/share/fonts"
-    mkdir -p "$fonts_dir"
-    
-    # Download Meslo LG Nerd Font (recommended, matches macOS setup)
-    print_info "Downloading Meslo LG Nerd Font..."
-    local temp_font_dir=$(mktemp -d)
-    cd "$temp_font_dir"
-    
-    # Download Meslo LG Nerd Font from GitHub releases
-    if curl -L -o Meslo.zip "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Meslo.zip" 2>/dev/null; then
-        # Install unzip if not available
-        if ! check_command unzip; then
-            print_info "Installing unzip..."
-            sudo apt-get install -y unzip
-        fi
-        
-        # Extract and install fonts
-        unzip -q Meslo.zip -d "$fonts_dir" 2>/dev/null || {
-            print_error "Failed to extract font archive"
-            rm -rf "$temp_font_dir"
-            return 1
-        }
-        
-        # Update font cache
-        fc-cache -fv >/dev/null 2>&1
-        
-        print_success "Meslo LG Nerd Font installed successfully"
-        rm -rf "$temp_font_dir"
-        return 0
-    else
-        print_error "Failed to download Nerd Font"
-        rm -rf "$temp_font_dir"
-        return 1
-    fi
-}
-
-# Remove problematic PPAs before updating
-cleanup_problematic_ppas() {
-    print_info "Cleaning up problematic PPAs..."
-    
-    # Remove lazygit-team PPA if it exists
-    if [ -n "$(find /etc/apt/sources.list.d/ -name 'lazygit-team-ubuntu-release-*.list' 2>/dev/null)" ]; then
-        print_info "Removing lazygit-team PPA (not compatible with this Ubuntu version)..."
-        sudo rm -f /etc/apt/sources.list.d/lazygit-team-ubuntu-release-*.list 2>/dev/null || true
-        sudo rm -f /etc/apt/sources.list.d/lazygit-team-ubuntu-release-*.list.save 2>/dev/null || true
-    fi
-    
-    # Remove from sources.list.d if present
-    if grep -r "lazygit-team" /etc/apt/sources.list.d/ 2>/dev/null | grep -q .; then
-        print_info "Cleaning up lazygit-team references from sources..."
-        sudo find /etc/apt/sources.list.d/ -name "*.list" -type f -exec sed -i '/lazygit-team/d' {} \; 2>/dev/null || true
-    fi
-}
-
-# Ubuntu Dependency Installation
-install_dependencies_ubuntu() {
-    print_info "Detected Ubuntu/Debian. Checking dependencies..."
-    
-    # Check for sudo access
-    if ! sudo -n true 2>/dev/null; then
-        print_info "Some operations require sudo. You may be prompted for your password."
-    fi
-    
-    # Clean up problematic PPAs before updating
-    cleanup_problematic_ppas
-    
-    # Update package list (ignore repository errors)
-    print_info "Updating package list..."
-    sudo apt-get update -qq 2>&1 | grep -v "does not have a Release file" || {
-        print_info "Some repositories had issues, but continuing installation..."
-    }
-    
-    # Install software-properties-common for add-apt-repository
-    if ! check_command add-apt-repository; then
-        print_info "Installing software-properties-common..."
-        sudo apt-get install -y software-properties-common
-    fi
-    
-    # Install Neovim (from PPA for latest version)
-    if ! check_neovim_version; then
-        print_info "Installing Neovim 0.11.0+..."
-        # Add Neovim PPA for latest version
-        sudo add-apt-repository -y ppa:neovim-ppa/unstable 2>/dev/null || {
-            print_info "Adding Neovim PPA..."
-            sudo add-apt-repository -y ppa:neovim-ppa/unstable
-        }
-        sudo apt-get update -qq 2>&1 | grep -v "does not have a Release file" || {
-            print_info "Some repositories had issues, but continuing installation..."
-        }
-        sudo apt-get install -y neovim
-        print_success "Neovim installed successfully"
-    else
-        print_success "Neovim 0.11.0+ already installed"
-    fi
-    
-    # Install Git
-    if ! check_command git; then
-        print_info "Installing Git..."
-        sudo apt-get install -y git
-        print_success "Git installed"
-    else
-        print_success "Git already installed"
-    fi
-    
-    # Install/Upgrade Node.js and npm (requires 22.x+ for GitHub Copilot)
-    # Manual upgrade instructions (if needed):
-    #   sudo apt-get remove nodejs npm  # Remove old version if needed
-    #   curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-    #   sudo apt-get install -y nodejs
-    #   node --version  # Verify version >= 22.0.0
-    if ! check_command node; then
-        print_info "Installing Node.js 22.x..."
-        curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-        sudo apt-get install -y nodejs
-        print_success "Node.js 22.x installed"
-    elif ! check_node_version; then
-        print_info "Upgrading Node.js to 22.x (required for GitHub Copilot)..."
-        curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-        sudo apt-get install -y nodejs
-        print_success "Node.js upgraded to 22.x"
-    else
-        print_success "Node.js 22.x+ already installed"
-    fi
-    
-    # Install Ripgrep
-    if ! check_command rg; then
-        print_info "Installing Ripgrep..."
-        sudo apt-get install -y ripgrep
-        print_success "Ripgrep installed"
-    else
-        print_success "Ripgrep already installed"
-    fi
-    
-    # Install Python 3
-    if ! check_command python3; then
-        print_info "Installing Python 3..."
-        sudo apt-get install -y python3 python3-pip
-        print_success "Python 3 installed"
-    else
-        print_success "Python 3 already installed"
-    fi
-    
-    # Install Nerd Font for proper icon display
-    if ! check_nerd_font_installed; then
-        install_nerd_font_ubuntu
-    else
-        print_success "Nerd Font already installed"
-    fi
-}
-
-# macOS Dependency Installation
-install_dependencies_macos() {
-    print_info "Detected macOS. Checking dependencies..."
-    
-    # Check if Homebrew is installed
-    if ! check_command brew; then
-        print_info "Homebrew not found. Installing Homebrew..."
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    fi
-    
-    # Install/Upgrade Neovim (latest version)
-    if ! check_neovim_version; then
-        print_info "Installing/upgrading Neovim to 0.11.0+..."
-        brew upgrade neovim 2>/dev/null || brew install neovim
-        print_success "Neovim installed/upgraded"
-    else
-        print_success "Neovim 0.11.0+ already installed"
-    fi
-    
-    # Install Git
-    if ! check_command git; then
-        print_info "Installing Git..."
-        brew install git
-        print_success "Git installed"
-    else
-        print_success "Git already installed"
-    fi
-    
-    # Install/Upgrade Node.js and npm (requires 22.x+ for GitHub Copilot)
-    # Manual upgrade instructions (if needed):
-    #   brew uninstall node  # Remove old version if needed
-    #   brew install node@22
-    #   brew link --overwrite node@22  # Link node@22 as default node
-    #   node --version  # Verify version >= 22.0.0
-    if ! check_command node; then
-        print_info "Installing Node.js 22.x..."
-        brew install node@22
-        print_success "Node.js installed"
-    elif ! check_node_version; then
-        print_info "Upgrading Node.js to 22.x (required for GitHub Copilot)..."
-        brew upgrade node@22 2>/dev/null || brew install node@22
-        print_success "Node.js upgraded to 22.x"
-    else
-        print_success "Node.js 22.x+ already installed"
-    fi
-    
-    # Install Ripgrep
-    if ! check_command rg; then
-        print_info "Installing Ripgrep..."
-        brew install ripgrep
-        print_success "Ripgrep installed"
-    else
-        print_success "Ripgrep already installed"
-    fi
-    
-    # Install Python 3
-    if ! check_command python3; then
-        print_info "Installing Python 3..."
-        brew install python3
-        print_success "Python 3 installed"
-    else
-        print_success "Python 3 already installed"
-    fi
-}
-
-# Detect if script is running from within the repository
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-IN_REPO=false
-SOURCE_DIR=""
-
-# Check if we're in the repository by looking for init.lua and install.sh
-if [ -f "$SCRIPT_DIR/init.lua" ] && [ -f "$SCRIPT_DIR/install.sh" ]; then
-    IN_REPO=true
-    SOURCE_DIR="$SCRIPT_DIR"
-    print_info "Detected: Running from within repository"
-else
-    IN_REPO=false
-    SOURCE_DIR="$TEMP_DIR"
-    print_info "Detected: Running via curl, will clone repository"
+INSTALL_DOTFILES=true
+if [[ "${1:-}" == "--no-dotfiles" ]]; then
+  INSTALL_DOTFILES=false
 fi
 
-# Detect OS and install dependencies
-OS=$(detect_os)
-case "$OS" in
-    macos)
-        install_dependencies_macos
-        ;;
-    ubuntu)
-        install_dependencies_ubuntu
-        ;;
-    *)
-        print_error "Unsupported OS: $(uname -s)"
-        print_info "Please install dependencies manually:"
-        echo "  - Neovim 0.11.0+"
-        echo "  - Git"
-        echo "  - Node.js and npm"
-        echo "  - Ripgrep"
-        echo "  - Python 3"
-        echo ""
-        read -p "Continue with config installation anyway? (y/n): " response
-        if [[ ! "$response" =~ ^[Yy]$ ]]; then
-            exit 1
-        fi
-        ;;
+say() { echo "==> $1"; }
+has() { command -v "$1" >/dev/null 2>&1; }
+
+nvim_ok() {
+  has nvim || return 1
+  local version
+  version="$(nvim --version | head -n1 | grep -oE '[0-9]+\.[0-9]+' | head -n1)"
+  [[ "${version%%.*}" -gt 0 ]] && return 0
+  [[ "${version##*.}" -ge "$NVIM_MIN_MINOR" ]]
+}
+
+node_ok() {
+  has node || return 1
+  [[ "$(node --version | sed 's/^v//' | cut -d. -f1)" -ge "$NODE_MIN_MAJOR" ]]
+}
+
+backup_path() {
+  local target="$1" backup
+  [[ -e "$target" || -L "$target" ]] || return 0
+  if [[ -L "$target" ]]; then
+    rm -f "$target"
+    return 0
+  fi
+  backup="${target}.bak_$(date +%Y%m%d%H%M%S)"
+  mv "$target" "$backup"
+  say "backed up $target -> $backup"
+}
+
+link_file() {
+  local src="$1" dest="$2"
+  if [[ "$(readlink "$dest" 2>/dev/null)" == "$src" ]]; then
+    return 0
+  fi
+  backup_path "$dest"
+  mkdir -p "$(dirname "$dest")"
+  ln -s "$src" "$dest"
+  say "linked $dest"
+}
+
+install_deps_macos() {
+  if ! has brew; then
+    say "installing Homebrew"
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv)"
+  fi
+
+  nvim_ok || brew install neovim
+  has git || brew install git
+  node_ok || install_node_macos
+  has rg || brew install ripgrep
+  has python3 || brew install python3
+  has luarocks || brew install luarocks
+  has delta || brew install git-delta
+  brew list --cask font-meslo-lg-nerd-font >/dev/null 2>&1 ||
+    brew install --cask font-meslo-lg-nerd-font
+}
+
+install_node_macos() {
+  brew install "node@${NODE_MIN_MAJOR}"
+  brew link --overwrite --force "node@${NODE_MIN_MAJOR}" || true
+  if ! node_ok; then
+    PATH="$(brew --prefix)/opt/node@${NODE_MIN_MAJOR}/bin:$PATH"
+    export PATH
+  fi
+}
+
+install_deps_ubuntu() {
+  say "installing dependencies (sudo may prompt)"
+  sudo apt-get update -qq || true
+  sudo apt-get install -y software-properties-common curl git unzip build-essential \
+    ripgrep python3 python3-pip luarocks git-delta
+
+  if ! nvim_ok; then
+    sudo add-apt-repository -y ppa:neovim-ppa/unstable
+    sudo apt-get update -qq || true
+    sudo apt-get install -y neovim
+  fi
+
+  if ! node_ok; then
+    curl -fsSL "https://deb.nodesource.com/setup_${NODE_MIN_MAJOR}.x" | sudo -E bash -
+    sudo apt-get install -y nodejs
+  fi
+
+  if ! fc-list 2>/dev/null | grep -qi "nerd font"; then
+    say "installing Meslo LG Nerd Font"
+    mkdir -p "$HOME/.local/share/fonts"
+    curl -fsSL -o /tmp/Meslo.zip \
+      "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Meslo.zip"
+    unzip -qo /tmp/Meslo.zip -d "$HOME/.local/share/fonts"
+    fc-cache -f >/dev/null 2>&1 || true
+  fi
+}
+
+place_config() {
+  local repo_root
+  repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+
+  if [[ ! -f "$repo_root/init.lua" ]]; then
+    backup_path "$NVIM_CONFIG_DIR"
+    mkdir -p "$(dirname "$NVIM_CONFIG_DIR")"
+    git clone --depth=1 "$REPO_URL" "$NVIM_CONFIG_DIR"
+    return 0
+  fi
+
+  if [[ "$(cd "$NVIM_CONFIG_DIR" 2>/dev/null && pwd -P)" == "$repo_root" ]]; then
+    return 0
+  fi
+
+  backup_path "$NVIM_CONFIG_DIR"
+  mkdir -p "$NVIM_CONFIG_DIR"
+  cp -R "$repo_root/." "$NVIM_CONFIG_DIR/"
+  say "config installed to $NVIM_CONFIG_DIR"
+}
+
+install_dotfiles() {
+  local system_dir="$NVIM_CONFIG_DIR/system"
+
+  if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
+    say "installing oh-my-zsh"
+    RUNZSH=no KEEP_ZSHRC=yes sh -c \
+      "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --keep-zshrc
+  fi
+
+  local highlight_dir="$HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
+  [[ -d "$highlight_dir" ]] ||
+    git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting.git "$highlight_dir"
+
+  link_file "$system_dir/zshrc" "$HOME/.zshrc"
+  if [[ "$(uname -s)" == Darwin ]]; then
+    link_file "$system_dir/lazygit.yml" "$HOME/Library/Application Support/lazygit/config.yml"
+  else
+    link_file "$system_dir/lazygit.yml" "${XDG_CONFIG_HOME:-$HOME/.config}/lazygit/config.yml"
+  fi
+}
+
+bootstrap_plugins() {
+  say "installing plugins"
+  nvim --headless "+Lazy! sync" +qa
+
+  local script=/tmp/mason_bootstrap.lua
+  cat >"$script" <<EOF
+require("lsp")
+local registry = require("mason-registry")
+registry.refresh()
+
+local pending = {}
+for _, name in ipairs({ $(printf '"%s", ' "${MASON_TOOLS[@]}") }) do
+  local found, pkg = pcall(registry.get_package, name)
+  if found and not pkg:is_installed() then
+    pending[name] = true
+    pkg:install():once("closed", function()
+      pending[name] = nil
+    end)
+  end
+end
+
+vim.wait(10 * 60 * 1000, function()
+  return vim.tbl_isempty(pending)
+end, 500)
+EOF
+
+  say "installing LSP servers, debugpy and formatters"
+  nvim --headless -c "luafile $script" -c "qa!" || say "mason incomplete, finishes on first launch"
+}
+
+case "$(uname -s)" in
+  Darwin) install_deps_macos ;;
+  Linux) install_deps_ubuntu ;;
+  *) echo "Unsupported OS: $(uname -s)" >&2 && exit 1 ;;
 esac
 
-# Verify Neovim installation
-if ! check_neovim_version; then
-    print_error "Neovim 0.11.0+ is required but not found. Please install it manually."
-    exit 1
+place_config
+if [[ "$INSTALL_DOTFILES" == true ]]; then
+  install_dotfiles
 fi
+bootstrap_plugins
 
-# Verify Node.js installation (required for GitHub Copilot)
-if ! check_node_version; then
-    print_error "Node.js 22.x+ is required for GitHub Copilot but not found."
-    print_info "To upgrade manually:"
-    echo "  macOS:   brew install node@22 && brew link --overwrite node@22"
-    echo "  Ubuntu: curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs"
-    exit 1
-fi
-
-# Check if Neovim config directory already exists
-if [ -d "$NVIM_CONFIG_DIR" ]; then
-    print_info "Existing Neovim configuration found at $NVIM_CONFIG_DIR"
-    echo -n "Do you want to backup the existing config? (y/n): "
-    read -r response
-    if [[ "$response" =~ ^[Yy]$ ]]; then
-        BACKUP_DIR="${NVIM_CONFIG_DIR}.bak_$(date +%Y%m%d%H%M%S)"
-        mv "$NVIM_CONFIG_DIR" "$BACKUP_DIR"
-        print_success "Existing config backed up to $BACKUP_DIR"
-    else
-        print_info "Installation cancelled. Existing config will not be modified."
-        exit 0
-    fi
-fi
-
-# Create config directory
-mkdir -p "$NVIM_CONFIG_DIR"
-
-# Clone repository only if not running from repo
-if [ "$IN_REPO" = false ]; then
-    print_info "Cloning Neovim configuration repository..."
-    if git clone --depth=1 "$REPO_URL" "$TEMP_DIR" 2>&1; then
-        # Verify clone was successful by checking for critical files
-        if [ ! -f "$TEMP_DIR/init.lua" ] || [ ! -d "$TEMP_DIR/lua" ]; then
-            print_error "Repository cloned but critical files are missing. Clone may be incomplete."
-            exit 1
-        fi
-        print_success "Repository cloned successfully"
-    else
-        print_error "Failed to clone repository. Please check your internet connection and Git installation."
-        exit 1
-    fi
-fi
-
-# Copy files to Neovim config directory
-print_info "Installing configuration files..."
-
-# Verify source directory has files
-if [ ! -d "$SOURCE_DIR" ] || [ -z "$(ls -A "$SOURCE_DIR" 2>/dev/null)" ]; then
-    print_error "Source directory is empty or does not exist: $SOURCE_DIR"
-    exit 1
-fi
-
-# Copy files with verbose error reporting
-if ! cp -r "$SOURCE_DIR"/* "$NVIM_CONFIG_DIR/" 2>/tmp/install-copy-errors.log; then
-    print_error "Failed to copy configuration files"
-    if [ -f /tmp/install-copy-errors.log ]; then
-        cat /tmp/install-copy-errors.log
-        rm -f /tmp/install-copy-errors.log
-    fi
-    exit 1
-fi
-
-# Verify critical files were copied
-print_info "Verifying installation..."
-MISSING_FILES=0
-for file in "init.lua" "lua" "README.md"; do
-    if [ ! -e "$NVIM_CONFIG_DIR/$file" ]; then
-        print_error "Critical file/directory missing: $file"
-        MISSING_FILES=$((MISSING_FILES + 1))
-    fi
-done
-
-if [ $MISSING_FILES -gt 0 ]; then
-    print_error "Installation incomplete. $MISSING_FILES critical file(s) missing."
-    exit 1
-fi
-
-# Make install script executable if it exists
-if [ -f "$NVIM_CONFIG_DIR/install.sh" ]; then
-    chmod +x "$NVIM_CONFIG_DIR/install.sh"
-fi
-
-print_success "Configuration files installed successfully"
-
-# Check font installation status
-echo ""
-if check_nerd_font_installed; then
-    print_success "Nerd Font detected - icons should display correctly"
-else
-    print_info "Note: Nerd Font not detected. Icons may not display correctly."
-    print_info "Run the installation script again or install manually (see README.md)"
-fi
-
-# Post-install instructions
-echo ""
-print_info "IMPORTANT: Terminal Font Configuration Required"
-echo ""
-echo "To display file icons correctly, configure your terminal to use a Nerd Font:"
-echo ""
-echo "1. Install a Nerd Font (if not already installed):"
-echo "   Font should be installed at: ~/.local/share/fonts/"
-echo ""
-echo "2. Configure your terminal emulator:"
-echo "   - GNOME Terminal: Edit > Preferences > Text > Custom font"
-echo "   - Select: 'MesloLGS Nerd Font' or 'MesloLGS NF'"
-echo "   - VS Code Terminal: Add to settings.json:"
-echo "     \"terminal.integrated.fontFamily\": \"MesloLGS Nerd Font\""
-echo ""
-echo "3. Restart your terminal after changing the font"
-echo ""
-echo "Without a Nerd Font, icons will display as incorrect characters."
-echo ""
-
-# Final installation verification
-echo ""
-print_info "Verifying installation..."
-INSTALLATION_OK=true
-
-# Check critical files
-for file in "init.lua" "lua"; do
-    if [ ! -e "$NVIM_CONFIG_DIR/$file" ]; then
-        print_error "Missing: $file"
-        INSTALLATION_OK=false
-    fi
-done
-
-# Check dependencies
-if ! check_neovim_version; then
-    print_error "Neovim 0.11.0+ not found"
-    INSTALLATION_OK=false
-fi
-
-if ! check_node_version; then
-    print_error "Node.js 22.x+ not found (required for GitHub Copilot)"
-    INSTALLATION_OK=false
-fi
-
-for cmd in git rg python3; do
-    if ! check_command "$cmd"; then
-        print_error "Missing dependency: $cmd"
-        INSTALLATION_OK=false
-    fi
-done
-
-# Success message
-echo ""
-if [ "$INSTALLATION_OK" = true ]; then
-    print_success "Neovim configuration installed successfully!"
-    echo ""
-    print_info "Installation Summary:"
-    echo "  ✓ Configuration files installed"
-    echo "  ✓ Dependencies verified"
-    if check_nerd_font_installed; then
-        echo "  ✓ Nerd Font detected"
-    else
-        echo "  ⚠ Nerd Font not detected (icons may not display correctly)"
-    fi
-    echo ""
-    print_info "Next steps:"
-    echo "  1. Launch Neovim: nvim"
-    echo "  2. Plugins will be automatically installed by lazy.nvim"
-    echo "  3. Wait for the plugin installation to complete"
-    echo ""
-    print_info "Configuration location: $NVIM_CONFIG_DIR"
-else
-    print_error "Installation completed with errors. Please review the messages above."
-    exit 1
-fi
-
-
+say "done. Set your terminal font to 'MesloLGS Nerd Font'."

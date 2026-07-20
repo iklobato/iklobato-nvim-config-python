@@ -48,11 +48,14 @@ lua/
     conform.lua             # Formatters
     dap.lua                 # DAP
     dapui.lua               # DAP UI
-  utils/                    # Utility functions
-    init.lua                # Utility loader
-    mappings.lua            # Keymap helpers
-    plugin_loader.lua       # Plugin loading utilities
-    diagnostics.lua         # Diagnostic utilities
+scripts/
+  install.sh                # From-scratch installer (deps, config, dotfiles, plugins)
+  brew-export.sh            # Dump installed Homebrew packages to system/Brewfile
+  brew-import.sh            # Install everything from system/Brewfile
+system/
+  zshrc                     # Shell config (linked to ~/.zshrc)
+  Brewfile                  # Full machine package dump
+  lazygit.yml               # Lazygit config (delta pager)
 tests/
   run.sh                    # Headless feature suite (42 checks)
   features.lua              # The checks: options, UI, LSP, DAP, keymaps, autocmds
@@ -152,15 +155,43 @@ tests/
 
 ## Install
 
+From scratch on a new machine (macOS or Ubuntu/Debian):
+
 ```bash
-git clone https://github.com/iklobato/iklobato-nvim-config-python.git ~/.config/nvim
+curl -fsSL https://raw.githubusercontent.com/iklobato/iklobato-nvim-config-python/main/scripts/install.sh | bash
 ```
 
-Open Neovim and let lazy.nvim install plugins.
+Or from a local checkout:
+
+```bash
+git clone https://github.com/iklobato/iklobato-nvim-config-python.git ~/.config/nvim
+~/.config/nvim/scripts/install.sh
+```
+
+Pass `--no-dotfiles` to install Neovim only and leave `~/.zshrc` and lazygit
+untouched. Anything it replaces (`~/.config/nvim`, `~/.zshrc`, lazygit config)
+is moved to a timestamped `.bak_<date>` first.
+
+What it sets up:
+
+- **Dependencies**: Neovim 0.11+, git, Node 22+, ripgrep, python3, luarocks
+  (rest.nvim rocks), git-delta (lazygit pager), Meslo LG Nerd Font
+- **Config**: this repo at `~/.config/nvim`
+- **Dotfiles**: `system/zshrc` → `~/.zshrc` and `system/lazygit.yml` → the
+  platform lazygit path, plus oh-my-zsh and the zsh-syntax-highlighting plugin
+  the zshrc expects
+- **Plugins**: `Lazy! sync` headless, then mason installs pyright, ruff, lua_ls,
+  ts_ls, stylua and debugpy
+
+`system/Brewfile` is *not* installed by the script: it's a full machine dump.
+Use `./scripts/brew-import.sh` if you want it.
+
+After install, set your terminal font to "MesloLGS Nerd Font" so icons render.
 
 ## Requirements
 
+- macOS or Ubuntu/Debian (other systems: install deps manually, then run the script)
 - Neovim 0.11+
 - Python 3 (for LSP and DAP)
-- Node.js and ripgrep (for Telescope and LSP servers)
+- Node.js 22+ and ripgrep (for Telescope, LSP servers, Copilot)
 - tmux (only for tests/e2e.sh)
