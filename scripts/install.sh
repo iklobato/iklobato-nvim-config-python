@@ -62,7 +62,7 @@ link_file() {
 install_deps_macos() {
   if ! has brew; then
     say "installing Homebrew"
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv)"
   fi
 
@@ -86,21 +86,27 @@ install_node_macos() {
   fi
 }
 
+apt_get() {
+  sudo DEBIAN_FRONTEND=noninteractive apt-get -y \
+    -o Dpkg::Options::=--force-confold \
+    -o Dpkg::Options::=--force-confdef "$@"
+}
+
 install_deps_ubuntu() {
-  say "installing dependencies (sudo may prompt)"
-  sudo apt-get update -qq || true
-  sudo apt-get install -y software-properties-common curl git unzip build-essential \
+  say "installing dependencies (sudo may ask for your password)"
+  apt_get update -qq || true
+  apt_get install software-properties-common curl git unzip build-essential \
     ripgrep python3 python3-pip luarocks git-delta
 
   if ! nvim_ok; then
-    sudo add-apt-repository -y ppa:neovim-ppa/unstable
-    sudo apt-get update -qq || true
-    sudo apt-get install -y neovim
+    sudo DEBIAN_FRONTEND=noninteractive add-apt-repository -y ppa:neovim-ppa/unstable
+    apt_get update -qq || true
+    apt_get install neovim
   fi
 
   if ! node_ok; then
     curl -fsSL "https://deb.nodesource.com/setup_${NODE_MIN_MAJOR}.x" | sudo -E bash -
-    sudo apt-get install -y nodejs
+    apt_get install nodejs
   fi
 
   if ! fc-list 2>/dev/null | grep -qi "nerd font"; then
