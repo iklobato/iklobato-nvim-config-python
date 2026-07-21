@@ -139,3 +139,7 @@ complete -o nospace -C /usr/local/bin/terraform terraform
 export PATH=$PATH:$HOME/.config/lsp/lua-language-server/bin
 
 export ENVIRONMENT=local
+
+# Machine-local secrets. Never versioned (see system/secrets.env.example for the
+# expected variables). Guarded so a fresh machine without the file still loads.
+[[ -f "$HOME/.secrets.env" ]] && source "$HOME/.secrets.env"

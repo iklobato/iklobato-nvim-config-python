@@ -1,0 +1,61 @@
+[MASTER]
+ignore=CVS,tests,docs,setup.py
+
+[MESSAGES CONTROL]
+disable=
+    C0111, # missing-docstring
+    C0103, # invalid-name
+    C0303, # trailing-whitespace
+    W0311, # bad-indentation
+    W0603, # global-statement
+    R0903, # too-few-public-methods
+    R0913, # too-many-arguments
+    R0914, # too-many-locals
+    W0702, # bare-except
+    W0621, # redefined-outer-name
+    C0301, # line-too-long
+    C0116, # missing-function-docstring
+    W1201, # logging-not-lazy (%s)
+    W1202  # logging-format-interpolation (.format or f-string)
+
+[FORMAT]
+max-module-lines=2000
+expected-line-ending-format=LF
+
+[BASIC]
+function-rgx=[a-z_][a-z0-9_]{2,50}$
+class-rgx=[A-Z_][a-zA-Z0-9_]+$
+const-rgx=(([A-Z_][A-Z0-9_]*)|(__.*__))$
+docstring-min-length=10
+
+[VARIABLES]
+ignored-argument-names=_.*|^ignored_|^unused_
+callbacks=cb_,_cb
+
+[SIMILARITIES]
+min-similarity-lines=4
+ignore-comments=yes
+ignore-docstrings=yes
+
+[TYPECHECK]
+ignored-modules=numpy,tensorflow,torch,cv2
+ignored-classes=SQLObject,optparse.Values,thread._local,_thread._local
+
+[MISCELLANEOUS]
+notes=FIXME,TODO,XXX,HACK
+
+[IMPORTS]
+allow-wildcard-with-all=no
+known-third-party=enchant
+
+[DESIGN]
+max-args=10
+max-attributes=15
+min-public-methods=1
+max-public-methods=30
+
+[CLASSES]
+defining-attr-methods=__init__,__new__,setUp
+
+[EXCEPTIONS]
+overgeneral-exceptions=Exception

@@ -44,3 +44,21 @@ Brewfile.backup.*
 
 db_ui/connections.json
 .aider*
+
+# Secrets - never commit. Only the *.example templates are tracked.
+.secrets.env
+secrets.env
+*.secret
+.env
+.env.*
+!*.example
+.pypirc
+.npmrc
+**/gh/hosts.yml
+.aws/credentials
+# SSH private keys
+id_rsa
+id_ed25519
+id_ecdsa
+*.pem
+*.key

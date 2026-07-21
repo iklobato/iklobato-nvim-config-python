@@ -164,12 +164,30 @@ install_dotfiles() {
     git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting.git "$highlight_dir"
 
   link_file "$system_dir/zshrc" "$HOME/.zshrc"
+  link_dotfiles "$system_dir"
   if [[ "$(uname -s)" == Darwin ]]; then
     link_file "$system_dir/lazygit.yml" "$HOME/Library/Application Support/lazygit/config.yml"
     install_iterm "$system_dir/iterm2"
   else
     link_file "$system_dir/lazygit.yml" "${XDG_CONFIG_HOME:-$HOME/.config}/lazygit/config.yml"
   fi
+}
+
+# Links the portable dotfiles (prompt, tmux, tool configs). Paths under
+# ~/.config honor XDG_CONFIG_HOME so this works on Linux too.
+link_dotfiles() {
+  local system_dir="$1"
+  local config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
+
+  link_file "$system_dir/p10k.zsh" "$HOME/.p10k.zsh"
+  link_file "$system_dir/tmux.conf" "$HOME/.tmux.conf"
+  link_file "$system_dir/inputrc" "$HOME/.inputrc"
+  link_file "$system_dir/pylintrc" "$HOME/.pylintrc"
+  link_file "$system_dir/mise/config.toml" "$config_home/mise/config.toml"
+  link_file "$system_dir/gh/config.yml" "$config_home/gh/config.yml"
+  link_file "$system_dir/btop/btop.conf" "$config_home/btop/btop.conf"
+  link_file "$system_dir/htop/htoprc" "$config_home/htop/htoprc"
+  link_file "$system_dir/pyenv/version" "$HOME/.pyenv/version"
 }
 
 # Point iTerm2 at the versioned prefs folder. iTerm reads from it at launch and

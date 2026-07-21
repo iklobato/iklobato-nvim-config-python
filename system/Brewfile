@@ -1,154 +1,402 @@
 # Homebrew Package List
-# Generated on: Fri Nov 21 00:27:28 -03 2025
+# Generated on: Tue Jul 21 11:25:48 -03 2026
 # Hostname: iklos-MacBook-Pro.local
-# Homebrew version: Homebrew 5.0.3
+# Homebrew version: Homebrew 6.0.12
 #
 # To install all packages, run: brew bundle install
 # To update this file, run: ./scripts/brew-export.sh
 #
 
+tap "anomalyco/tap"
+tap "atlassian/acli"
 tap "d99kris/nchat"
+tap "databricks/tap"
 tap "derailed/k9s"
+tap "go-task/tap"
 tap "hashicorp/tap"
 tap "homebrew/bundle"
 tap "homebrew/cask-fonts"
 tap "homebrew/services"
+tap "hudochenkov/sshpass"
+tap "infisical/get-cli", "https://github.com/Infisical/homebrew-get-cli.git"
 tap "jesseduffield/lazygit"
 tap "mongodb/brew"
+tap "multica-ai/tap"
+tap "shodan-public/shodan", "https://gitlab.com/shodan-public/homebrew-shodan"
 tap "stripe/stripe-cli"
+# Run your GitHub Actions locally
 brew "act"
+# Static analysis and lint tool, for (ba)sh scripts
+brew "shellcheck"
+# Static checker for GitHub Actions workflow files
 brew "actionlint"
+# In-depth attack surface mapping and asset discovery
+brew "amass"
+# General-purpose data compression with high compression ratio
 brew "xz"
+# New file format for still image compression
 brew "jpeg-xl"
+# Codec library for encoding and decoding AV1 video streams
 brew "aom"
+# Command-line tool for downloading APK files from various sources
+brew "apkeep"
+# GNU internationalization (i18n) and localization (l10n) library
 brew "gettext"
+# Core application library for C
 brew "glib"
+# OpenType text shaping engine
 brew "harfbuzz"
+# C/C++ and Java libraries for Unicode and globalization
 brew "icu4c@76"
+# Cryptography and SSL/TLS Toolkit
 brew "openssl@3"
-brew "readline"
-brew "sqlite"
+# Tool for reverse engineering 3rd party, closed, binary Android apps
 brew "apktool"
+# Get stuff done with container-native workflows for Kubernetes
 brew "argo", link: false
+# HTTP parameter discovery suite
+brew "arjun"
+# To build and run Airflow DAGs locally and interact with the Astronomer API
 brew "astro"
+# Protocol definitions and daemon for D-Bus at-spi
 brew "at-spi2-core"
+# Automatically restart SSH sessions and tunnels
+brew "autossh"
+# Clone of cat(1) with syntax highlighting and Git integration
 brew "bat"
+# Open-source, cross-platform JavaScript runtime environment
+brew "node"
+# Secure and free password manager for all of your devices
+brew "bitwarden-cli"
+# Collection of portable C++ source libraries
 brew "boost"
+# Resource monitor. C++ version and continuation of bashtop and bpytop
+brew "btop"
+# Freely available high-quality data compressor
 brew "bzip2"
+# Object-file caching compiler wrapper
 brew "ccache"
+# Formatting tools for C, C++, Obj-C, Java, JavaScript, TypeScript
+brew "clang-format"
+# Cross-platform make
 brew "cmake"
+# Dependency manager for Cocoa projects
 brew "cocoapods"
+# GNU File, Shell, and Text utilities
+brew "coreutils"
+# CPU usage limiter
 brew "cpulimit"
+# Tool for interacting with remote images and registries
 brew "crane"
+# Command-line csv viewer
+brew "csvlens"
+# Reimplementation of ctags(1)
 brew "ctags"
+# Top-like interface for container metrics
 brew "ctop"
+# Get a file from an HTTP, HTTPS or FTP server
 brew "curl"
+# XSS scanner and utility focused on automation
+brew "dalfox"
+# GNU compiler collection
 brew "gcc"
+# C++ library for machine learning
 brew "dlib"
+# DNS query and resolution tool
+brew "dnsx"
+# Command-line tool for DigitalOcean
 brew "doctl"
+# Disk Usage/Free Utility - a better 'df' alternative
+brew "duf"
+# Programming language for highly scalable real-time systems
 brew "erlang"
+# Perl lib for reading and writing EXIF metadata
 brew "exiftool"
+# Fast, simple, recursive content discovery tool written in Rust
+brew "feroxbuster"
+# Framework for layout and rendering of i18n text
 brew "pango"
+# Play, record, convert, and stream select audio and video codecs
 brew "ffmpeg"
+# Fast web fuzzer written in Go
 brew "ffuf"
+# Database version control to control migrations
 brew "flyway"
+# Open Threat Exchange, Wayback Machine, and Common Crawl URL fetcher
+brew "gau"
+# Toolkit for image loading and pixel buffer manipulation
 brew "gdk-pixbuf"
+# WebDriver <-> Marionette proxy
 brew "geckodriver"
+# GitHub command-line tool
 brew "gh"
+# Interpreter for PostScript and PDF
 brew "ghostscript"
+# Distributed revision control system
 brew "git"
+# Syntax-highlighting pager for git and diff output
 brew "git-delta"
+# Quickly rewrite git repository history
+brew "git-filter-repo"
+# Git extension for versioning large files
+brew "git-lfs"
+# Audit git repos for secrets
+brew "gitleaks"
+# Open-source GitLab command-line tool
 brew "glab"
+# Render markdown on the CLI
 brew "glow"
+# Open source programming language to build simple/reliable/efficient software
 brew "go"
-brew "go-task"
+# Directory/file & DNS busting tool written in Go
+brew "gobuster"
+# Google Testing and Mocking Framework
+brew "googletest"
+# Perfect hash function generator
 brew "gperf"
+# Library to render SVG files using Cairo
 brew "librsvg"
+# Graph visualization software from AT&T and Bell Labs
 brew "graphviz"
+# Colorize logfiles and command output
+brew "grc"
+# Like cURL, but for gRPC
+brew "grpcurl"
+# GSettings schemas for desktop components
 brew "gsettings-desktop-schemas"
+# Toolkit for creating graphical user interfaces
 brew "gtk+3"
+# Kubernetes package manager
 brew "helm"
+# Improved top (interactive process viewer)
+brew "htop"
+# User-friendly cURL replacement (command-line HTTP client)
 brew "httpie"
+# Website copier/offline browser
 brew "httrack"
+# CLI for Infisical
+brew "infisical"
+# Dex to Java decompiler
 brew "jadx"
+# Feature-rich interactive Jira CLI
+brew "jira-cli"
+# Lightweight and flexible command-line JSON processor
 brew "jq"
+# Little helper to run CNCF's k3s in Docker
 brew "k3d"
+# Crawling and spidering framework
+brew "katana"
+# Run local Kubernetes cluster in Docker
 brew "kind"
-brew "kubernetes-cli", link: false
+# Tool that can switch between kubectl contexts easily and create aliases
 brew "kubectx"
+# Template-free customization of Kubernetes YAML manifests
 brew "kustomize", link: false
+# Lazier way to manage everything docker
 brew "lazydocker"
+# Simple terminal UI for git commands
 brew "lazygit"
+# Library to communicate with iOS devices natively
+brew "libimobiledevice"
+# Implementation of the file(1) command
 brew "libmagic"
+# Portable library for network traffic capture
 brew "libpcap"
+# Postgres C API library
 brew "libpq"
+# C websockets server library
+brew "libwebsockets"
+# Command-line interface to LiveKit
+brew "livekit-cli"
+# Language Server for the Lua language
 brew "lua-language-server"
+# Tool for linting and static analysis of Lua code
+brew "luacheck"
+# Package manager for the Lua programming language
 brew "luarocks"
-brew "mailhog"
+# Text-based web browser
+brew "lynx"
+# Utility for directing compilation
 brew "make"
+# TCP port scanner, scans entire Internet in under 5 minutes
+brew "masscan"
+# Zero-dependency real-time media server and media proxy
 brew "mediamtx"
+# Minimalist GNU for Windows and GCC cross-compilers
+brew "mingw-w64"
+# Run a Kubernetes cluster locally
 brew "minikube"
+# Polyglot runtime manager (asdf rust clone)
 brew "mise"
-brew "node@22"
+# MongoDB Shell to connect, configure, query, and work with your MongoDB database
 brew "mongosh"
+# General-purpose lossless data-compression library
 brew "zlib"
+# Open source relational database management system
 brew "mysql"
-brew "ncurses"
+# Ambitious Vim-fork focused on extensibility and agility
 brew "neovim"
+# Port scanning utility for large networks
 brew "nmap"
+# Open-source, cross-platform JavaScript runtime environment
+brew "node@22", link: true
+# HTTP/DNS scanner configurable via YAML templates
 brew "nuclei"
+# Manage multiple Node.js versions
+brew "nvm"
+# SSL/TLS VPN implementing OSI layer 2 or 3 secure network extension
+brew "openvpn"
+# 7-Zip (high compression file archiver) implementation
 brew "p7zip"
+# Open-source vector similarity search for Postgres
 brew "pgvector"
+# Command-line client for the PostgreSQL Extension Network
 brew "pgxnclient"
+# Execute binaries from Python packages in isolated environments
+brew "pipx"
+# PDF rendering library (based on the xpdf-3.0 code base)
 brew "poppler"
+# Object-relational database system
 brew "postgresql@14"
+# Object-relational database system
+brew "postgresql@17"
+# Advanced filtering web proxy
 brew "privoxy", restart_service: :changed
+# Monitor data's progress through a pipe
 brew "pv"
+# Python version management
 brew "pyenv"
+# Python interface to Tcl/Tk
 brew "python-tk@3.11"
+# Tool Command Language
 brew "tcl-tk"
+# Python interface to Tcl/Tk
 brew "python-tk@3.12"
+# Messaging and streaming broker
 brew "rabbitmq"
-brew "redis", restart_service: :changed
+# Persistent key-value database, with built-in net interface
+brew "redis"
+# Search tool like grep and The Silver Searcher
 brew "ripgrep"
+# Blazing-fast modern Lua linter
+brew "selene"
+# Easy and Repeatable Kubernetes Development
 brew "skaffold"
+# SOcket CAT: netcat on steroids
 brew "socat"
+# Command-line interface for https://speedtest.net bandwidth tests
 brew "speedtest-cli"
+# Penetration testing for SQL injection and database servers
 brew "sqlmap"
+# Subdomain discovery tool
+brew "subfinder"
+# Tools for market analysis
 brew "ta-lib"
+# Static analysis security scanner for your terraform code
 brew "tfsec"
+# Terminal multiplexer
 brew "tmux"
+# Anonymizing overlay network for TCP
 brew "tor", restart_service: :changed
+# Display directories as trees (with optional color/HTML output)
 brew "tree"
+# Find and verify credentials
 brew "trufflehog"
+# Vi 'workalike' with many additional features
 brew "vim"
+# Executes a program periodically, showing output fullscreen
+brew "watch"
+# Command-line client for WebSockets
 brew "websocat"
+# Internet file retriever
 brew "wget"
+# JavaScript package manager
 brew "yarn"
+# Process YAML, JSON, XML, CSV and properties documents from the CLI
+brew "yq"
+# Suite of barcodes-reading tools
 brew "zbar"
+# UNIX shell (command interpreter)
 brew "zsh"
+# Fish shell like syntax highlighting for zsh
 brew "zsh-syntax-highlighting"
-brew "d99kris/nchat/nchat"
-brew "derailed/k9s/k9s"
-brew "hashicorp/tap/terraform"
-brew "stripe/stripe-cli/stripe"
+# Command-line interface for the Databricks platform
+brew "databricks/tap/databricks", trusted: true
+# Distribution of the Python and R programming languages for scientific computing
 cask "anaconda"
+# Android SDK component
 cask "android-platform-tools"
+# Tools for the Android SDK
 cask "android-sdk"
+# Memory training application
 cask "anki"
+# Display management tool
+cask "betterdisplay"
+# Automated testing of webapps for Google Chrome
 cask "chromedriver"
-cask "chromium"
+cask "font-jetbrains-mono-nerd-font"
 cask "font-meslo-lg-nerd-font"
+# Set of tools to manage resources and applications hosted on Google Cloud
 cask "gcloud-cli"
 cask "hashicorp-vagrant"
+# Minimal installer for conda
 cask "miniconda"
+# Reverse proxy, secure introspectable tunnels to localhost
 cask "ngrok"
+# JDK from the Eclipse Foundation (Adoptium)
 cask "temurin"
+# JDK from the Eclipse Foundation (Adoptium)
+cask "temurin@8"
+# Development environment
 cask "vagrant"
+# Multimedia player
 cask "vlc"
+# Open-source version of the X.Org X Window System
 cask "xquartz"
-go "github.com/praetorian-inc/fingerprintx/cmd/fingerprintx"
-go "github.com/lc/gau/v2/cmd/gau"
-go "github.com/OJ/gobuster/v3"
+go "github.com/KathanP19/Gxss"
+go "github.com/tomnomnom/anew"
+go "github.com/dwisiswant0/crlfuzz/cmd/crlfuzz"
+go "github.com/003random/getJS"
+go "github.com/tomnomnom/gf"
+go "github.com/jaeles-project/gospider"
+go "github.com/Josue87/gotator"
 go "github.com/sensepost/gowitness"
+go "github.com/hakluke/hakrawler"
 go "github.com/projectdiscovery/httpx/cmd/httpx"
+go "github.com/projectdiscovery/interactsh/cmd/interactsh-client"
+go "github.com/BishopFox/jsluice/cmd/jsluice"
+go "github.com/Emoe/kxss"
+go "github.com/brosck/mantra"
+go "github.com/projectdiscovery/naabu/v2/cmd/naabu"
+go "github.com/tomnomnom/qsreplace"
+go "github.com/PentestPad/subzy"
+go "github.com/projectdiscovery/tlsx/cmd/tlsx"
+go "github.com/tomnomnom/unfurl"
+go "github.com/tomnomnom/waybackurls"
+uv "aider-chat"
+uv "crewai"
+uv "openhands"
+uv "specify-cli", source: "git+https://github.com/github/spec-kit.git"
+npm "@anthropic-ai/claude-code"
+npm "@google/gemini-cli"
+npm "@modelcontextprotocol/inspector"
+npm "@modelcontextprotocol/server-filesystem"
+npm "@modelcontextprotocol/server-github"
+npm "@modelcontextprotocol/server-puppeteer"
+npm "@modelcontextprotocol/server-sequential-thinking"
+npm "@orengrinker/jira-mcp-server"
+npm "bash-language-server"
+npm "corepack"
+npm "ghost-cli"
+npm "jwt-cracker"
+npm "mcp-proxy"
+npm "openclaw"
+npm "pnpm"
+npm "pyright"
+npm "repomix"
+npm "serve"
+npm "serverless"
+npm "swagger-ui-watcher"
+npm "vim-language-server"
+npm "wrangler"
+npm "wscat"
