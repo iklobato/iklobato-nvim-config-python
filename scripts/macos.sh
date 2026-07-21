@@ -41,6 +41,14 @@ defaults write com.apple.dock autohide-delay -float 0
 defaults write com.apple.dock tilesize -int 44
 defaults write com.apple.dock show-recents -bool false
 
+echo "==> performance: no window animations, instant Dock, reduced motion/transparency"
+defaults write NSGlobalDomain NSAutomaticWindowAnimationsEnabled -bool false
+defaults write NSGlobalDomain NSWindowResizeTime -float 0.001
+defaults write com.apple.dock autohide-time-modifier -float 0.15
+defaults write com.apple.dock expose-animation-duration -float 0.1
+defaults write com.apple.universalaccess reduceMotion -bool true
+defaults write com.apple.universalaccess reduceTransparency -bool true
+
 echo "==> panels: expand save/print dialogs by default"
 defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
 defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
