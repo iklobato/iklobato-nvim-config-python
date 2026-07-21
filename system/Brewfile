@@ -233,8 +233,6 @@ brew "mysql"
 brew "neovim"
 # Port scanning utility for large networks
 brew "nmap"
-# Open-source, cross-platform JavaScript runtime environment
-brew "node@22", link: true
 # HTTP/DNS scanner configurable via YAML templates
 brew "nuclei"
 # Manage multiple Node.js versions
