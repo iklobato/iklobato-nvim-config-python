@@ -166,9 +166,20 @@ install_dotfiles() {
   link_file "$system_dir/zshrc" "$HOME/.zshrc"
   if [[ "$(uname -s)" == Darwin ]]; then
     link_file "$system_dir/lazygit.yml" "$HOME/Library/Application Support/lazygit/config.yml"
+    install_iterm "$system_dir/iterm2"
   else
     link_file "$system_dir/lazygit.yml" "${XDG_CONFIG_HOME:-$HOME/.config}/lazygit/config.yml"
   fi
+}
+
+# Point iTerm2 at the versioned prefs folder. iTerm reads from it at launch and
+# writes back on quit, so any UI tweak stays versioned. Restart iTerm to apply.
+install_iterm() {
+  local iterm_dir="$1"
+  [[ -f "$iterm_dir/com.googlecode.iterm2.plist" ]] || return 0
+  defaults write com.googlecode.iterm2 PrefsCustomFolder -string "$iterm_dir"
+  defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true
+  say "iTerm2 prefs -> $iterm_dir (restart iTerm2 to apply)"
 }
 
 bootstrap_plugins() {
