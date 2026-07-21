@@ -10,7 +10,7 @@ set -euo pipefail
 
 DISPLAY_NAME="C49HG9x"
 CONTRAST=0.1       # -0.9..0.9  slight lift, un-flattens the limited-range look
-GAMMA=0.0          # -0.8..0.8  neutral midtones
+GAMMA=0.12         # -0.8..0.8  slight midtone lift (hardware brightness maxed)
 TEMPERATURE=-0.08  # -0.5..0.5  slightly cooler white, kills the yellow cast
 
 if ! command -v betterdisplaycli >/dev/null 2>&1; then
