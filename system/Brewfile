@@ -321,8 +321,6 @@ brew "databricks/tap/databricks", trusted: true
 cask "anaconda"
 # Android SDK component
 cask "android-platform-tools"
-# Tools for the Android SDK
-cask "android-sdk"
 # Memory training application
 cask "anki"
 # Display management tool
