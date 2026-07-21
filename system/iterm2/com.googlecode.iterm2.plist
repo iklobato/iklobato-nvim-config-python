@@ -120,8 +120,6 @@
 	<true/>
 	<key>IRMemory</key>
 	<integer>32</integer>
-	<key>LoadPrefsFromCustomFolder</key>
-	<true/>
 	<key>MaximumFrameRate</key>
 	<real>60</real>
 	<key>NSAutoFillHeuristicControllerEnabled</key>
@@ -1693,7 +1691,7 @@
 			<key>Window Type</key>
 			<integer>0</integer>
 			<key>Working Directory</key>
-			<string>/Users/iklo</string>
+			<string>~</string>
 		</dict>
 	</array>
 	<key>NoSyncAllAppVersions</key>
@@ -2710,8 +2708,6 @@
 			<string>kNextWindowPointerAction</string>
 		</dict>
 	</dict>
-	<key>PrefsCustomFolder</key>
-	<string>/Users/iklo/iterm2-dotfiles</string>
 	<key>PreserveWindowSizeWhenTabBarVisibilityChanges</key>
 	<false/>
 	<key>PreventEscapeSequenceFromClearingHistory</key>

@@ -8,7 +8,6 @@ set -e
 # Default values
 OUTPUT_FILE="${HOMEBREW_BUNDLE_FILE:-system/Brewfile}"
 INCLUDE_MAS=false
-WITH_VERSIONS=false
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
@@ -23,10 +22,6 @@ while [[ $# -gt 0 ]]; do
       INCLUDE_MAS=true
       shift
       ;;
-    --with-versions)
-      WITH_VERSIONS=true
-      shift
-      ;;
     --help|-h)
       echo "Usage: $0 [OPTIONS]"
       echo ""
@@ -35,7 +30,6 @@ while [[ $# -gt 0 ]]; do
       echo "Options:"
       echo "  -f, --file FILE        Output file path (default: Brewfile)"
       echo "  --include-mas          Include Mac App Store apps (requires mas-cli)"
-      echo "  --with-versions        Include package versions (not supported by brew bundle dump)"
       echo "  -h, --help             Show this help message"
       echo ""
       echo "Environment variables:"
@@ -75,8 +69,6 @@ fi
 # Generate header comment
 {
   echo "# Homebrew Package List"
-  echo "# Generated on: $(date)"
-  echo "# Hostname: $(hostname)"
   echo "# Homebrew version: $(brew --version | head -n1)"
   echo "#"
   echo "# To install all packages, run: brew bundle install"
