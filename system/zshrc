@@ -129,7 +129,7 @@ export EDITOR=nvim
 
 export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
+command -v pyenv >/dev/null && eval "$(pyenv init -)"
 export PATH="$(brew --prefix)/opt/bzip2/bin:$PATH"
 
 autoload -U +X bashcompinit && bashcompinit
