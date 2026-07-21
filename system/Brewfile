@@ -12,9 +12,6 @@ tap "databricks/tap"
 tap "derailed/k9s"
 tap "go-task/tap"
 tap "hashicorp/tap"
-tap "homebrew/bundle"
-tap "homebrew/cask-fonts"
-tap "homebrew/services"
 tap "hudochenkov/sshpass"
 tap "infisical/get-cli", "https://github.com/Infisical/homebrew-get-cli.git"
 tap "jesseduffield/lazygit"
@@ -336,7 +333,6 @@ cask "font-jetbrains-mono-nerd-font"
 cask "font-meslo-lg-nerd-font"
 # Set of tools to manage resources and applications hosted on Google Cloud
 cask "gcloud-cli"
-cask "hashicorp-vagrant"
 # Minimal installer for conda
 cask "miniconda"
 # Reverse proxy, secure introspectable tunnels to localhost
