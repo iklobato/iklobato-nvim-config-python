@@ -1,6 +1,9 @@
 local M = {}
 
 function M.setup()
+  -- jsonc grammar's upstream renamed default branch master -> main; pin it so install works
+  require("nvim-treesitter.parsers").get_parser_configs().jsonc.install_info.revision = "main"
+
   require("nvim-treesitter.configs").setup({
     sync_install = false,
     auto_install = true,
@@ -32,16 +35,13 @@ function M.setup()
       enable = true,
       disable = function(lang, buf)
         local max_filesize = 1024 * 1024
-        local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+        local ok, stats = pcall(vim.uv.fs_stat, vim.api.nvim_buf_get_name(buf))
         return ok and stats and stats.size > max_filesize
       end,
     },
     indent = {
       enable = true,
       disable = { "python" },
-    },
-    rainbow = {
-      enable = true,
     },
     incremental_selection = {
       enable = true,

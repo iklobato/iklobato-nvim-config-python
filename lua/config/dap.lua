@@ -13,16 +13,17 @@ function M.setup()
 
   local function debugpy_adapter()
     local ok, mason_registry = pcall(require, "mason-registry")
-    if not ok then
+    if
+      not ok
+      or not mason_registry.has_package("debugpy")
+      or not mason_registry.is_installed("debugpy")
+    then
+      -- without this the adapter falls back to the project interpreter, which
+      -- dies with "exited with 1" and never mentions debugpy
+      vim.notify("debugpy not installed - run :MasonInstall debugpy", vim.log.levels.ERROR)
       return nil
     end
-    if not mason_registry.has_package("debugpy") then
-      return nil
-    end
-    if not mason_registry.is_installed("debugpy") then
-      return nil
-    end
-    local path = require("mason-core.installer.InstallLocation").global():package("debugpy")
+    local path = mason_registry.get_package("debugpy"):get_install_path()
     if vim.fn.has("win32") == 1 then
       return path .. "\\venv\\Scripts\\python.exe"
     end

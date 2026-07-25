@@ -31,6 +31,7 @@ return {
         globalstatus = true,
       },
       sections = {
+        lualine_c = { { "filename", path = 2 } },
         lualine_x = { "encoding", "fileformat", "filetype" },
       },
     },
@@ -42,7 +43,6 @@ return {
   },
   {
     "nvim-tree/nvim-tree.lua",
-    lazy = true,
     event = "VeryLazy",
     dependencies = { "nvim-tree/nvim-web-devicons" },
     opts = {

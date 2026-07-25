@@ -26,8 +26,11 @@ return {
     lazy = false,
     config = function()
       require("auto-session").setup({
-        auto_save_enabled = true,
-        auto_restore_enabled = true,
+        auto_save = true,
+        auto_restore = true,
+        -- otherwise mksession writes `badd NvimTree_1` and the session comes
+        -- back with a phantom buffer in the bufferline
+        close_filetypes_on_save = { "checkhealth", "NvimTree" },
         -- don't pull the telescope picker in at startup; it loads on :SessionSearch
         session_lens = { load_on_setup = false },
       })
@@ -108,28 +111,7 @@ return {
         ft = { "sql", "mysql", "postgres" },
       },
     },
-    init = function()
-      vim.g.dbs = {
-        default_postgres = "postgresql://postgres:postgres@localhost:5432/postgres",
-      }
-    end,
-    config = function()
-      vim.api.nvim_create_autocmd("BufReadPost", {
-        pattern = "*.dbout",
-        callback = function()
-          if vim.bo.filetype == "dbout" then
-            local bufnr = vim.api.nvim_get_current_buf()
-            vim.defer_fn(function()
-              local winid = vim.fn.bufwinid(bufnr)
-              if winid and winid > 0 then
-                local total_lines = vim.o.lines - 2
-                local height = math.max(10, math.floor(total_lines * 0.75))
-                pcall(vim.api.nvim_win_set_height, winid, height)
-              end
-            end, 100)
-          end
-        end,
-      })
-    end,
+    -- connections live in ~/.local/share/db_ui/connections.json;
+    -- the *.dbout window sizing is in lua/autocmds/ui.lua
   },
 }

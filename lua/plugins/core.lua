@@ -34,14 +34,19 @@ return {
       exclude = {
         filetypes = {
           "help",
-          "dashboard",
           "lazy",
           "mason",
-          "notify",
-          "python",
         },
       },
     },
+  },
+  {
+    "nvim-treesitter/nvim-treesitter-textobjects",
+    -- must track master: the main branch needs nvim-treesitter's main branch,
+    -- and this config pins nvim-treesitter to master
+    branch = "master",
+    event = { "BufReadPre", "BufNewFile" },
+    dependencies = "nvim-treesitter/nvim-treesitter",
   },
   {
     "chrisgrieser/nvim-puppeteer",
@@ -50,7 +55,6 @@ return {
   },
   {
     "nvim-telescope/telescope.nvim",
-    cmd = "Telescope",
     cmd = "Telescope",
     dependencies = {
       "nvim-lua/plenary.nvim",
@@ -62,7 +66,10 @@ return {
   {
     "saghen/blink.cmp",
     version = "*",
-    event = { "InsertEnter", "CmdlineEnter" },
+    -- BufReadPost/BufNewFile are here because lua/lsp/init.lua requires blink so
+    -- its plugin file registers vim.lsp.config('*').capabilities before any
+    -- server starts. It really does load on the first buffer, so say so.
+    event = { "InsertEnter", "CmdlineEnter", "BufReadPost", "BufNewFile" },
     config = function()
       require("config.blink").setup()
     end,
