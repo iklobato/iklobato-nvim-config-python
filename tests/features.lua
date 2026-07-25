@@ -444,6 +444,36 @@ local checks = {
       expect(#found == 1, #found .. " autocmds in UserUi for *.dbout")
     end,
   },
+  -- regression: sessions re-saved buffers for files that no longer existed, so
+  -- a stale session kept coming back with dead tabs in the bufferline
+  {
+    "session: dead buffers are dropped before saving",
+    function()
+      local gone = scratch .. "/deleted.txt"
+      vim.fn.writefile({ "x" }, gone)
+      local doomed = vim.fn.bufadd(gone)
+      vim.fn.bufload(doomed)
+      vim.bo[doomed].buflisted = true
+      local kept = vim.fn.bufadd(scratch .. "/t.py")
+      vim.bo[kept].buflisted = true
+      vim.fn.delete(gone)
+
+      require("config.session").drop_missing_buffers()
+
+      expect(not vim.api.nvim_buf_is_valid(doomed), "buffer for a deleted file survived")
+      expect(vim.api.nvim_buf_is_valid(kept), "buffer for an existing file was dropped")
+    end,
+  },
+  -- regression: respect_buf_cwd let a window-local cwd (one stray `lcd` in a
+  -- restored session was enough) reroot the tree away from the project
+  {
+    "nvim-tree: root follows the global cwd only",
+    function()
+      local opts = require("lazy.core.config").plugins["nvim-tree.lua"].opts
+      expect(opts.sync_root_with_cwd == true, "sync_root_with_cwd is off")
+      expect(opts.respect_buf_cwd ~= true, "respect_buf_cwd is on, an lcd can hijack the root")
+    end,
+  },
 }
 
 local failed = 0
