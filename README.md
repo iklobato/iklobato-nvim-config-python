@@ -10,7 +10,6 @@ and gutter change stripes.
 init.lua                    # Main entry point
 lua/
   core/                     # Core configuration
-    init.lua
     options.lua
   plugins/                  # Modular plugin configurations
     init.lua                # Plugin loader
@@ -27,7 +26,6 @@ lua/
     debug.lua               # Debugging keymaps
     git.lua                 # Git operations
     tools.lua               # Various tool keymaps
-    copilot.lua             # Copilot accept via Tab
   lsp/                      # Enhanced LSP configuration
     init.lua                # Main LSP setup
     servers/                # Server-specific configurations
@@ -40,14 +38,16 @@ lua/
     filetypes.lua           # Filetype-specific settings
     session.lua             # Session management
     ui.lua                  # UI-related autocommands
-  config/                   # Plugin-specific configurations
+  config/                   # Plugin setup bodies (see the rule below)
     blink.lua               # blink.cmp completion
     telescope.lua           # Telescope
-    treesitter.lua          # Treesitter + rainbow highlights
+    treesitter.lua          # Treesitter
     python_hl.lua           # Python-specific highlights
     conform.lua             # Formatters
     dap.lua                 # DAP
     dapui.lua               # DAP UI
+queries/
+  html_tags/injections.scm  # replaces the bundled query: <script> injects tsx
 scripts/
   install.sh                # From-scratch installer (deps, config, dotfiles, plugins)
   brew-export.sh            # Dump installed Homebrew packages to system/Brewfile
@@ -57,10 +57,22 @@ system/
   Brewfile                  # Full machine package dump
   lazygit.yml               # Lazygit config (delta pager)
 tests/
-  run.sh                    # Headless feature suite (42 checks)
+  run.sh                    # luacheck + headless feature suite (43 checks)
   features.lua              # The checks: options, UI, LSP, DAP, keymaps, autocmds
   e2e.sh                    # Real-nvim TUI suite driven via tmux (24 checks)
 ```
+
+### Where a plugin's config goes
+
+One rule, so a plugin is never configured in two places at once:
+
+- **`lua/plugins/*.lua`** holds the lazy spec (repo, lazy trigger, `opts`) and any
+  `config`/`init` body up to about five lines.
+- **`lua/config/<plugin>.lua`** holds anything longer, exposing `M.setup()`, and the
+  spec just calls it.
+- Autocmds that are not part of a plugin's own setup live in `lua/autocmds/`.
+
+Ignoring this is how the `*.dbout` autocmd ended up registered twice.
 
 ## Plugins
 
@@ -74,6 +86,7 @@ tests/
 - telescope.nvim (plenary.nvim, loads on demand)
 - nvim-treesitter
   - nvim-treesitter-context (scope context)
+  - nvim-treesitter-textobjects (af/if/ac/ic, master branch)
   - indent-blankline.nvim (indent guides)
   - nvim-puppeteer (Python f-string auto-conversion)
 - nvim-tree (nvim-web-devicons)
@@ -89,19 +102,31 @@ tests/
 
 ## LSP
 
-- Servers: pyright, ruff (native `ruff server`), lua_ls, ts_ls
+- Servers ensured: pyright, ruff (native `ruff server`), lua_ls, ts_ls
+- mason-lspconfig v2 auto-enables every installed server, so `automatic_enable`
+  in `lua/lsp/init.lua` is an explicit allowlist. Add a server there to use it.
+- `lua/lsp/servers/*.lua` must be required *before* `mason-lspconfig.setup()`:
+  `vim.lsp.enable()` starts clients immediately, and a `vim.lsp.config()` call
+  after that is ignored for the running client
 - Loads deferred on the first buffer, then re-fires `nvim.lsp.enable` so the
   file opened from the command line also attaches
-- Buffer-local LSP keymaps: `gd`, `gr`, `<leader>gr`, `gi`, `K`, `<leader>rn`, `<leader>ca`
+- Buffer-local LSP keymaps via `LspAttach`: `gd`, `gr`, `gi`, `K`,
+  `<leader>rn`, `<leader>ca`. Global: `<leader>gd` (vsplit), `<leader>gr` (telescope)
 - terraformls: default on_attach disabled on nvim 0.11 (uses a 0.12-only API)
 
 ## Treesitter
 
-- Enhanced highlighting with `use_languagetree = true`
-- Rainbow brackets for nested structures
 - Context showing function/class scope at top of window
+- Textobjects: `af`/`if` (function), `ac`/`ic` (class)
+- Incremental selection: `gnn`, `grn`, `grc`, `grm`
 - Indent guides (indent-blankline)
-- Language parsers: lua, python, javascript, typescript, tsx, html, css, json, markdown, bash, vim, go, rust, ruby, toml, yaml
+- Language parsers: lua, python, javascript, typescript, tsx, html, http, css,
+  json, markdown, bash, vim, go, rust, ruby, toml, yaml, requirements,
+  dockerfile, make, tmux
+- `queries/html_tags/injections.scm` replaces the bundled query so a bare
+  `<script>` injects tsx (JSX highlights in plain .html). It has to live under
+  `html_tags/`, not `html/`: html_tags is a base lang for html, so a file under
+  `queries/html/` can only add rules, never remove the javascript one
 
 ## Keymaps
 
@@ -111,7 +136,9 @@ tests/
 - Git: `<leader>gb`
 - File explorer: `<leader>ee` (toggle), `<leader>ef` (reveal)
 - Windows: `<leader>sv`, `<leader>sh`, `<leader>se`, `<leader>sm` (maximize)
-- Tabs: `<leader>to`, `<leader>tn`
+- Tabs: `<leader>to`, `<leader>tn`, `<leader>tp`
+- Buffers: `<leader>bn`, `<leader>bp`, `<leader>bd`. Not on `<Tab>`: in a
+  terminal that is the same byte as `<C-i>`, and it would kill jumplist-forward
 - Replace: `<leader>S`
 - Format: `<leader>f` (normal/visual)
 - Markdown preview: `<leader>mp` / `<leader>mP`
@@ -136,11 +163,17 @@ tests/
 ## Formatting
 
 - `<leader>f` uses conform.nvim (no LSP fallback)
-- Formatters: Python `ruff_format`, Lua `stylua`
+- Formatters: Python `ruff_format`, Lua `stylua`, C `clang_format`,
+  JS/TS/JSON/CSS/HTML/YAML/Markdown `prettier` (reads `.prettierrc.json`)
+- All of them come from mason; a formatter that is not installed is a silent
+  no-op, so check with `:ConformInfo` if `<leader>f` seems to do nothing
 
 ## Performance
 
-- Startup ~42ms: telescope, blink and treesitter load on first use, not at boot
+- Startup ~43ms: telescope and treesitter load on first use, not at boot.
+  blink.cmp is the exception: `lua/lsp/init.lua` requires it so its plugin file
+  registers LSP capabilities before any server starts, so it loads on the first
+  buffer, not on InsertEnter
 - Unused providers disabled (python3, ruby, perl, node)
 - git-blame virtual text delayed 1s so it stays off the cursor path
 - No lazyredraw (Neovim marks it unsupported; it causes stutter)
@@ -148,7 +181,7 @@ tests/
 ## Tests
 
 ```bash
-./tests/run.sh    # headless: 42 feature checks, exits nonzero on failure
+./tests/run.sh    # luacheck, then 43 headless feature checks; nonzero on failure
 ./tests/e2e.sh    # real nvim TUI in tmux: real keystrokes, rendered screen,
                   # full debug session; requires tmux
 ```
