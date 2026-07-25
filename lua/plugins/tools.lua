@@ -25,15 +25,7 @@ return {
     "rmagatti/auto-session",
     lazy = false,
     config = function()
-      require("auto-session").setup({
-        auto_save = true,
-        auto_restore = true,
-        -- otherwise mksession writes `badd NvimTree_1` and the session comes
-        -- back with a phantom buffer in the bufferline
-        close_filetypes_on_save = { "checkhealth", "NvimTree" },
-        -- don't pull the telescope picker in at startup; it loads on :SessionSearch
-        session_lens = { load_on_setup = false },
-      })
+      require("config.session").setup()
     end,
   },
   {
