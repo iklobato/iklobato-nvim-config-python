@@ -22,6 +22,12 @@ end
 
 local function dap_pytest_selectors_from_lsp(callback)
   local bufnr = vim.api.nvim_get_current_buf()
+  -- buf_request never calls the handler when no client supports the method,
+  -- which would swallow the picker (manual entry included)
+  if #vim.lsp.get_clients({ bufnr = bufnr, method = "textDocument/documentSymbol" }) == 0 then
+    callback({})
+    return
+  end
   local uri = vim.uri_from_bufnr(bufnr)
   vim.lsp.buf_request(
     bufnr,
