@@ -22,9 +22,7 @@ function M.setup()
     if not mason_registry.is_installed("debugpy") then
       return nil
     end
-    local path = require("mason-core.installer.InstallLocation")
-      .global()
-      :package("debugpy")
+    local path = require("mason-core.installer.InstallLocation").global():package("debugpy")
     if vim.fn.has("win32") == 1 then
       return path .. "\\venv\\Scripts\\python.exe"
     end

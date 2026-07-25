@@ -51,11 +51,9 @@ vim.diagnostic.config({
   update_in_insert = false,
 })
 
-vim.lsp.handlers["textDocument/diagnostic"] = vim.lsp.with(
-  vim.lsp.diagnostic.on_diagnostic, {
-    debounce = 150,
-  }
-)
+vim.lsp.handlers["textDocument/diagnostic"] = vim.lsp.with(vim.lsp.diagnostic.on_diagnostic, {
+  debounce = 150,
+})
 
 -- Load server-specific configurations
 require("lsp.servers.lua")

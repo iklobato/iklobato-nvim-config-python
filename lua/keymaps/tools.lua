@@ -17,7 +17,12 @@ map("n", "<leader>mp", "<cmd>MarkdownPreview<CR>", { desc = "Markdown preview" }
 map("n", "<leader>mP", "<cmd>MarkdownPreviewStop<CR>", { desc = "Markdown preview stop" })
 
 -- HTTP client (kulala, .http / rest files)
-map("n", "<leader>rr", "<cmd>lua require('kulala').run()<CR>", { desc = "Run HTTP request under cursor" })
+map(
+  "n",
+  "<leader>rr",
+  "<cmd>lua require('kulala').run()<CR>",
+  { desc = "Run HTTP request under cursor" }
+)
 
 -- Database
 map("n", "<leader>db", "<cmd>DBUIToggle<CR>", { desc = "Toggle DB UI" })

@@ -35,7 +35,7 @@ opt.cursorcolumn = false
 opt.hlsearch = true
 opt.incsearch = true
 
-vim.cmd('hi! link CurSearch Search')
+vim.cmd("hi! link CurSearch Search")
 
 opt.signcolumn = "yes"
 opt.shortmess:append("c")

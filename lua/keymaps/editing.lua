@@ -1,8 +1,13 @@
 local map = vim.keymap.set
 
 -- Replace
-map("n", "<leader>S", ":%s/\\<<C-r><C-w>\\>/<C-r><C-w>/gI<Left><Left><Left>", { desc = "Replace word" })
-map("v", "<leader>S", "y:%s/<C-r>\"/<C-r>\"/gI<Left><Left><Left>", { desc = "Replace selection" })
+map(
+  "n",
+  "<leader>S",
+  ":%s/\\<<C-r><C-w>\\>/<C-r><C-w>/gI<Left><Left><Left>",
+  { desc = "Replace word" }
+)
+map("v", "<leader>S", 'y:%s/<C-r>"/<C-r>"/gI<Left><Left><Left>', { desc = "Replace selection" })
 
 -- Formatting
 map("n", "<leader>f", function()

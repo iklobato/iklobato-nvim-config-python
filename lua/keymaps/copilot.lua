@@ -4,7 +4,12 @@ local map = vim.keymap.set
 map("i", "<Tab>", function()
   if vim.fn.exists("*copilot#Accept") == 1 then
     local ok, copilot_suggestion = pcall(vim.fn["copilot#Accept"])
-    if ok and copilot_suggestion and copilot_suggestion ~= "" and type(copilot_suggestion) == "string" then
+    if
+      ok
+      and copilot_suggestion
+      and copilot_suggestion ~= ""
+      and type(copilot_suggestion) == "string"
+    then
       vim.api.nvim_feedkeys(copilot_suggestion, "i", false)
       return
     end
