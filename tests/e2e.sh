@@ -88,7 +88,9 @@ wait_screen "bufferline renders (file tab on top row)" "app.py"
 keys Space e e
 wait_lexpr "keymap <leader>ee opens nvim-tree window" \
   "(function() for _, w in ipairs(vim.api.nvim_list_wins()) do if vim.bo[vim.api.nvim_win_get_buf(w)].filetype == \"NvimTree\" then return 1 end end return 0 end)()"
-wait_screen "nvim-tree panel visible on screen" "app.py"
+# "Project" is the bufferline offset header nvim-tree owns; "app.py" would
+# match the bufferline tab that is already on screen and never fail
+wait_screen "nvim-tree panel visible on screen" "Project"
 keys Space e e
 wait_lexpr "keymap <leader>ee closes nvim-tree again" \
   "(function() for _, w in ipairs(vim.api.nvim_list_wins()) do if vim.bo[vim.api.nvim_win_get_buf(w)].filetype == \"NvimTree\" then return 0 end end return 1 end)()"
@@ -121,7 +123,9 @@ keys Space f f
 wait_lexpr "keymap <leader>ff opens telescope prompt" \
   "(function() for _, w in ipairs(vim.api.nvim_list_wins()) do if vim.bo[vim.api.nvim_win_get_buf(w)].filetype == \"TelescopePrompt\" then return 1 end end return 0 end)()"
 keys "app"
-wait_screen "telescope narrows to app.py" "app.py"
+# the typed prompt line, not "app.py": that string is already on screen as the
+# bufferline tab, so grepping it would pass even if telescope rendered nothing
+wait_screen "telescope prompt shows the typed query" "> app"
 keys Escape Escape
 wait_lexpr "telescope closes on Escape" \
   "(function() for _, w in ipairs(vim.api.nvim_list_wins()) do if vim.bo[vim.api.nvim_win_get_buf(w)].filetype == \"TelescopePrompt\" then return 0 end end return 1 end)()"

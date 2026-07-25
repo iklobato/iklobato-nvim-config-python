@@ -79,15 +79,6 @@ function M.setup()
   dap.listeners.before.event_exited["dapui"] = function()
     dapui.close()
   end
-
-  -- dap-repl needs to be modifiable for input
-  vim.api.nvim_create_autocmd("BufEnter", {
-    callback = function(data)
-      if vim.bo[data.buf].filetype == "dap-repl" then
-        vim.bo[data.buf].modifiable = true
-      end
-    end,
-  })
 end
 
 return M

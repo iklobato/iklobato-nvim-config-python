@@ -1,7 +1,9 @@
 -- UI-related autocmds
+local group = vim.api.nvim_create_augroup("UserUi", { clear = true })
 
 -- Resize query result output window to 75% of screen
 vim.api.nvim_create_autocmd("BufReadPost", {
+  group = group,
   pattern = "*.dbout",
   callback = function()
     if vim.bo.filetype == "dbout" then
@@ -17,4 +19,3 @@ vim.api.nvim_create_autocmd("BufReadPost", {
     end
   end,
 })
-

@@ -1,7 +1,9 @@
 -- Session management autocmds
+local group = vim.api.nvim_create_augroup("UserSession", { clear = true })
 
 -- Auto-open NvimTree if no file was specified and no session restored
 vim.api.nvim_create_autocmd("VimEnter", {
+  group = group,
   callback = function(data)
     vim.defer_fn(function()
       local directory = vim.fn.isdirectory(data.file) == 1

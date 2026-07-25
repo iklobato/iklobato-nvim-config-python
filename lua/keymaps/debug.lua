@@ -22,38 +22,54 @@ end
 
 local function dap_pytest_selectors_from_lsp(callback)
   local bufnr = vim.api.nvim_get_current_buf()
+  -- buf_request never calls the handler when no client supports the method,
+  -- which would swallow the picker (manual entry included)
+  if #vim.lsp.get_clients({ bufnr = bufnr, method = "textDocument/documentSymbol" }) == 0 then
+    callback({})
+    return
+  end
   local uri = vim.uri_from_bufnr(bufnr)
-  vim.lsp.buf_request(bufnr, "textDocument/documentSymbol", { textDocument = { uri = uri } }, function(_, result)
-    if result == nil or not vim.islist(result) then
-      callback({})
-      return
-    end
-    local selectors = {}
-    local kind = vim.lsp.protocol.SymbolKind
-    local function collect(symbols, class_name)
-      for _, sym in ipairs(symbols) do
-        local name = sym.name or ""
-        local sym_kind = sym.kind or 0
-        if class_name then
-          if sym_kind == kind.Method and name:match("^test_") then
-            table.insert(selectors, class_name .. "::" .. name)
-          end
-          if sym.children and #sym.children > 0 then
-            collect(sym.children, class_name)
-          end
-        else
-          if sym_kind == kind.Function and name:match("^test_") then
-            table.insert(selectors, name)
-          end
-          if sym_kind == kind.Class and name:match("^Test") and sym.children and #sym.children > 0 then
-            collect(sym.children, name)
+  vim.lsp.buf_request(
+    bufnr,
+    "textDocument/documentSymbol",
+    { textDocument = { uri = uri } },
+    function(_, result)
+      if result == nil or not vim.islist(result) then
+        callback({})
+        return
+      end
+      local selectors = {}
+      local kind = vim.lsp.protocol.SymbolKind
+      local function collect(symbols, class_name)
+        for _, sym in ipairs(symbols) do
+          local name = sym.name or ""
+          local sym_kind = sym.kind or 0
+          if class_name then
+            if sym_kind == kind.Method and name:match("^test_") then
+              table.insert(selectors, class_name .. "::" .. name)
+            end
+            if sym.children and #sym.children > 0 then
+              collect(sym.children, class_name)
+            end
+          else
+            if sym_kind == kind.Function and name:match("^test_") then
+              table.insert(selectors, name)
+            end
+            if
+              sym_kind == kind.Class
+              and name:match("^Test")
+              and sym.children
+              and #sym.children > 0
+            then
+              collect(sym.children, name)
+            end
           end
         end
       end
+      collect(result, nil)
+      callback(selectors)
     end
-    collect(result, nil)
-    callback(selectors)
-  end)
+  )
 end
 
 local function dap_pytest_picker()

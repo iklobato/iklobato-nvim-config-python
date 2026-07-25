@@ -12,6 +12,14 @@ return {
   {
     "mfussenegger/nvim-dap",
     lazy = true,
+    cmd = {
+      "DapNew",
+      "DapContinue",
+      "DapToggleBreakpoint",
+      "DapTerminate",
+      "DapEval",
+      "DapShowLog",
+    },
     dependencies = {
       "jay-babu/mason-nvim-dap.nvim",
       "rcarriga/nvim-dap-ui",
