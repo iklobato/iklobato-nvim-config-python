@@ -4,8 +4,8 @@ globals = {
     "vim",
 }
 
--- Standard Lua globals
-std = "lua54"
+-- Neovim runs LuaJIT, not 5.4: "lua54" false-flags unpack() and jit.*
+std = "luajit"
 
 -- Ignore unused arguments in function definitions (common in Neovim configs)
 unused_args = false
@@ -22,5 +22,6 @@ unused_globals = false
 -- Check for undefined globals
 undefined = true
 
--- Maximum line length
-max_line_length = 210
+-- stylua owns line width (stylua.toml column_width). Two numbers that disagree
+-- is worse than one.
+max_line_length = false

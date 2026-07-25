@@ -1,7 +1,3 @@
-# Database UI runtime data
-db_ui/queries/
-db_ui/connections.json
-
 # Neovim runtime directories
 **/.local/share/nvim/
 **/.local/state/nvim/
@@ -41,8 +37,6 @@ Brewfile.backup.*
 **/connections.json
 .cursor/
 .specify/
-
-db_ui/connections.json
 .aider*
 
 # Secrets - never commit. Only the *.example templates are tracked.
@@ -62,3 +56,10 @@ id_ed25519
 id_ecdsa
 *.pem
 *.key
+
+# Claude config: keep authored config, never volatile state / caches
+system/claude/skills/**/.venv/
+system/claude/skills/**/__pycache__/
+system/claude/skills/**/.pytest_cache/
+system/claude/skills/**/.ruff_cache/
+system/claude/agents/refs/
