@@ -63,6 +63,67 @@ local checks = {
       expect(vim.g.mapleader == " ", "mapleader=" .. tostring(vim.g.mapleader))
     end,
   },
+  -- regression: 'timeout' off made every prefix map (<leader>e, <leader>f, gr)
+  -- block forever instead of firing
+  {
+    "option: mapping timeout on",
+    function()
+      expect(vim.o.timeout == true, "timeout is off, prefix maps will hang")
+    end,
+  },
+  -- regression: auto-session cannot restore filetype-local options without it
+  {
+    "option: sessionoptions has localoptions",
+    function()
+      expect(vim.o.sessionoptions:find("localoptions"), "sessionoptions=" .. vim.o.sessionoptions)
+    end,
+  },
+  -- regression: a postgres URL used to be hardcoded into vim.g.dbs
+  {
+    "option: no hardcoded db connection",
+    function()
+      expect(vim.g.dbs == nil, "vim.g.dbs is set: " .. vim.inspect(vim.g.dbs))
+    end,
+  },
+
+  -- regression: W and B were mapped to each other with remap=true, so both
+  -- failed with E223. <Tab> in normal mode is the same byte as <C-i> and would
+  -- take jumplist-forward with it. Read the GLOBAL table: nvim-tree maps W
+  -- buffer-locally and would shadow maparg().
+  {
+    "keymap: W swap is not recursive",
+    function()
+      local w
+      for _, m in ipairs(vim.api.nvim_get_keymap("n")) do
+        if m.lhs == "W" then
+          w = m
+        end
+      end
+      expect(w ~= nil, "no global W map")
+      expect(w.rhs == "B", "W maps to " .. tostring(w.rhs))
+      expect(w.noremap == 1, "W is recursive, it will raise E223")
+    end,
+  },
+  -- assert on <Tab>, not <C-i>: maparg treats them as distinct strings even
+  -- though the terminal sends the same byte, so querying <C-i> proves nothing
+  {
+    "keymap: <C-i> free for jumplist",
+    function()
+      for _, m in ipairs(vim.api.nvim_get_keymap("n")) do
+        expect(m.lhs ~= "<Tab>", "normal-mode <Tab> is mapped, that takes <C-i> with it")
+      end
+    end,
+  },
+
+  -- regression: nvim-dap had no cmd list, so :Dap* did not exist until a debug
+  -- keymap was pressed. Must run BEFORE the dap checks below require("dap").
+  {
+    "dap: commands registered before dap loads",
+    function()
+      expect(package.loaded["dap"] == nil, "dap already loaded, this check proves nothing here")
+      expect(vim.fn.exists(":DapContinue") == 2, ":DapContinue not defined")
+    end,
+  },
 
   -- UI (PyCharm-style)
   {
@@ -249,6 +310,138 @@ local checks = {
       end)
       local clients = vim.lsp.get_clients({ bufnr = 0 })
       expect(#clients > 0, "no LSP client attached after 15s")
+    end,
+  },
+  -- regression: mason-lspconfig v2 ignores `handlers`, so on_attach never ran
+  -- and none of these existed on any buffer
+  {
+    "lsp: on_attach maps land on the buffer",
+    function()
+      local want = { gd = true, gr = true, gi = true, [" rn"] = true, [" ca"] = true }
+      for _, m in ipairs(vim.api.nvim_buf_get_keymap(0, "n")) do
+        want[m.lhs] = nil
+      end
+      expect(next(want) == nil, "missing maps: " .. table.concat(vim.tbl_keys(want), ", "))
+    end,
+  },
+  -- regression: lua/lsp/servers/*.lua used to run AFTER mason-lspconfig.setup(),
+  -- so vim.lsp.enable() started the clients before their settings were registered.
+  -- Needs a fresh process AND the file opened after VimEnter: passing the file on
+  -- the command line is the one path that was never broken (vim_did_enter is 0
+  -- there, so enable() defers). Runs from the scratch dir so auto-session has no
+  -- session to restore ahead of the :edit.
+  {
+    "lsp: server settings survive a late open",
+    function()
+      local target = scratch .. "/late.py"
+      local result = scratch .. "/late.json"
+      local probe = scratch .. "/probe.lua"
+      vim.fn.writefile({ "x = 1" }, target)
+      vim.fn.writefile({
+        "vim.defer_fn(function()",
+        ("  vim.cmd('edit %s')"):format(target),
+        "  vim.wait(25000, function() return #vim.lsp.get_clients({ bufnr = 0 }) >= 2 end, 100)",
+        "  local out = {}",
+        "  for _, c in ipairs(vim.lsp.get_clients({ bufnr = 0 })) do",
+        "    out[c.name] = { settings = c.settings, init_options = c.config.init_options }",
+        "  end",
+        ("  vim.fn.writefile({ vim.json.encode(out) }, %q)"):format(result),
+        "  vim.cmd('qa!')",
+        "end, 1000)",
+      }, probe)
+
+      vim.fn.system({
+        "sh",
+        "-c",
+        ("cd %s && timeout 60 nvim --headless -c 'luafile %s'"):format(scratch, probe),
+      })
+      expect(vim.fn.filereadable(result) == 1, "late-open probe wrote nothing")
+
+      local got = vim.json.decode(vim.fn.readfile(result)[1])
+      expect(got.pyright ~= nil, "pyright did not attach on a late open")
+      local mode = vim.tbl_get(got, "pyright", "settings", "python", "analysis", "diagnosticMode")
+      expect(mode == "workspace", "pyright diagnosticMode=" .. tostring(mode))
+      expect(got.ruff ~= nil, "ruff did not attach on a late open")
+      local len = vim.tbl_get(got, "ruff", "init_options", "settings", "lineLength")
+      expect(len == 88, "ruff lineLength=" .. tostring(len))
+    end,
+  },
+  -- regression: automatic_enable defaults to true and started every server
+  -- installed in mason (25), not the allowlist
+  {
+    "lsp: only the allowlisted servers are enabled",
+    function()
+      local seen, enabled = {}, {}
+      for _, file in ipairs(vim.api.nvim_get_runtime_file("lsp/*.lua", true)) do
+        local name = vim.fn.fnamemodify(file, ":t:r")
+        if not seen[name] then
+          seen[name] = true
+          if vim.lsp.is_enabled(name) then
+            table.insert(enabled, name)
+          end
+        end
+      end
+      local allowlist = require("mason-lspconfig.settings").current.automatic_enable
+      expect(type(allowlist) == "table", "automatic_enable is not an allowlist")
+      expect(#enabled == #allowlist, #enabled .. " servers enabled, allowlist has " .. #allowlist)
+    end,
+  },
+  -- regression: the textobjects block was configured but the plugin was missing,
+  -- and its main branch is incompatible with nvim-treesitter master
+  {
+    "treesitter: function textobject is mapped",
+    function()
+      expect(vim.fn.maparg("af", "o") ~= "", "no operator-pending map for af")
+      expect(vim.fn.maparg("if", "o") ~= "", "no operator-pending map for if")
+    end,
+  },
+  -- regression: queries/html/injections.scm could only ADD rules, so <script>
+  -- was parsed by tsx AND javascript, and <style> by css twice
+  {
+    "treesitter: html script injects tsx, not javascript",
+    function()
+      edit("t.html", { "<style>a{}</style>", "<script>const x = () => <b/>;</script>" })
+      local langs = {}
+      local parser = vim.treesitter.get_parser(0, "html")
+      parser:parse(true)
+      parser:for_each_tree(function(_, tree)
+        langs[tree:lang()] = true
+      end)
+      expect(langs.tsx, "tsx not injected: " .. table.concat(vim.tbl_keys(langs), ", "))
+      expect(not langs.javascript, "javascript still injected alongside tsx")
+    end,
+  },
+  -- regression: stylua was configured but never installed, so <leader>f on a
+  -- Lua file was a silent no-op
+  {
+    "formatting: every configured formatter is installed",
+    function()
+      local conform = require("conform")
+      local seen, missing = {}, {}
+      for _, formatters in pairs(conform.formatters_by_ft) do
+        for _, name in ipairs(formatters) do
+          if not seen[name] then
+            seen[name] = true
+            if not conform.get_formatter_info(name, 0).available then
+              table.insert(missing, name)
+            end
+          end
+        end
+      end
+      expect(#missing == 0, "not installed: " .. table.concat(missing, ", "))
+    end,
+  },
+  -- regression: the same autocmd was registered in lua/autocmds/ui.lua and in
+  -- the dadbod-ui spec's config function
+  {
+    "autocmd: single *.dbout handler",
+    function()
+      -- the duplicate lived in dadbod-ui's config body, so the plugin has to be
+      -- loaded for the count to mean anything. Scope to our augroup: dadbod-ui
+      -- registers *.dbout autocmds of its own and those are legitimate.
+      require("lazy").load({ plugins = { "vim-dadbod-ui" } })
+      local found = vim.api.nvim_get_autocmds({ group = "UserUi", pattern = "*.dbout" })
+      expect(#found == 1, #found .. " autocmds in UserUi for *.dbout")
     end,
   },
 }
