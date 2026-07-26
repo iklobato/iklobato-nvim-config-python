@@ -148,8 +148,22 @@ Ignoring this is how the `*.dbout` autocmd ended up registered twice.
 
 ## Debugging
 
+- Adapters ensured by mason-nvim-dap: debugpy (python), delve (go),
+  js-debug-adapter (node/javascript/typescript)
 - Python configs: Launch file, Django runserver, Pytest file
-- Adapter uses mason's debugpy when installed, otherwise the active venv python
+- Python adapter uses mason's debugpy when installed, otherwise the active venv
+  python
+- Go configs: Launch file, Launch package, Test package, Attach to process
+- Node/TS/React configs (javascript, typescript, and both react filetypes):
+  Launch file, Attach to process, Attach to node port 9229, Launch Chrome on
+  dev server (asks for the URL), Attach to Chrome port 9222. Launching a `.ts`
+  file needs no ts-node/tsx: node 22.18+ strips the types itself
+- The same js-debug-adapter serves node and chrome; react components only stop
+  on the chrome configs, the node ones cannot reach browser code
+- Known upstream noise: terminating a python session while it sits on a
+  breakpoint makes debugpy SIGKILL the debuggee, and its adapter then exits 1,
+  so nvim-dap warns. Letting the program finish, or terminating it while it
+  runs, exits clean. delve and js-debug never do this
 - dap-ui and mason-nvim-dap load together with nvim-dap; the UI opens and
   closes automatically with the session
 - DAP UI layout: left (scopes/watches/breakpoints), right (repl/console),
@@ -226,5 +240,7 @@ After install, set your terminal font to "MesloLGS Nerd Font" so icons render.
 - macOS or Ubuntu/Debian (other systems: install deps manually, then run the script)
 - Neovim 0.11+
 - Python 3 (for LSP and DAP)
-- Node.js 22+ and ripgrep (for Telescope, LSP servers, Copilot)
+- Node.js 22.18+ and ripgrep (for Telescope, LSP servers, Copilot, and the
+  node/typescript debugger)
+- Go (only to debug Go: mason builds delve with the local toolchain)
 - tmux (only for tests/e2e.sh)

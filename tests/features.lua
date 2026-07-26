@@ -264,6 +264,26 @@ local checks = {
     end,
   },
   {
+    "dap: go adapter + 4 configs",
+    function()
+      local dap = require("dap")
+      expect(dap.adapters.delve, "no delve adapter")
+      expect(#dap.configurations.go == 4, "#configs=" .. #dap.configurations.go)
+    end,
+  },
+  {
+    "dap: node + chrome adapters, 5 configs on every js/ts filetype",
+    function()
+      local dap = require("dap")
+      expect(dap.adapters["pwa-node"], "no pwa-node adapter")
+      expect(dap.adapters["pwa-chrome"], "no pwa-chrome adapter")
+      for _, ft in ipairs({ "javascript", "typescript", "javascriptreact", "typescriptreact" }) do
+        local configs = dap.configurations[ft]
+        expect(configs and #configs == 5, ft .. " configs=" .. tostring(configs and #configs))
+      end
+    end,
+  },
+  {
     "dap: dapui auto-opens (listeners registered)",
     function()
       local dap = require("dap")
@@ -282,6 +302,30 @@ local checks = {
     function()
       local python = vim.fn.stdpath("data") .. "/mason/packages/debugpy/venv/bin/python"
       expect(vim.fn.executable(python) == 1, python .. " not executable")
+    end,
+  },
+  {
+    "dap: delve installed via mason",
+    function()
+      local dlv = vim.fn.stdpath("data") .. "/mason/packages/delve/dlv"
+      expect(vim.fn.executable(dlv) == 1, dlv .. " not executable")
+    end,
+  },
+  {
+    "dap: js-debug-adapter installed via mason",
+    function()
+      local server = vim.fn.stdpath("data")
+        .. "/mason/packages/js-debug-adapter/js-debug/src/dapDebugServer.js"
+      expect(vim.fn.filereadable(server) == 1, server .. " not readable")
+    end,
+  },
+  -- regression: mason.nvim had no config, so loading it as a dap dependency
+  -- left the registry empty and every adapter looked "not installed"
+  {
+    "dap: mason registry populated when dap pulls mason in",
+    function()
+      local registry = require("mason-registry")
+      expect(registry.has_package("delve"), "mason registry is empty")
     end,
   },
   {

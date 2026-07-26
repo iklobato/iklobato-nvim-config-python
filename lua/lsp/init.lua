@@ -33,7 +33,9 @@ vim.api.nvim_create_autocmd("LspAttach", {
   end,
 })
 
-require("mason").setup()
+-- mason.nvim's own spec runs setup(); requiring it here only forces that to
+-- happen before mason-lspconfig, which warns when the order is wrong
+require("mason")
 require("mason-lspconfig").setup({
   ensure_installed = { "lua_ls", "ts_ls", "pyright", "ruff" },
   -- automatic_enable defaults to true, which starts EVERY server installed in
