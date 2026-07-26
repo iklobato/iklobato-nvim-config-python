@@ -2,7 +2,7 @@
 
 A flat, minimal Neovim setup focused on Python/Django with LSP, DAP, Treesitter,
 blink.cmp, and Conform. PyCharm-style UI: Darcula theme, editor tabs, statusline
-and gutter change stripes.
+and gutter change stripes. Debugging also covers go, node, typescript and react.
 
 ## Structure
 
@@ -44,20 +44,23 @@ lua/
     treesitter.lua          # Treesitter
     python_hl.lua           # Python-specific highlights
     conform.lua             # Formatters
-    dap.lua                 # DAP
+    dap.lua                 # DAP adapters and launch configs
     dapui.lua               # DAP UI
+    session.lua             # auto-session
 queries/
   html_tags/injections.scm  # replaces the bundled query: <script> injects tsx
 scripts/
   install.sh                # From-scratch installer (deps, config, dotfiles, plugins)
   brew-export.sh            # Dump installed Homebrew packages to system/Brewfile
   brew-import.sh            # Install everything from system/Brewfile
-system/
+  mac_packs.sh, macos.sh    # macOS packages and defaults
+  display.sh                # External monitor color profile (run by hand)
+system/                     # Dotfiles and tool configs, detailed in system/README.md
   zshrc                     # Shell config (linked to ~/.zshrc)
-  Brewfile                  # Full machine package dump
   lazygit.yml               # Lazygit config (delta pager)
+  Brewfile                  # Full machine package dump
 tests/
-  run.sh                    # luacheck + headless feature suite (43 checks)
+  run.sh                    # luacheck + headless feature suite (63 checks)
   features.lua              # The checks: options, UI, LSP, DAP, keymaps, autocmds
   e2e.sh                    # Real-nvim TUI suite driven via tmux (24 checks)
 ```
@@ -130,30 +133,159 @@ Ignoring this is how the `*.dbout` autocmd ended up registered twice.
 
 ## Keymaps
 
-- Search: `<leader>ff`, `<leader>fg`, `<leader>fb`, `<leader>fo`
-- File ops: `<leader>ww`, `<leader>wq`, `<leader>qq`
-- Diagnostics: `<leader>e`, `<leader>E`, `[d`, `]d`
-- Git: `<leader>gb`
-- File explorer: `<leader>ee` (toggle), `<leader>ef` (reveal)
-- Windows: `<leader>sv`, `<leader>sh`, `<leader>se`, `<leader>sm` (maximize)
-- Tabs: `<leader>to`, `<leader>tn`, `<leader>tp`
-- Buffers: `<leader>bn`, `<leader>bp`, `<leader>bd`. Not on `<Tab>`: in a
-  terminal that is the same byte as `<C-i>`, and it would kill jumplist-forward
-- Replace: `<leader>S`
-- Format: `<leader>f` (normal/visual)
-- Markdown preview: `<leader>mp` / `<leader>mP`
-- Breakpoints: `<leader>bb`, `<leader>bc`, `<leader>bl`, `<leader>br`, `<leader>ba` (quickfix list)
-- Debugging: `<leader>dc`, `<leader>dj`, `<leader>dk`, `<leader>do`, `<leader>dl`, `<leader>dt`, `<leader>dd`, `<leader>du`
-- Pytest: `<leader>dp` (picker from LSP symbols), `<leader>df` (function under cursor, class-aware)
+Leader is `<Space>`. Every map carries a `desc`, so `:Telescope keymaps` lists
+them with their descriptions. Debug keymaps have their own section further down.
+
+### Motions
+
+| Key | Does | Note |
+|---|---|---|
+| `H` / `L` | go to line start / line end | `^` and `$` without the symbol keys |
+| `W` / `B` | word back / word forward | deliberately swapped from vim's defaults |
+| `<leader>j` / `<leader>k` | down / up one *screen* line | `gj`/`gk`, moves inside a wrapped line |
+
+### Files, windows, tabs, buffers
+
+| Key | Does | Note |
+|---|---|---|
+| `<leader>ww` | save | |
+| `<leader>wq` | save and quit | |
+| `<leader>qq` | quit and throw away changes | `:q!` |
+| `<leader>ee` | file explorer on/off | nvim-tree |
+| `<leader>ef` | reveal the current file in the explorer | |
+| `<leader>sv` / `<leader>sh` | split vertical / horizontal | |
+| `<leader>se` | equalize splits, in every tab | |
+| `<leader>sm` | maximize the split, press again to restore | vim-maximizer |
+| `<leader>to` / `<leader>tn` / `<leader>tp` | new / next / previous tab | |
+| `<leader>bn` / `<leader>bp` / `<leader>bd` | next / previous / close buffer | the tabs bufferline draws on top. Not on `<Tab>`: in a terminal that is the same byte as `<C-i>`, and it would kill jumplist-forward |
+
+### Search
+
+| Key | Does | Note |
+|---|---|---|
+| `<leader>ff` | find files | includes gitignored files (`no_ignore`) |
+| `<leader>fg` | grep the whole project as you type | e.g. type `def index` to land on the Django view |
+| `<leader>fb` | pick an open buffer | |
+| `<leader>fo` | symbols of the current file | column widths follow the window width |
+
+### LSP
+
+| Key | Does | Note |
+|---|---|---|
+| `gd` / `gr` / `gi` / `K` | definition / references / implementations / hover | buffer-local, appear only after a server attaches |
+| `<leader>rn` / `<leader>ca` | rename / code action | buffer-local |
+| `<leader>gd` | definition in a vertical split | splits only after a result comes back, so a miss leaves no empty window |
+| `<leader>gr` | references in telescope | |
+
+### Diagnostics
+
+| Key | Does | Note |
+|---|---|---|
+| `<leader>e` | float with the diagnostic under the cursor | |
+| `<leader>E` | the same float, focusable | enter it to yank the message |
+| `[d` / `]d` | previous / next diagnostic | |
+| `<leader>gp` / `<leader>gn` | same as `[d` / `]d` | |
+
+### Editing
+
+| Key | Does | Note |
+|---|---|---|
+| `<leader>f` | format the buffer (normal) or the selection (visual) | conform.nvim, no LSP fallback |
+| `<leader>S` | replace the word under the cursor everywhere in the file | fills `:%s/\<word\>/word/gI` and parks the cursor on the replacement: type the new text and press Enter |
+| `<leader>S` (visual) | same, using the selection | |
+
+### Git and tools
+
+| Key | Does | Note |
+|---|---|---|
+| `<leader>gb` | inline git blame on/off | |
+| `<leader>mp` / `<leader>mP` | markdown preview start / stop | |
+| `<leader>rr` | run the HTTP request under the cursor | kulala, in `.http` files |
+| `<leader>db` | database UI on/off | dadbod-ui. Queries run with its own buffer-local `<leader>S` |
 
 ## Debugging
 
-- Python configs: Launch file, Django runserver, Pytest file
-- Adapter uses mason's debugpy when installed, otherwise the active venv python
-- dap-ui and mason-nvim-dap load together with nvim-dap; the UI opens and
-  closes automatically with the session
-- DAP UI layout: left (scopes/watches/breakpoints), right (repl/console),
-  sizes scale with the terminal width
+Works in python, go, javascript, typescript and both react filetypes. Any other
+filetype has no configuration, and `<leader>dc` says so instead of starting.
+
+### Breakpoint keymaps
+
+| Key | Does | Example |
+|---|---|---|
+| `<leader>bb` | breakpoint on the current line, press again to remove | |
+| `<leader>bc` | breakpoint that only stops when a condition holds | asks for it, answer `i == 3` to stop on the 4th pass of a loop |
+| `<leader>bl` | logpoint: prints instead of stopping | asks for the message, answer `double {value}` and every call prints in the REPL with `value` filled in |
+| `<leader>ba` | put every breakpoint in the quickfix window | `:cclose` to close it again |
+| `<leader>br` | delete every breakpoint | |
+
+### Session keymaps
+
+| Key | Does | Note |
+|---|---|---|
+| `<leader>dc` | start, or continue when stopped | the first press shows the numbered config menu for the filetype |
+| `<leader>dj` | step over | |
+| `<leader>dk` | step into | steps into the function being called on the current line |
+| `<leader>do` | step out | back to the caller |
+| `<leader>dl` | run the last config again | no menu |
+| `<leader>dt` | terminate the session | UI closes with it |
+| `<leader>dd` | disconnect and close the UI | |
+| `<leader>du` | show / hide the UI | the session keeps running |
+
+Python only:
+
+| Key | Does | Note |
+|---|---|---|
+| `<leader>df` | debug the pytest test under the cursor | reads LSP symbols, so `TestClass::test_method` is resolved for a method |
+| `<leader>dp` | picker with every test in the file | plus a "Manual" entry to type any pytest target |
+
+Commands, once the plugin has loaded: `:DapEval` (evaluate expressions in a
+scratch window), `:DapToggleRepl`, `:DapPause`, `:DapRestartFrame`,
+`:DapShowLog`.
+
+### A full run, start to finish
+
+With a file that has a `double()` helper called inside a loop:
+
+1. `<leader>bc` on the loop line, answer `i == 3`
+2. `<leader>bl` on the first line of `double`, answer `double {value}`
+3. `<leader>ba` to confirm both are registered, `:cclose`
+4. `<leader>dc`, pick `1` (Launch file); the UI opens and execution stops on the
+   loop only when `i` is 3
+5. read `i` and `total` in the Scopes panel
+6. `<leader>dk` steps into `double`, `<leader>do` comes back, `<leader>dj` moves
+   one line
+7. `<leader>dc` runs to the end; the logpoint lines are waiting in the REPL
+8. `<leader>dt` ends it, `<leader>dl` runs the same config again without asking
+
+### The UI
+
+Left column: scopes, watches, breakpoints. Right column: REPL and console. Both
+scale with the terminal width. It opens and closes with the session.
+
+Inside any panel: `<CR>` expands, `e` edits a value, `d` removes an entry, `r`
+sends the entry to the REPL, `o` opens, `t` toggles. The watches panel is a
+prompt buffer: press `i` and type an expression such as `total * 10`. The REPL
+takes expressions the same way.
+
+### Adapters and configurations
+
+- mason-nvim-dap ensures debugpy (python), delve (go) and js-debug-adapter
+  (node, typescript, react). They install on the first debug session, not at
+  install time
+- Python: Launch file, Django runserver, Pytest file. The adapter uses mason's
+  debugpy when installed, otherwise the python of the active venv
+- Go: Launch file, Launch package, Test package, Attach to process. delve gets a
+  20s initialize timeout because it compiles the program before answering
+- Node, typescript and react: Launch file, Attach to process, Attach to node
+  port 9229, Launch Chrome on dev server (asks for the URL, default
+  `http://localhost:5173`), Attach to Chrome port 9222. Launching a `.ts` file
+  needs no ts-node or tsx: node 22.18+ strips the types itself
+- The same js-debug-adapter serves node and chrome. React components only stop
+  on the chrome configs; the node ones cannot reach browser code
+- Known upstream noise: terminating a python session while it sits on a
+  breakpoint makes debugpy SIGKILL the debuggee, and its adapter then exits 1,
+  so nvim-dap warns. Letting the program finish, or terminating it while it
+  runs, exits clean. delve and js-debug never do this
 
 ## Sessions
 
@@ -181,7 +313,7 @@ Ignoring this is how the `*.dbout` autocmd ended up registered twice.
 ## Tests
 
 ```bash
-./tests/run.sh    # luacheck, then 43 headless feature checks; nonzero on failure
+./tests/run.sh    # luacheck, then 63 headless feature checks; nonzero on failure
 ./tests/e2e.sh    # real nvim TUI in tmux: real keystrokes, rendered screen,
                   # full debug session; requires tmux
 ```
@@ -214,7 +346,8 @@ What it sets up:
   platform lazygit path, plus oh-my-zsh and the zsh-syntax-highlighting plugin
   the zshrc expects
 - **Plugins**: `Lazy! sync` headless, then mason installs pyright, ruff, lua_ls,
-  ts_ls, stylua and debugpy
+  ts_ls, stylua and debugpy. delve and js-debug-adapter are not installed here:
+  mason-nvim-dap pulls them the first time you open a debug session
 
 `system/Brewfile` is *not* installed by the script: it's a full machine dump.
 Use `./scripts/brew-import.sh` if you want it.
@@ -226,5 +359,7 @@ After install, set your terminal font to "MesloLGS Nerd Font" so icons render.
 - macOS or Ubuntu/Debian (other systems: install deps manually, then run the script)
 - Neovim 0.11+
 - Python 3 (for LSP and DAP)
-- Node.js 22+ and ripgrep (for Telescope, LSP servers, Copilot)
+- Node.js 22.18+ and ripgrep (for Telescope, LSP servers, Copilot, and the
+  node/typescript debugger)
+- Go (only to debug Go: mason builds delve with the local toolchain)
 - tmux (only for tests/e2e.sh)

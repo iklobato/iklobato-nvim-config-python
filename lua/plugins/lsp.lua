@@ -7,6 +7,9 @@ return {
     "williamboman/mason.nvim",
     event = { "BufReadPost", "BufNewFile" },
     cmd = "Mason",
+    -- without setup() the package registry stays empty, so anything loading
+    -- mason on its own (nvim-dap does, via mason-nvim-dap) sees zero packages
+    config = true,
   },
   {
     "williamboman/mason-lspconfig.nvim",
