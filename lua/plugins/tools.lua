@@ -14,7 +14,13 @@ return {
   {
     "f-person/git-blame.nvim",
     event = "BufRead",
-    config = function()
+    -- `nvim .` opens a directory, so BufRead never fires and <leader>gb died
+    -- with E492 until some file was read. The command has to load the plugin.
+    cmd = { "GitBlameToggle", "GitBlameEnable", "GitBlameDisable" },
+    -- init, not config: the plugin's own plugin/gitblame.lua calls setup(),
+    -- which snapshots vim.g.gitblame_* the moment it is sourced. config runs
+    -- after that, so the delay was already baked in at the 250ms default.
+    init = function()
       vim.g.gitblame_enabled = true
       vim.g.gitblame_delay = 1000
       vim.g.gitblame_message_template = "<summary> • <date> • <author>"
