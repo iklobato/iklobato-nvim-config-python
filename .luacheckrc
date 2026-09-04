@@ -16,12 +16,6 @@ unused_secondaries = false
 -- Allow redefining globals
 redefined = true
 
--- Allow unused globals
-unused_globals = false
-
--- Check for undefined globals
-undefined = true
-
 -- stylua owns line width (stylua.toml column_width). Two numbers that disagree
 -- is worse than one.
 max_line_length = false

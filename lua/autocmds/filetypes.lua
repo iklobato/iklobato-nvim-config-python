@@ -10,11 +10,5 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
--- Taskfile detection
-vim.api.nvim_create_autocmd("BufRead", {
-  group = group,
-  pattern = { "Taskfile.yml", "Taskfile.yaml", "taskfile.yml", "taskfile.yaml" },
-  callback = function()
-    vim.bo.filetype = "yaml"
-  end,
-})
+-- Taskfile.yml/yaml already resolve to filetype yaml via nvim's built-in
+-- filetype-by-extension table; no autocmd needed here.

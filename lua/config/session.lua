@@ -15,6 +15,11 @@ function M.drop_missing_buffers()
 end
 
 function M.setup()
+  -- Tracked so lua/autocmds/session.lua knows whether a restore actually
+  -- happened this run, instead of guessing from whether a session FILE exists
+  -- for the cwd: that file can exist while nothing was restored (headless runs
+  -- skip restoring outright; auto_restore/allowed_dirs can decline it too).
+  vim.g.auto_session_restored = false
   require("auto-session").setup({
     auto_save = true,
     auto_restore = true,
@@ -24,6 +29,11 @@ function M.setup()
     pre_save_cmds = { M.drop_missing_buffers },
     -- don't pull the telescope picker in at startup; it loads on :SessionSearch
     session_lens = { load_on_setup = false },
+    post_restore_cmds = {
+      function()
+        vim.g.auto_session_restored = true
+      end,
+    },
   })
 end
 

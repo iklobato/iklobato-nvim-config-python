@@ -38,18 +38,20 @@ function M.setup()
     },
     layouts = {
       {
+        -- layout elements take only id and size; wrap is a top-level dapui
+        -- option (default false), so per-element wrap keys were silently ignored
         elements = {
-          { id = "scopes", size = 0.5, wrap = false },
-          { id = "watches", size = 0.25, wrap = false },
-          { id = "breakpoints", size = 0.25, wrap = false },
+          { id = "scopes", size = 0.5 },
+          { id = "watches", size = 0.25 },
+          { id = "breakpoints", size = 0.25 },
         },
         size = left_size,
         position = "left",
       },
       {
         elements = {
-          { id = "repl", size = 0.5, wrap = false },
-          { id = "console", size = 0.5, wrap = false },
+          { id = "repl", size = 0.5 },
+          { id = "console", size = 0.5 },
         },
         size = right_size,
         position = "right",

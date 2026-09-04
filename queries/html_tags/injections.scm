@@ -54,3 +54,32 @@
   (quoted_attribute_value
     (attribute_value) @injection.content)
   (#set! injection.language "javascript"))
+
+; lit-html ${...} template expressions in attribute values (kept from upstream)
+((attribute
+  (quoted_attribute_value
+    (attribute_value) @injection.content))
+  (#lua-match? @injection.content "%${")
+  (#offset! @injection.content 0 2 0 -1)
+  (#set! injection.language "javascript"))
+
+((attribute
+  (attribute_value) @injection.content)
+  (#lua-match? @injection.content "%${")
+  (#offset! @injection.content 0 2 0 -2)
+  (#set! injection.language "javascript"))
+
+; <input pattern="..."> regex (kept from upstream)
+(element
+  (_
+    (tag_name) @_tagname
+    (#eq? @_tagname "input")
+    (attribute
+      (attribute_name) @_attr
+      [
+        (quoted_attribute_value
+          (attribute_value) @injection.content)
+        (attribute_value) @injection.content
+      ]
+      (#eq? @_attr "pattern"))
+    (#set! injection.language "regex")))

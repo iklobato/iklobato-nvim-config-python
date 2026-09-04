@@ -8,7 +8,13 @@ return {
       vim.g.copilot_npx = false
     end,
     config = function()
-      vim.g.copilot_no_tab_map = false
+      -- copilot.vim only starts its client from its own VimEnter/FileType
+      -- autocmds, both of which already fired for the buffer opened at startup
+      -- by the time InsertEnter loads this plugin. Without this, the file you
+      -- opened nvim with never gets suggestions until a second buffer's
+      -- FileType fires. copilot#Init() starts the client; buffers attach on
+      -- demand from there.
+      vim.fn["copilot#Init"]()
     end,
   },
   {
@@ -82,18 +88,10 @@ return {
         toc = {},
       }
     end,
-    config = function()
-      vim.api.nvim_create_autocmd("FileType", {
-        pattern = "markdown",
-        callback = function()
-          local plugin_path = vim.fn.stdpath("data")
-            .. "/lazy/markdown-preview.nvim/plugin/mkdp.vim"
-          if vim.fn.filereadable(plugin_path) == 1 then
-            vim.cmd("source " .. plugin_path)
-          end
-        end,
-      })
-    end,
+    -- no `config`: the plugin's own plugin/mkdp.vim already registers a
+    -- BufEnter/FileType autocmd that defines :MarkdownPreview & friends for
+    -- every mkdp_filetypes buffer; re-sourcing it here on every markdown
+    -- FileType event just rebuilt the same augroup again for nothing.
   },
   {
     "kristijanhusak/vim-dadbod-ui",
@@ -105,8 +103,11 @@ return {
         cmd = { "DB" },
       },
       {
+        -- "postgres" is never a real filetype (dadbod-ui uses "sql" for it);
+        -- "plsql" was missing. See lua/config/blink.lua for the blink source
+        -- wiring this plugin needs to actually produce completions.
         "kristijanhusak/vim-dadbod-completion",
-        ft = { "sql", "mysql", "postgres" },
+        ft = { "sql", "mysql", "plsql" },
       },
     },
     -- connections live in ~/.local/share/db_ui/connections.json;

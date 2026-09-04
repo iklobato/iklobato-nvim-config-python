@@ -1,6 +1,11 @@
 return {
   {
     "nvim-treesitter/nvim-treesitter",
+    -- pin master explicitly: upstream's default branch is now `main` (a rewrite
+    -- without nvim-treesitter.configs). Without this, a fresh clone or a :Lazy
+    -- update tracks origin/HEAD=main and config.treesitter's setup errors. The
+    -- textobjects spec below is pinned to master for the same reason.
+    branch = "master",
     event = { "BufReadPre", "BufNewFile" },
     cmd = { "TSInstall", "TSUpdate" },
     config = function()
@@ -52,6 +57,23 @@ return {
     "chrisgrieser/nvim-puppeteer",
     dependencies = "nvim-treesitter/nvim-treesitter",
     ft = { "python" },
+    -- the plugin's own autocmds cover js/ts/lua/vue/astro/svelte too (rewriting
+    -- strings on InsertLeave), read at ITS OWN plugin-file source time, so this
+    -- has to be `init`, not `config`. Without it, whether a .ts/.lua buffer gets
+    -- auto-rewritten depends on whether a .py file happened to load earlier in
+    -- the session, not on this ft gate.
+    init = function()
+      vim.g.puppeteer_disabled_filetypes = {
+        "lua",
+        "javascript",
+        "typescript",
+        "javascriptreact",
+        "typescriptreact",
+        "vue",
+        "astro",
+        "svelte",
+      }
+    end,
   },
   {
     "nvim-telescope/telescope.nvim",
@@ -76,7 +98,9 @@ return {
   },
   {
     "stevearc/conform.nvim",
-    cmd = { "ConformInfo", "Conform" },
+    -- conform only defines :ConformInfo; a stub :Conform would load the plugin
+    -- and then fail with "Not an editor command"
+    cmd = { "ConformInfo" },
     config = function()
       require("config.conform").setup()
     end,
