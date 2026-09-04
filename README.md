@@ -60,9 +60,13 @@ system/                     # Dotfiles and tool configs, detailed in system/READ
   lazygit.yml               # Lazygit config (delta pager)
   Brewfile                  # Full machine package dump
 tests/
-  run.sh                    # luacheck + headless feature suite (63 checks)
+  run.sh                    # luacheck + headless feature suite (62 checks)
   features.lua              # The checks: options, UI, LSP, DAP, keymaps, autocmds
-  e2e.sh                    # Real-nvim TUI suite driven via tmux (24 checks)
+  tmux_lib.sh               # Shared driver for the tmux suites (keys in, RPC out)
+  e2e.sh                    # Real-nvim TUI smoke suite (24 checks)
+  e2e-deep.sh               # Nearly every keymap and every debug feature, over a monorepo
+  fixtures/monorepo.sh      # Builds that monorepo: django + react/ts + go, cached
+  MANUAL.md                 # The handful of checks only eyes can make
 ```
 
 ### Where a plugin's config goes
@@ -85,7 +89,7 @@ Ignoring this is how the `*.dbout` autocmd ended up registered twice.
 - lewis6991/gitsigns.nvim (gutter change stripes)
 - lazy.nvim
 - nvim-lspconfig, mason.nvim, mason-lspconfig.nvim
-- blink.cmp (completion, loads on InsertEnter/CmdlineEnter)
+- blink.cmp (completion, loads on the first buffer; see Performance)
 - telescope.nvim (plenary.nvim, loads on demand)
 - nvim-treesitter
   - nvim-treesitter-context (scope context)
@@ -97,8 +101,9 @@ Ignoring this is how the `*.dbout` autocmd ended up registered twice.
 - nvim-dap + nvim-dap-ui (nvim-nio) + mason-nvim-dap
 - auto-session
 - kulala.nvim (HTTP client, pure Lua, no luarocks)
-- vim-dadbod + vim-dadbod-ui (SQL client)
-- markdown-preview.nvim (random free port)
+- vim-dadbod + vim-dadbod-ui (SQL client, column/table completion via
+  vim-dadbod-completion wired into blink.cmp in sql/mysql/plsql buffers)
+- markdown-preview.nvim (clock-derived port in 8080-9079)
 - github/copilot.vim (bundled language server, no npx)
 - vim-maximizer
 - f-person/git-blame.nvim (inline blame, 1s delay off the cursor path)
@@ -141,7 +146,7 @@ them with their descriptions. Debug keymaps have their own section further down.
 | Key | Does | Note |
 |---|---|---|
 | `H` / `L` | go to line start / line end | `^` and `$` without the symbol keys |
-| `W` / `B` | word back / word forward | deliberately swapped from vim's defaults |
+| `W` / `B` | word back / word forward | deliberately swapped from vim's defaults, normal mode only (operators and visual still use the builtins) |
 | `<leader>j` / `<leader>k` | down / up one *screen* line | `gj`/`gk`, moves inside a wrapped line |
 
 ### Files, windows, tabs, buffers
@@ -166,7 +171,7 @@ them with their descriptions. Debug keymaps have their own section further down.
 | `<leader>ff` | find files | includes gitignored files (`no_ignore`) |
 | `<leader>fg` | grep the whole project as you type | e.g. type `def index` to land on the Django view |
 | `<leader>fb` | pick an open buffer | |
-| `<leader>fo` | symbols of the current file | column widths follow the window width |
+| `<leader>fo` | symbols of the current file | name column width follows the window width |
 
 ### LSP
 
@@ -182,16 +187,16 @@ them with their descriptions. Debug keymaps have their own section further down.
 | Key | Does | Note |
 |---|---|---|
 | `<leader>e` | float with the diagnostic under the cursor | |
-| `<leader>E` | the same float, focusable | enter it to yank the message |
-| `[d` / `]d` | previous / next diagnostic | |
-| `<leader>gp` / `<leader>gn` | same as `[d` / `]d` | |
+| `<leader>E` | the same float, already focused | select and yank the message directly, `q`/`<Esc>` closes it |
+| `[d` / `]d` | previous / next diagnostic | takes a count, `3]d` jumps three |
+| `<leader>gp` / `<leader>gn` | same as `[d` / `]d`, count included | |
 
 ### Editing
 
 | Key | Does | Note |
 |---|---|---|
 | `<leader>f` | format the buffer (normal) or the selection (visual) | conform.nvim, no LSP fallback |
-| `<leader>S` | replace the word under the cursor everywhere in the file | fills `:%s/\<word\>/word/gI` and parks the cursor on the replacement: type the new text and press Enter |
+| `<leader>S` | replace the word under the cursor everywhere in the file | fills `:%s/\<word\>/word/gI` with the old word prefilled as the replacement and the cursor after it: clear it with `<C-w>`, type the new text, press Enter |
 | `<leader>S` (visual) | same, using the selection | |
 
 ### Git and tools
@@ -226,7 +231,7 @@ filetype has no configuration, and `<leader>dc` says so instead of starting.
 | `<leader>dj` | step over | |
 | `<leader>dk` | step into | steps into the function being called on the current line |
 | `<leader>do` | step out | back to the caller |
-| `<leader>dl` | run the last config again | no menu |
+| `<leader>dl` | run the last config again | no menu. `${file}` is re-expanded, so it follows the buffer you are on, not the one the last run used |
 | `<leader>dt` | terminate the session | UI closes with it |
 | `<leader>dd` | disconnect and close the UI | |
 | `<leader>du` | show / hide the UI | the session keeps running |
@@ -270,18 +275,23 @@ takes expressions the same way.
 ### Adapters and configurations
 
 - mason-nvim-dap ensures debugpy (python), delve (go) and js-debug-adapter
-  (node, typescript, react). They install on the first debug session, not at
-  install time
+  (node, typescript, react). debugpy is installed up front by scripts/install.sh;
+  delve and js-debug-adapter install on the first debug session
 - Python: Launch file, Django runserver, Pytest file. The adapter uses mason's
   debugpy when installed, otherwise the python of the active venv
 - Go: Launch file, Launch package, Test package, Attach to process. delve gets a
-  20s initialize timeout because it compiles the program before answering
+  20s initialize timeout because it compiles the program before answering, and
+  it is spawned in the file's directory so a monorepo root does not break the
+  build with "cannot find main module"
 - Node, typescript and react: Launch file, Attach to process, Attach to node
   port 9229, Launch Chrome on dev server (asks for the URL, default
   `http://localhost:5173`), Attach to Chrome port 9222. Launching a `.ts` file
   needs no ts-node or tsx: node 22.18+ strips the types itself
 - The same js-debug-adapter serves node and chrome. React components only stop
   on the chrome configs; the node ones cannot reach browser code
+- The chrome configs resolve `webRoot` to the nearest `package.json` above the
+  open file, so source maps still line up when nvim was opened at a monorepo
+  root instead of the frontend directory
 - Known upstream noise: terminating a python session while it sits on a
   breakpoint makes debugpy SIGKILL the debuggee, and its adapter then exits 1,
   so nvim-dap warns. Letting the program finish, or terminating it while it
@@ -297,26 +307,40 @@ takes expressions the same way.
 - `<leader>f` uses conform.nvim (no LSP fallback)
 - Formatters: Python `ruff_format`, Lua `stylua`, C `clang_format`,
   JS/TS/JSON/CSS/HTML/YAML/Markdown `prettier` (reads `.prettierrc.json`)
-- All of them come from mason; a formatter that is not installed is a silent
-  no-op, so check with `:ConformInfo` if `<leader>f` seems to do nothing
+- stylua, ruff and prettier come from mason; `clang_format` needs a system
+  clang-format (mason has clangd only, and install.sh does not add it)
+- A configured formatter whose binary is missing warns once per filetype
+  ("Formatters unavailable for X file") and does nothing; run `:ConformInfo` if
+  `<leader>f` seems to do nothing
 
 ## Performance
 
-- Startup ~43ms: telescope and treesitter load on first use, not at boot.
+- Startup ~50ms: telescope and treesitter load on first use, not at boot.
   blink.cmp is the exception: `lua/lsp/init.lua` requires it so its plugin file
   registers LSP capabilities before any server starts, so it loads on the first
   buffer, not on InsertEnter
 - Unused providers disabled (python3, ruby, perl, node)
 - git-blame virtual text delayed 1s so it stays off the cursor path
-- No lazyredraw (Neovim marks it unsupported; it causes stutter)
+- No lazyredraw (left at its default off; it causes stutter)
 
 ## Tests
 
 ```bash
-./tests/run.sh    # luacheck, then 63 headless feature checks; nonzero on failure
-./tests/e2e.sh    # real nvim TUI in tmux: real keystrokes, rendered screen,
-                  # full debug session; requires tmux
+./tests/run.sh       # luacheck, then 62 headless feature checks; nonzero on failure
+./tests/e2e.sh       # real nvim TUI in tmux: real keystrokes, rendered screen,
+                     # one full debug session; requires tmux
+./tests/e2e-deep.sh  # the deep one: nearly every keymap and every debug feature
+                     # across python, django, go, typescript and react in a browser
 ```
+
+`e2e-deep.sh` drives a realistic monorepo (django backend, react/typescript
+frontend, go service, one git history, an `.http` file and a sqlite db) that
+`tests/fixtures/monorepo.sh` builds under `~/.cache/nvim-e2e-deep`. Only the
+first run pays for `npm install` and the backend venv. It starts real servers
+and opens a real Chrome window while it runs, and takes several minutes.
+
+What a script cannot assert (colours, glyphs, panel proportions, the rendered
+markdown preview) is a short manual pass in `tests/MANUAL.md`.
 
 ## Install
 
@@ -362,4 +386,5 @@ After install, set your terminal font to "MesloLGS Nerd Font" so icons render.
 - Node.js 22.18+ and ripgrep (for Telescope, LSP servers, Copilot, and the
   node/typescript debugger)
 - Go (only to debug Go: mason builds delve with the local toolchain)
-- tmux (only for tests/e2e.sh)
+- tmux (for tests/e2e.sh and tests/e2e-deep.sh; e2e-deep also needs npm, curl,
+  go and a Chrome for its react phase)
