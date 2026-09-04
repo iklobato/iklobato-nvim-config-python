@@ -6,6 +6,19 @@ local NODE_INSPECT_PORT = 9229
 local CHROME_DEBUG_PORT = 9222
 local DEFAULT_DEV_SERVER_URL = "http://localhost:5173"
 
+-- the frontend of a monorepo is not the directory nvim was opened in, and
+-- chrome resolves every source map against webRoot
+local function web_root()
+  local package_json = vim.fs.find("package.json", {
+    path = vim.fn.expand("%:p:h"),
+    upward = true,
+  })[1]
+  if not package_json then
+    return vim.fn.getcwd()
+  end
+  return vim.fs.dirname(package_json)
+end
+
 local function prompt_dev_server_url()
   local url = vim.fn.input("Dev server URL: ", DEFAULT_DEV_SERVER_URL)
   if url == "" then
@@ -120,8 +133,10 @@ function M.setup()
       executable = {
         command = path .. "/dlv",
         args = { "dap", "-l", "127.0.0.1:${port}" },
-        -- dlv keeps running after nvim exits unless it owns its process group
-        detached = vim.fn.has("win32") == 0,
+        -- dlv compiles the program from its OWN working directory, not from
+        -- the cwd in the launch request: without this it fails with "cannot
+        -- find main module" whenever nvim was opened above the go module
+        cwd = config.cwd,
       },
       -- dlv compiles the program before answering, which blows the 4s default
       -- on a cold go build cache and fires a bogus "adapter didn't respond"
@@ -135,12 +150,14 @@ function M.setup()
       request = "launch",
       name = "Launch file",
       program = "${file}",
+      cwd = "${fileDirname}",
     },
     {
       type = "delve",
       request = "launch",
       name = "Launch package",
       program = "${fileDirname}",
+      cwd = "${fileDirname}",
     },
     {
       type = "delve",
@@ -148,6 +165,7 @@ function M.setup()
       name = "Test package",
       mode = "test",
       program = "${fileDirname}",
+      cwd = "${fileDirname}",
     },
     {
       type = "delve",
@@ -172,6 +190,8 @@ function M.setup()
         command = "node",
         args = { path .. "/js-debug/src/dapDebugServer.js", "${port}" },
       },
+      -- a cold node start plus launching a browser goes past the 4s default
+      options = { initialize_timeout_sec = 20 },
     })
   end
 
@@ -216,7 +236,7 @@ function M.setup()
       request = "launch",
       name = "Launch Chrome on dev server",
       url = prompt_dev_server_url,
-      webRoot = "${workspaceFolder}",
+      webRoot = web_root,
       sourceMaps = true,
     },
     {
@@ -224,7 +244,7 @@ function M.setup()
       request = "attach",
       name = "Attach to Chrome port " .. CHROME_DEBUG_PORT,
       port = CHROME_DEBUG_PORT,
-      webRoot = "${workspaceFolder}",
+      webRoot = web_root,
       sourceMaps = true,
     },
   }

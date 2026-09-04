@@ -34,6 +34,8 @@ Thumbs.db
 # Uncomment the line below if you want to ignore it (user-specific packages)
 # Brewfile
 Brewfile.backup.*
+# scripts/mac_packs.sh writes this next to itself
+scripts/installed_packages.txt
 **/connections.json
 .cursor/
 .specify/
@@ -57,9 +59,12 @@ id_ecdsa
 *.pem
 *.key
 
-# Claude config: keep authored config, never volatile state / caches
-system/claude/skills/**/.venv/
-system/claude/skills/**/__pycache__/
-system/claude/skills/**/.pytest_cache/
-system/claude/skills/**/.ruff_cache/
-system/claude/agents/refs/
+# system/claude is a submodule of the private iklobato/dotclaude repo, so its
+# contents (including ~/.claude runtime state) are never tracked here. Its own
+# .gitignore governs what dotclaude itself tracks.
+
+# THIS REPO IS PUBLIC. These files name real internal infrastructure of current
+# employers (a GitHub Enterprise host) plus work email addresses. Publishing them
+# hands a recon target to anyone scraping GitHub, and git history cannot be
+# un-published.
+system/git/

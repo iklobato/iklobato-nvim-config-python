@@ -1,0 +1,8 @@
+root = true
+
+# shfmt (run by the shell-format quality hook) reads this file since v3 and
+# otherwise defaults to tabs, which does not match how every .sh file in this
+# repo is actually indented.
+[*.sh]
+indent_style = space
+indent_size = 2

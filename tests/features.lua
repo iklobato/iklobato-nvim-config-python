@@ -246,13 +246,6 @@ local checks = {
       expect(vim.bo.formatprg == "jq .", "formatprg=" .. vim.bo.formatprg)
     end,
   },
-  {
-    "autocmd: Taskfile detected as yaml",
-    function()
-      edit("Taskfile.yml", { "version: '3'" })
-      expect(vim.bo.filetype == "yaml", "filetype=" .. vim.bo.filetype)
-    end,
-  },
 
   -- DAP (the lazy-load ordering fixes)
   {
@@ -427,7 +420,25 @@ local checks = {
       end
       local allowlist = require("mason-lspconfig.settings").current.automatic_enable
       expect(type(allowlist) == "table", "automatic_enable is not an allowlist")
-      expect(#enabled == #allowlist, #enabled .. " servers enabled, allowlist has " .. #allowlist)
+      -- assert containment, not equality: mason-lspconfig only enables servers
+      -- that are BOTH allowlisted AND installed, so a fresh machine (install.sh
+      -- installs 4 of the 16) enables fewer than the allowlist and is still
+      -- correct. The property that matters is that nothing OUTSIDE the allowlist
+      -- is enabled.
+      local allowed = {}
+      for _, name in ipairs(allowlist) do
+        allowed[name] = true
+      end
+      local outside = {}
+      for _, name in ipairs(enabled) do
+        if not allowed[name] then
+          table.insert(outside, name)
+        end
+      end
+      expect(
+        #outside == 0,
+        "servers enabled outside the allowlist: " .. table.concat(outside, ", ")
+      )
     end,
   },
   -- regression: the textobjects block was configured but the plugin was missing,

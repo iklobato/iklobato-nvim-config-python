@@ -1,6 +1,9 @@
 #!/bin/bash
+set -euo pipefail
 
-output_file="installed_packages.txt"
+# Anchored to the script, not the cwd: export and import must agree on the file
+# no matter where you run this from.
+output_file="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/installed_packages.txt"
 
 export_packages() {
     echo "Homebrew packages:" > "$output_file"
@@ -25,7 +28,7 @@ import_packages() {
     done
 }
 
-case "$1" in
+case "${1:-}" in
     "export")
         export_packages
         ;;

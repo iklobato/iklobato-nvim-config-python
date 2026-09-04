@@ -12,8 +12,9 @@ map("n", "<leader>fb", function()
 end, { desc = "Buffers" })
 map("n", "<leader>fo", function()
   local w = vim.api.nvim_win_get_width(0)
+  -- symbol_type_width only applies when show_line is set, which this picker
+  -- never does, so it is left out rather than kept as a value nothing reads
   require("telescope.builtin").lsp_document_symbols({
     symbol_width = math.max(40, math.floor(w * 0.5)),
-    symbol_type_width = math.max(8, math.floor(w * 0.15)), -- category column (Variable, Function, Class, ...)
   })
 end, { desc = "Find symbols" })

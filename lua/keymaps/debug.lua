@@ -153,5 +153,9 @@ map("n", "<leader>dd", function()
   require("dapui").close()
 end, { desc = "Disconnect debugger" })
 map("n", "<leader>du", function()
+  -- load nvim-dap first: dapui's module requires dap at load time, and if dapui
+  -- is what pulls dap in, dap's own config re-enters require("dapui") mid-load
+  -- ("loop or previous error loading module 'dapui'") and dapui.setup() never runs
+  require("dap")
   require("dapui").toggle()
 end, { desc = "Debug UI" })

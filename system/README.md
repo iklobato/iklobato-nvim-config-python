@@ -4,10 +4,31 @@
 - `Brewfile` - Homebrew packages
 - `lazygit.yml` - Lazygit configuration
 - `iterm2/com.googlecode.iterm2.plist` - iTerm2 preferences (colors, fonts, Minimum Contrast, etc.)
+- `git/` - global gitconfig, the bluerivertech include, and the global git ignore
+- `shell/` - `.zshenv` and `.zprofile` (shell bootstrap that runs before `zshrc`)
+- `claude/` - Claude Code config: settings, CLAUDE.md, hooks, agents, skills, commands
+- `alacritty/`, `aider/`, `pgcli/` - dev tool configs
+- `tor/`, `privoxy/`, `launchagents/` - reference copies (not auto-linked, see below)
 
 `scripts/install.sh` links `zshrc` and `lazygit.yml` automatically (and installs
 oh-my-zsh plus the zsh-syntax-highlighting plugin the zshrc needs). On macOS it
-also points iTerm2 at the versioned prefs folder.
+also points iTerm2 at the versioned prefs folder. `link_dotfiles` and
+`link_claude` symlink the git, shell, dev-tool, and Claude configs above.
+
+## Not auto-linked (run by hand)
+
+`tor/torrc`, `privoxy/config`, and `launchagents/*.plist` are versioned as
+reference only. Their live paths depend on the Homebrew prefix and need a service
+reload, so copy them into place by hand on a new machine:
+
+```sh
+cp system/tor/torrc "$(brew --prefix)/etc/tor/torrc"
+cp system/privoxy/config "$(brew --prefix)/etc/privoxy/config"
+cp system/launchagents/*.plist ~/Library/LaunchAgents/   # then: launchctl load
+```
+
+The Claude `agents/refs/` pentest clones (159M) and skill `.venv`/cache dirs are
+gitignored: only authored config is versioned, not regenerable state.
 
 ## iTerm2 (macOS)
 
