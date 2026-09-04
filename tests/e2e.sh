@@ -5,6 +5,11 @@
 # Run: ./tests/e2e.sh   Exits 0 when every check passes.
 set -uo pipefail
 
+# resolved before the cd below, so sourcing still works from the scratch project
+HERE="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=tests/tmux_lib.sh
+source "$HERE/tmux_lib.sh"
+
 S="nvim-e2e-$$"
 PROJ="$(mktemp -d)"
 SOCK="$PROJ/nvim.sock"
@@ -19,62 +24,13 @@ trap cleanup EXIT
 cd "$PROJ" || exit 1
 git init -q
 git -c user.email=e2e@test -c user.name=e2e commit -q --allow-empty -m init
-cat > app.py <<'EOF'
+cat >app.py <<'EOF'
 x = 1
 y = x + 1
 print(y)
 EOF
 git add app.py
 git -c user.email=e2e@test -c user.name=e2e commit -q -m "add app.py"
-
-PASS=0
-FAIL=0
-declare -a RESULTS
-
-ok()  { RESULTS+=("PASS  $1"); PASS=$((PASS + 1)); }
-bad() { RESULTS+=("FAIL  $1  ($2)"); FAIL=$((FAIL + 1)); }
-
-# every RPC call gets its own watchdog: a wedged nvim (e.g. stuck on a
-# hit-enter prompt) must fail the check, never hang the suite
-expr_() { perl -e 'alarm shift; exec @ARGV' 5 nvim --server "$SOCK" --remote-expr "$1" 2>/dev/null; }
-# lua snippets must use double quotes internally and evaluate to 1 (pass) or 0
-lexpr() { expr_ "luaeval('$1')"; }
-keys() { tmux send-keys -t "$S" "$@"; }
-screen() { tmux capture-pane -pt "$S"; }
-
-# dismiss hit-enter prompts the way a real user does, but record what
-# was on screen so the underlying message still fails the suite
-declare -a PROMPTS
-dismiss_prompts() {
-  if screen | grep -q "Press ENTER"; then
-    PROMPTS+=("$(screen | tail -3 | tr '\n' ' ')")
-    keys Enter
-  fi
-}
-
-wait_lexpr() { # name, lua-expr-evaluating-to-1, timeout-seconds
-  local name=$1 e=$2 t=${3:-10} r=""
-  local tries=$((t * 2))
-  for ((i = 0; i < tries; i++)); do
-    r=$(lexpr "$e" || true)
-    if [ "$r" = "1" ]; then ok "$name"; return 0; fi
-    dismiss_prompts
-    sleep 0.5
-  done
-  bad "$name" "expr=$e last=$r"
-  return 1
-}
-
-wait_screen() { # name, grep-pattern, timeout-seconds
-  local name=$1 pat=$2 t=${3:-10}
-  local tries=$((t * 2))
-  for ((i = 0; i < tries; i++)); do
-    if screen | grep -q "$pat"; then ok "$name"; return 0; fi
-    sleep 0.5
-  done
-  bad "$name" "pattern '$pat' never rendered"
-  return 1
-}
 
 # ---- boot a real nvim TUI ----
 tmux new-session -d -s "$S" -x 220 -y 60 "nvim --listen '$SOCK' app.py"
@@ -155,10 +111,18 @@ wait_lexpr "markdown-preview command available on .md" \
 # ---- no LSP spawn failures anywhere in the session ----
 sleep 2
 dismiss_prompts
-if expr_ 'execute("messages")' | grep -qi "failed\|error"; then
-  bad "no errors in :messages" "$(expr_ 'execute("messages")' | grep -i 'failed\|error' | head -2 | tr '\n' ' ')"
+# a dead/wedged nvim answers "" to both calls below, which used to read as
+# "no errors" (empty string never matches the grep); check liveness first so
+# an unreachable nvim fails the check instead of passing it by accident
+if [ "$(expr_ '1')" != "1" ]; then
+  bad "no errors in :messages" "nvim unreachable, cannot read :messages"
 else
-  ok "no errors in :messages"
+  msgs="$(expr_ 'execute("messages")')"
+  if echo "$msgs" | grep -qi "failed\|error"; then
+    bad "no errors in :messages" "$(echo "$msgs" | grep -i 'failed\|error' | head -2 | tr '\n' ' ')"
+  else
+    ok "no errors in :messages"
+  fi
 fi
 if [ "${#PROMPTS[@]}" -gt 0 ]; then
   bad "no hit-enter prompts during the run" "${PROMPTS[0]}"
@@ -178,7 +142,4 @@ else
   ok "nvim quits cleanly"
 fi
 
-printf '%s\n' "${RESULTS[@]}"
-echo
-echo "$PASS/$((PASS + FAIL)) e2e checks passed"
-[ "$FAIL" -eq 0 ]
+summary e2e
