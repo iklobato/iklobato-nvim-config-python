@@ -1,0 +1,9 @@
+SocksPort 9050
+
+# The control port is a full control channel: SETCONF, circuit listing, hidden
+# services. Without an auth method Tor answers AUTH METHODS=NULL and any local
+# user gets that control for free.
+# The cookie lands in ~/.tor/control_auth_cookie as 0600, so this shuts out other
+# local users. Code already running as this user can still read it and connect.
+ControlPort 9051
+CookieAuthentication 1

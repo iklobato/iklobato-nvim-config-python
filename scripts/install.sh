@@ -122,10 +122,20 @@ install_deps_ubuntu() {
   if ! fc-list 2>/dev/null | grep -qi "nerd font"; then
     say "installing Meslo LG Nerd Font"
     mkdir -p "$HOME/.local/share/fonts"
-    curl -fsSL -o /tmp/Meslo.zip \
+    # mktemp, not a fixed /tmp name another process could have created first.
+    # The URL is "latest", so its hash changes every release and cannot be
+    # pinned here; unzip -t is what proves the download arrived whole.
+    local font_zip
+    font_zip="$(mktemp -t Meslo.XXXXXX)"
+    curl -fsSL -o "$font_zip" \
       "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Meslo.zip"
-    unzip -qo /tmp/Meslo.zip -d "$HOME/.local/share/fonts"
-    fc-cache -f >/dev/null 2>&1 || true
+    if unzip -tq "$font_zip" >/dev/null 2>&1; then
+      unzip -qo "$font_zip" -d "$HOME/.local/share/fonts"
+      fc-cache -f >/dev/null 2>&1 || true
+    else
+      say "WARNING: Meslo.zip failed its integrity check, skipping the font"
+    fi
+    rm -f "$font_zip"
   fi
 }
 
@@ -165,6 +175,7 @@ install_dotfiles() {
 
   link_file "$system_dir/zshrc" "$HOME/.zshrc"
   link_dotfiles "$system_dir"
+  link_claude "$system_dir"
   if [[ "$(uname -s)" == Darwin ]]; then
     link_file "$system_dir/lazygit.yml" "$HOME/Library/Application Support/lazygit/config.yml"
     install_iterm "$system_dir/iterm2"
@@ -188,6 +199,30 @@ link_dotfiles() {
   link_file "$system_dir/btop/btop.conf" "$config_home/btop/btop.conf"
   link_file "$system_dir/htop/htoprc" "$config_home/htop/htoprc"
   link_file "$system_dir/pyenv/version" "$HOME/.pyenv/version"
+  link_file "$system_dir/git/gitconfig" "$HOME/.gitconfig"
+  link_file "$system_dir/git/gitconfig-bluerivertech" "$HOME/.gitconfig-bluerivertech"
+  link_file "$system_dir/git/config/ignore" "$config_home/git/ignore"
+  link_file "$system_dir/shell/zshenv" "$HOME/.zshenv"
+  link_file "$system_dir/shell/zprofile" "$HOME/.zprofile"
+  link_file "$system_dir/alacritty/alacritty.toml" "$config_home/alacritty/alacritty.toml"
+  link_file "$system_dir/aider/CONVENTIONS.md" "$config_home/aider/CONVENTIONS.md"
+  link_file "$system_dir/pgcli/config" "$config_home/pgcli/config"
+}
+
+# Link the versioned Claude Code config (settings, CLAUDE.md, hooks, agents,
+# skills, commands). Skips the machine-local state Claude regenerates: sessions,
+# caches, transcripts, and the 159M agents/refs pentest clones.
+link_claude() {
+  local system_dir="$1"
+  local claude_dir="$HOME/.claude"
+  [[ -d "$system_dir/claude" ]] || return 0
+  mkdir -p "$claude_dir"
+  link_file "$system_dir/claude/settings.json" "$claude_dir/settings.json"
+  link_file "$system_dir/claude/CLAUDE.md" "$claude_dir/CLAUDE.md"
+  link_file "$system_dir/claude/hooks" "$claude_dir/hooks"
+  link_file "$system_dir/claude/agents" "$claude_dir/agents"
+  link_file "$system_dir/claude/skills" "$claude_dir/skills"
+  link_file "$system_dir/claude/commands" "$claude_dir/commands"
 }
 
 # Point iTerm2 at the versioned prefs folder. iTerm reads from it at launch and

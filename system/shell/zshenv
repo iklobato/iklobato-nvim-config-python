@@ -1,0 +1,4 @@
+export PATH="/Users/iklo/.ebcli-virtual-env/executables:$PATH"
+
+# Go-installed recon tools on PATH for non-interactive shells (agents)
+export PATH="$HOME/go/bin:$PATH"
