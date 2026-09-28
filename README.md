@@ -93,7 +93,7 @@ Ignoring this is how the `*.dbout` autocmd ended up registered twice.
 - telescope.nvim (plenary.nvim, loads on demand)
 - nvim-treesitter
   - nvim-treesitter-context (scope context)
-  - nvim-treesitter-textobjects (af/if/ac/ic, master branch)
+  - nvim-treesitter-textobjects (af/if/ac/ic, main branch)
   - indent-blankline.nvim (indent guides)
   - nvim-puppeteer (Python f-string auto-conversion)
 - nvim-tree (nvim-web-devicons)
@@ -126,7 +126,7 @@ Ignoring this is how the `*.dbout` autocmd ended up registered twice.
 
 - Context showing function/class scope at top of window
 - Textobjects: `af`/`if` (function), `ac`/`ic` (class)
-- Incremental selection: `gnn`, `grn`, `grc`, `grm`
+- Incremental selection (built into nvim 0.12): `an` grows, `in` shrinks, in visual mode
 - Indent guides (indent-blankline)
 - Language parsers: lua, python, javascript, typescript, tsx, html, http, css,
   json, markdown, bash, vim, go, rust, ruby, toml, yaml, requirements,
@@ -363,7 +363,7 @@ is moved to a timestamped `.bak_<date>` first.
 
 What it sets up:
 
-- **Dependencies**: Neovim 0.11+, git, Node 22+, ripgrep, python3, git-delta
+- **Dependencies**: Neovim 0.12+, git, Node 22+, ripgrep, python3, git-delta
   (lazygit pager), Meslo LG Nerd Font
 - **Config**: this repo at `~/.config/nvim`
 - **Dotfiles**: `system/zshrc` → `~/.zshrc` and `system/lazygit.yml` → the
@@ -381,7 +381,7 @@ After install, set your terminal font to "MesloLGS Nerd Font" so icons render.
 ## Requirements
 
 - macOS or Ubuntu/Debian (other systems: install deps manually, then run the script)
-- Neovim 0.11+
+- Neovim 0.12+ (nvim-treesitter main branch), tree-sitter CLI 0.26.1+, a C compiler
 - Python 3 (for LSP and DAP)
 - Node.js 22.18+ and ripgrep (for Telescope, LSP servers, Copilot, and the
   node/typescript debugger)

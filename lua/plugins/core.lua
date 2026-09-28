@@ -1,13 +1,12 @@
 return {
   {
     "nvim-treesitter/nvim-treesitter",
-    -- pin master explicitly: upstream's default branch is now `main` (a rewrite
-    -- without nvim-treesitter.configs). Without this, a fresh clone or a :Lazy
-    -- update tracks origin/HEAD=main and config.treesitter's setup errors. The
-    -- textobjects spec below is pinned to master for the same reason.
-    branch = "master",
-    event = { "BufReadPre", "BufNewFile" },
-    cmd = { "TSInstall", "TSUpdate" },
+    -- main branch: master is frozen and only works up to nvim 0.11; on 0.12 its
+    -- query directives get node lists and crash the highlighter. main does not
+    -- support lazy-loading.
+    branch = "main",
+    lazy = false,
+    build = ":TSUpdate",
     config = function()
       require("config.treesitter").setup()
     end,
@@ -47,11 +46,13 @@ return {
   },
   {
     "nvim-treesitter/nvim-treesitter-textobjects",
-    -- must track master: the main branch needs nvim-treesitter's main branch,
-    -- and this config pins nvim-treesitter to master
-    branch = "master",
+    -- must match nvim-treesitter's branch
+    branch = "main",
     event = { "BufReadPre", "BufNewFile" },
     dependencies = "nvim-treesitter/nvim-treesitter",
+    config = function()
+      require("config.treesitter").setup_textobjects()
+    end,
   },
   {
     "chrisgrieser/nvim-puppeteer",

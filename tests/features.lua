@@ -441,8 +441,7 @@ local checks = {
       )
     end,
   },
-  -- regression: the textobjects block was configured but the plugin was missing,
-  -- and its main branch is incompatible with nvim-treesitter master
+  -- regression: the textobjects block was configured but the plugin was missing
   {
     "treesitter: function textobject is mapped",
     function()
@@ -464,6 +463,22 @@ local checks = {
       end)
       expect(langs.tsx, "tsx not injected: " .. table.concat(vim.tbl_keys(langs), ", "))
       expect(not langs.javascript, "javascript still injected alongside tsx")
+    end,
+  },
+  -- regression: nvim-treesitter master's #set-lang-from-mimetype! directive
+  -- called :range() on the node list nvim 0.12 passes, crashing the highlighter
+  {
+    "treesitter: html typed script parses and highlights",
+    function()
+      edit("typed.html", { '<script type="text/javascript">let a = 1</script>' })
+      local ok, err = pcall(function()
+        vim.treesitter.get_parser(0, "html"):parse(true)
+      end)
+      expect(ok, tostring(err))
+      expect(
+        vim.treesitter.highlighter.active[vim.api.nvim_get_current_buf()],
+        "highlighter not attached"
+      )
     end,
   },
   -- regression: stylua was configured but never installed, so <leader>f on a

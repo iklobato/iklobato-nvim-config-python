@@ -10,7 +10,7 @@ set -euo pipefail
 REPO_URL="https://github.com/iklobato/iklobato-nvim-config-python.git"
 NVIM_CONFIG_DIR="${NVIM_CONFIG_DIR:-$HOME/.config/nvim}"
 
-NVIM_MIN_MINOR=11
+NVIM_MIN_MINOR=12
 NODE_MIN_MAJOR=22
 
 MASON_TOOLS=(lua-language-server pyright ruff typescript-language-server stylua debugpy)
@@ -83,6 +83,7 @@ install_deps_macos() {
   has rg || brew install ripgrep
   has python3 || brew install python3
   has delta || brew install git-delta
+  has tree-sitter || brew install tree-sitter-cli
   brew list --cask font-meslo-lg-nerd-font >/dev/null 2>&1 ||
     brew install --cask font-meslo-lg-nerd-font
 }

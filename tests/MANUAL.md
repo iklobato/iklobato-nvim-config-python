@@ -42,8 +42,8 @@ nvim backend/core/services.py
   wedging nvim: whether a code action or an implementation exists depends on the
   language server and the cursor position, so a stable assertion would be
   testing pyright, not this config.
-- **`<leader>mp`/`<leader>mP` and the treesitter motions** (`gnn`/`grn`/`grc`/
-  `grm`, `af`/`if`/`ac`/`ic`). The suite only checks these are bound
+- **`<leader>mp`/`<leader>mP` and the treesitter motions** (`af`/`if`/`ac`/
+  `ic`). The suite only checks these are bound
   (`maparg`), it never presses them; markdown preview opening a browser and the
   treesitter selection/textobject behavior are covered by check 13 above and by
   `tests/features.lua`'s static maparg checks, respectively.
