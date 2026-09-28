@@ -6,6 +6,10 @@
 ((comment) @injection.content
   (#set! injection.language "comment"))
 
+; <style>...</style>
+; <style blocking> ...</style>
+; Add "lang" to predicate check so that vue/svelte can inherit this
+; without having this element being captured twice
 ((style_element
   (start_tag) @_no_type_lang
   (raw_text) @injection.content)
@@ -24,6 +28,8 @@
   (#eq? @_css "text/css")
   (#set! injection.language "css"))
 
+; <script>...</script>
+; <script defer>...</script>
 ((script_element
   (start_tag) @_no_type_lang
   (raw_text) @injection.content)
@@ -31,16 +37,42 @@
   (#not-lua-match? @_no_type_lang "%stype%s*=")
   (#set! injection.language "tsx"))
 
+; <script type="foo/bar">
 (script_element
   (start_tag
     (attribute
       (attribute_name) @_attr
       (#eq? @_attr "type")
       (quoted_attribute_value
-        (attribute_value) @_type)))
+        (attribute_value) @injection.language)))
   (raw_text) @injection.content
-  (#set-lang-from-mimetype! @_type))
+  (#gsub! @injection.language "(.+)/(.+)" "%2"))
 
+; <script type="importmap">
+((script_element
+  (start_tag
+    (attribute
+      (attribute_name) @_attr
+      (#eq? @_attr "type")
+      (quoted_attribute_value
+        (attribute_value) @_type)))
+  (raw_text) @injection.content)
+  (#eq? @_type "importmap")
+  (#set! injection.language "json"))
+
+; <script type="module">
+((script_element
+  (start_tag
+    (attribute
+      (attribute_name) @_attr
+      (#eq? @_attr "type")
+      (quoted_attribute_value
+        (attribute_value) @_type)))
+  (raw_text) @injection.content)
+  (#eq? @_type "module")
+  (#set! injection.language "javascript"))
+
+; <a style="/* css */">
 ((attribute
   (attribute_name) @_attr
   (quoted_attribute_value
@@ -48,14 +80,9 @@
   (#eq? @_attr "style")
   (#set! injection.language "css"))
 
-(attribute
-  (attribute_name) @_name
-  (#lua-match? @_name "^on[a-z]+$")
-  (quoted_attribute_value
-    (attribute_value) @injection.content)
-  (#set! injection.language "javascript"))
-
-; lit-html ${...} template expressions in attribute values (kept from upstream)
+; lit-html style template interpolation
+; <a @click=${e => console.log(e)}>
+; <a @click="${e => console.log(e)}">
 ((attribute
   (quoted_attribute_value
     (attribute_value) @injection.content))
@@ -69,7 +96,7 @@
   (#offset! @injection.content 0 2 0 -2)
   (#set! injection.language "javascript"))
 
-; <input pattern="..."> regex (kept from upstream)
+; <input pattern="[0-9]"> or <input pattern=[0-9]>
 (element
   (_
     (tag_name) @_tagname
@@ -83,3 +110,11 @@
       ]
       (#eq? @_attr "pattern"))
     (#set! injection.language "regex")))
+
+; <input type="checkbox" onchange="this.closest('form').elements.output.value = this.checked">
+(attribute
+  (attribute_name) @_name
+  (#lua-match? @_name "^on[a-z]+$")
+  (quoted_attribute_value
+    (attribute_value) @injection.content)
+  (#set! injection.language "javascript"))
