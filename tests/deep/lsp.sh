@@ -31,8 +31,6 @@ keys Escape
 keys g r
 wait_lexpr "keymap gr fills the quickfix with references" '#vim.fn.getqflist() > 0 and 1 or 0' 15
 keys Escape ":cclose" Enter
-keys g i
-wait_lexpr "keymap gi runs without wedging nvim" "1" 10
 goto_line 9
 cursor_on double
 keys Space g d
@@ -51,35 +49,56 @@ keys "renamed_double" Enter
 wait_lexpr "keymap <leader>rn renames the symbol across the buffer" \
   '(function() for _, l in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, false)) do if l:match("renamed_double") then return 1 end end return 0 end)()' 20
 keys Escape "u"
-keys Space c a
-wait_lexpr "keymap <leader>ca runs without wedging nvim" "1" 10
-keys Escape Escape
 
 # ---------------------------------------------------------------- diagnostics
+FLOAT_OPEN='(function() for _, w in ipairs(vim.api.nvim_list_wins()) do if vim.api.nvim_win_get_config(w).relative ~= "" then return true end end return false end)()'
 open_file backend/core/legacy.py
 wait_lexpr "ruff reports the unused imports in legacy.py" \
   '#vim.diagnostic.get(0) > 0 and 1 or 0' 60
+# nvim 0.12 ships its own [d/]d that make the same jump without a float, so
+# the float is what proves the config's maps ran; goto_line moves the cursor,
+# which closes any float left over from the step before
 goto_line 8
 keys "[" d
-wait_lexpr "keymap [d jumps back to a diagnostic" 'vim.fn.line(".") <= 2 and 1 or 0'
+wait_lexpr "keymap [d jumps back to a diagnostic and shows it" "(vim.fn.line(\".\") <= 2 and $FLOAT_OPEN) and 1 or 0"
 goto_line 8
 keys Space g p
-wait_lexpr "keymap <leader>gp jumps back to a diagnostic" 'vim.fn.line(".") <= 2 and 1 or 0'
+wait_lexpr "keymap <leader>gp jumps back to a diagnostic and shows it" "(vim.fn.line(\".\") <= 2 and $FLOAT_OPEN) and 1 or 0"
 goto_line 1
 keys "]" d
-wait_lexpr "keymap ]d jumps to the next diagnostic" 'vim.fn.line(".") == 2 and 1 or 0'
+wait_lexpr "keymap ]d jumps to the next diagnostic and shows it" "(vim.fn.line(\".\") == 2 and $FLOAT_OPEN) and 1 or 0"
 goto_line 1
 keys Space g n
-wait_lexpr "keymap <leader>gn jumps to the next diagnostic" 'vim.fn.line(".") == 2 and 1 or 0'
+wait_lexpr "keymap <leader>gn jumps to the next diagnostic and shows it" "(vim.fn.line(\".\") == 2 and $FLOAT_OPEN) and 1 or 0"
 goto_line 1
 keys Space g f
-wait_lexpr "keymap <leader>gf opens the diagnostic float" \
-  '(function() for _, w in ipairs(vim.api.nvim_list_wins()) do if vim.api.nvim_win_get_config(w).relative ~= "" then return 1 end end return 0 end)()' 10
-keys Escape
+wait_lexpr "keymap <leader>gf opens the diagnostic float" "$FLOAT_OPEN and 1 or 0" 10
+goto_line 1
 keys Space E
-wait_lexpr "keymap <leader>E opens a focusable diagnostic float" \
-  '(function() for _, w in ipairs(vim.api.nvim_list_wins()) do if vim.api.nvim_win_get_config(w).relative ~= "" then return 1 end end return 0 end)()' 10
-keys Escape
+wait_lexpr "keymap <leader>E puts the cursor inside the diagnostic float" \
+  'vim.api.nvim_win_get_config(0).relative ~= "" and 1 or 0' 10
+keys q
+wait_lexpr "q closes the focused float" 'vim.api.nvim_win_get_config(0).relative == "" and 1 or 0' 10
+
+# ruff offers "Remove unused import" for line 1; picking it has to edit the
+# buffer, not only show a menu
+goto_line 1
+keys Space c a
+wait_screen "keymap <leader>ca lists ruff's fixes" "Remove unused import" 15
+choice=$(screen | grep -oE '^ *[0-9]+: .*Remove unused import' | head -1 | grep -oE '[0-9]+' | head -1)
+keys "${choice:-0}" Enter
+wait_lexpr "the picked code action removes the import" 'vim.fn.getline(1) ~= "import json" and 1 or 0' 15
+keys Escape ":e!" Enter
+
+# ---------------------------------------------------------------- typescript
+# gi lives here: pyright has no textDocument/implementation, ts_ls does
+open_file frontend/src/lib/shape.ts
+wait_lexpr "ts_ls attaches to the typescript file" \
+  '#vim.lsp.get_clients({ bufnr = vim.fn.bufnr("shape.ts"), name = "ts_ls" }) > 0 and 1 or 0' 60
+goto_line 1
+cursor_on Shape
+keys g i
+wait_lexpr "keymap gi jumps to the class implementing the interface" 'vim.fn.line(".") == 5 and 1 or 0' 20
 
 # ---------------------------------------------------------------- editing
 open_file backend/core/services.py

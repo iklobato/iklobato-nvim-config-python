@@ -10,6 +10,21 @@ source "$TESTS/tmux_lib.sh"
 deep_setup ui
 deep_boot backend/core/services.py
 
+# lualine's path also prints the filename, so the screen alone cannot tell
+# whether bufferline drew anything: read the tabline bufferline renders
+wait_lexpr "bufferline draws the open file as a tab" \
+  '(vim.api.nvim_eval_statusline(vim.o.tabline, { use_tabline = true }).str:find("services.py", 1, true) and 1 or 0)' 15
+
+# a remapped motion has to land where the builtin it stands for lands, and that
+# spot has to differ from where the builtin it replaces lands; otherwise the
+# check would still pass with the map deleted
+remember_cursor() {
+  lexpr '(function() _G.__pre = vim.api.nvim_win_get_cursor(0) return 1 end)()' >/dev/null
+}
+lands_like() { # builtin-it-stands-for builtin-it-replaces
+  echo '(function() local got = vim.api.nvim_win_get_cursor(0) local function at(k) vim.api.nvim_win_set_cursor(0, _G.__pre) vim.cmd("normal! " .. k) return vim.api.nvim_win_get_cursor(0) end local want, other = at("'"$1"'"), at("'"$2"'") vim.api.nvim_win_set_cursor(0, got) local function same(a, b) return a[1] == b[1] and a[2] == b[2] end return (same(got, want) and not same(want, other)) and 1 or 0 end)()'
+}
+
 # ---------------------------------------------------------------- motions
 goto_line 2
 keys L
@@ -18,24 +33,44 @@ keys H
 wait_lexpr "keymap H jumps to first non-blank" 'vim.fn.col(".") == 5 and 1 or 0'
 goto_line 9
 keys "0"
+wait_lexpr "cursor at the start of line 9" 'vim.fn.line(".") == 9 and vim.fn.col(".") == 1 and 1 or 0'
+remember_cursor
 keys B
-wait_lexpr "keymap B moves a word forward" 'vim.fn.col(".") > 1 and 1 or 0'
+wait_lexpr "keymap B moves a WORD forward, like builtin W" "$(lands_like W B)"
 keys Escape '$'
+wait_lexpr "cursor at the end of line 9" 'vim.fn.col(".") == vim.fn.col("$") - 1 and 1 or 0'
+remember_cursor
 keys W
-wait_lexpr "keymap W moves a word back" 'vim.fn.col(".") < vim.fn.col("$") - 1 and 1 or 0'
-goto_line 7
+wait_lexpr "keymap W moves a WORD back, like builtin B" "$(lands_like B W)"
+# gj and j only differ on a wrapped line, so the check needs one, plus a second
+# line that a plain j would land on
+lexpr '(function() vim.cmd("enew") vim.wo.wrap = true vim.api.nvim_buf_set_lines(0, 0, -1, false, { string.rep("word ", 100), "second" }) vim.api.nvim_win_set_cursor(0, { 1, 0 }) return 1 end)()' >/dev/null
 keys Space j
-wait_lexpr "keymap <leader>j moves down a screen line" 'vim.fn.line(".") == 8 and 1 or 0'
+wait_lexpr "keymap <leader>j moves down a screen line inside a wrapped line" \
+  'vim.fn.line(".") == 1 and vim.fn.col(".") > 100 and 1 or 0'
+# from a fixed spot on the wrapped line's second screen row: a plain k has no
+# line above to go to, so only gk moves the column back
+lexpr '(function() vim.api.nvim_win_set_cursor(0, { 1, 300 }) return 1 end)()' >/dev/null
 keys Space k
-wait_lexpr "keymap <leader>k moves up a screen line" 'vim.fn.line(".") == 7 and 1 or 0'
+wait_lexpr "keymap <leader>k moves up a screen line inside a wrapped line" \
+  'vim.fn.line(".") == 1 and vim.fn.col(".") < 200 and 1 or 0'
+keys Escape ":bd!" Enter
+wait_lexpr "back on services.py" 'vim.fn.expand("%:t") == "services.py" and 1 or 0'
 
 # ---------------------------------------------------------------- windows
 keys Space s v
 wait_lexpr "keymap <leader>sv splits vertically" '#vim.api.nvim_tabpage_list_wins(0) == 2 and 1 or 0'
 keys Space s h
 wait_lexpr "keymap <leader>sh splits horizontally" '#vim.api.nvim_tabpage_list_wins(0) == 3 and 1 or 0'
+# unequal splits in this tab and in a second one: <leader>se has to even out
+# every tab, not only the current one
+lexpr '(function() vim.cmd("vertical resize 40") local cur = vim.api.nvim_get_current_tabpage() vim.cmd("tabnew") vim.cmd("vsplit") vim.cmd("vertical resize 30") vim.api.nvim_set_current_tabpage(cur) return 1 end)()' >/dev/null
 keys Space s e
-wait_lexpr "keymap <leader>se equalizes without closing windows" '#vim.api.nvim_tabpage_list_wins(0) == 3 and 1 or 0'
+wait_lexpr "keymap <leader>se evens out the splits of every tab" \
+  '(function() local function first(n) while n[1] ~= "leaf" do n = n[2][1] end return n[2] end local function even(n) if n[1] == "leaf" then return true end local size = n[1] == "row" and vim.api.nvim_win_get_width or vim.api.nvim_win_get_height local lo, hi = math.huge, 0 for _, c in ipairs(n[2]) do local s = size(first(c)) lo, hi = math.min(lo, s), math.max(hi, s) if not even(c) then return false end end return hi - lo <= 1 end for _, tab in ipairs(vim.api.nvim_list_tabpages()) do if not even(vim.fn.winlayout(vim.api.nvim_tabpage_get_number(tab))) then return 0 end end return 1 end)()'
+wait_lexpr "keymap <leader>se keeps every window" '#vim.api.nvim_tabpage_list_wins(0) == 3 and 1 or 0'
+keys Escape ":tabonly" Enter
+wait_lexpr "back to one tab" 'vim.fn.tabpagenr("$") == 1 and 1 or 0'
 keys Space s m
 wait_lexpr "keymap <leader>sm maximizes the current split" 'vim.api.nvim_win_get_height(0) > 40 and 1 or 0'
 keys Space s m
@@ -60,7 +95,8 @@ keys Space e e
 wait_lexpr "keymap <leader>ee closes nvim-tree" "(function() return $(win_with_ft NvimTree) == 1 and 0 or 1 end)()"
 keys Space e f
 wait_lexpr "keymap <leader>ef reveals the file in the tree" "$(win_with_ft NvimTree)"
-wait_screen "the revealed file is on screen" "services.py"
+wait_lexpr "the tree cursor sits on the revealed file" \
+  '(function() local ok, api = pcall(require, "nvim-tree.api") local node = ok and api.tree.get_node_under_cursor() return (node and node.name == "services.py") and 1 or 0 end)()'
 keys Space e e
 
 # ---------------------------------------------------------------- buffers

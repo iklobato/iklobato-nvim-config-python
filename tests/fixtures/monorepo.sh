@@ -8,7 +8,7 @@
 # alone, so `npm install` runs once and not on every suite run.
 set -euo pipefail
 
-VERSION=7
+VERSION=8
 TARGET=${1:?usage: monorepo.sh <target-dir>}
 STAMP="$TARGET/.stamp"
 
@@ -225,6 +225,21 @@ export function summarize(numbers: number[]): number {
     total = total + double(number);
   }
   return total;
+}
+EOF
+  # an interface with one implementation, so gi has somewhere to jump; pyright
+  # has no textDocument/implementation, so the python side cannot test it
+  cat >src/lib/shape.ts <<'EOF'
+export interface Shape {
+  area(): number;
+}
+
+export class Square implements Shape {
+  constructor(private side: number) {}
+
+  area(): number {
+    return this.side * this.side;
+  }
 }
 EOF
   cat >src/worker.ts <<'EOF'
