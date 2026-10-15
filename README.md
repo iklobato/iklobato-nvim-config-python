@@ -294,8 +294,10 @@ takes expressions the same way.
 ### Adapters and configurations
 
 - mason-nvim-dap ensures debugpy (python), delve (go) and js-debug-adapter
-  (node, typescript, react). debugpy is installed up front by scripts/install.sh;
-  delve and js-debug-adapter install on the first debug session
+  (node, typescript, react). scripts/install.sh installs all three up front: if
+  delve and js-debug-adapter are left for the first debug session, their
+  install (delve is a go build) slows debugpy past its initialize timeout and
+  that first python session fails
 - Python: Launch file, Django runserver, Pytest file, Uvicorn app (asks for the
   ASGI app, default `main:app`, and runs without `--reload`). The adapter uses
   mason's debugpy when installed, otherwise the python of the active venv
@@ -408,8 +410,10 @@ What it sets up:
   platform lazygit path, plus oh-my-zsh and the zsh-syntax-highlighting plugin
   the zshrc expects
 - **Plugins**: `Lazy! sync` headless, then mason installs pyright, ruff, lua_ls,
-  ts_ls, stylua and debugpy. delve and js-debug-adapter are not installed here:
-  mason-nvim-dap pulls them the first time you open a debug session
+  ts_ls, stylua, prettier, debugpy, delve and js-debug-adapter. The other
+  language servers the config enables (yamlls, jsonls, bashls, dockerls,
+  terraformls, tflint, clangd, html, cssls, tailwindcss, eslint, marksman) are
+  not installed by the script: add them with `:MasonInstall` when you need them
 
 `system/Brewfile` is *not* installed by the script: it's a full machine dump.
 Use `./scripts/brew-import.sh` if you want it.

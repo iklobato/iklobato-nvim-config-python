@@ -24,6 +24,10 @@ local ENSURE_INSTALLED = {
   "make",
 }
 
+-- scripts/install.sh waits on these, so a fresh machine has them before its
+-- first session
+M.ENSURE_INSTALLED = ENSURE_INSTALLED
+
 local MAX_HIGHLIGHT_FILESIZE = 1024 * 1024
 local NO_TS_INDENT = { python = true }
 
