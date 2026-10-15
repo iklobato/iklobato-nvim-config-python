@@ -35,9 +35,6 @@ nvim backend/core/services.py
 
 - **Anything the terminal draws.** Colours, glyphs and window proportions are
   in the table above.
-- **Session restore across restarts.** auto-session writes on exit, so asserting
-  it needs a second nvim boot inside the same suite. Check it by hand: open a
-  few buffers, quit, reopen nvim in the same directory, and see them come back.
 - **The rendered markdown preview.** `deep/tools.sh` presses `<leader>mp`, gets
   a 200 from the preview server and stops it with `<leader>mP`, but records the
   URL instead of opening a browser. What the page looks like is check 13 above.

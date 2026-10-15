@@ -356,9 +356,12 @@ takes expressions the same way.
 ```
 
 Areas: `ui` (statusline, motions, windows, tabs, explorer, buffers, save and
-quit), `search` (telescope), `lsp` (python LSP keymaps, diagnostics,
-formatting), `tools` (git, markdown, http client, database UI), `dap-python`,
-`dap-go` and `dap-js`. Each one boots its own nvim, so a failure in one area
+quit), `search` (telescope), `lsp` (python and typescript LSP keymaps,
+diagnostics, formatting), `langs` (every other language server attaches, and
+prettier/stylua format), `completion` (blink.cmp in insert mode and on the
+command line), `session` (save on quit, restore on start, no explorer over a
+restored session), `tools` (git, markdown, http client, database UI),
+`dap-python`, `dap-go` and `dap-js`. Each one boots its own nvim, so a failure in one area
 cannot leave state behind for the next, and each ends with the same health
 checks (no errors in `:messages`, no hit-enter prompts, a clean quit).
 

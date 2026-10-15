@@ -8,7 +8,7 @@
 # alone, so `npm install` runs once and not on every suite run.
 set -euo pipefail
 
-VERSION=9
+VERSION=11
 TARGET=${1:?usage: monorepo.sh <target-dir>}
 STAMP="$TARGET/.stamp"
 
@@ -214,6 +214,16 @@ npm create --registry=https://registry.npmjs.org/ vite@latest frontend -- --temp
   cd frontend
   printf 'registry=https://registry.npmjs.org/\n' >.npmrc
   npm install >/dev/null 2>&1
+  # vite's template no longer ships eslint, and the eslint language server only
+  # attaches under a project that has both the package and a config
+  npm install --save-dev eslint@9 >/dev/null 2>&1
+  cat >eslint.config.js <<'EOF'
+export default [{ files: ["**/*.js"], rules: { "no-unused-vars": "error" } }];
+EOF
+  cat >src/legacy.js <<'EOF'
+const unused = 1;
+export const used = 2;
+EOF
   mkdir -p src/lib
   cat >src/lib/math.ts <<'EOF'
 export function double(value: number): number {
@@ -298,6 +308,70 @@ cat >README.md <<'EOF'
 # monorepo
 
 Test fixture. Django backend, React frontend, Go service.
+EOF
+
+# ---------- langs: one file per language the config claims to support ----------
+# each one is what its language server or formatter needs to attach and act;
+# the badly formatted lines are there for the formatter checks
+mkdir -p langs
+cat >langs/tool.lua <<'EOF'
+local M = {}
+
+function M.double(value)
+  return value * 2
+end
+
+local   spaced   =   {1,2}
+
+return M
+EOF
+cat >langs/config.yaml <<'EOF'
+service:
+  name: deep
+  replicas: 2
+EOF
+cat >langs/data.json <<'EOF'
+{ "name":   "deep",   "count": 2 }
+EOF
+cat >langs/run.sh <<'EOF'
+#!/usr/bin/env bash
+echo "deep"
+EOF
+cat >langs/Dockerfile <<'EOF'
+FROM alpine:3.20
+CMD ["echo", "deep"]
+EOF
+cat >langs/main.tf <<'EOF'
+variable "name" {
+  type    = string
+  default = "deep"
+}
+EOF
+cat >langs/hello.c <<'EOF'
+#include <stdio.h>
+
+int main(void) {
+  printf("deep\n");
+  return 0;
+}
+EOF
+cat >langs/index.html <<'EOF'
+<!doctype html>
+<html>
+  <body>
+    <p>deep</p>
+  </body>
+</html>
+EOF
+cat >langs/style.css <<'EOF'
+p {
+  color: red;
+}
+EOF
+cat >langs/app.js <<'EOF'
+export function double(value) {
+  return value * 2;
+}
 EOF
 command -v sqlite3 >/dev/null && sqlite3 data.db \
   "create table totals (id integer primary key, label text, value integer); insert into totals (label, value) values ('first', 20), ('second', 40);"
