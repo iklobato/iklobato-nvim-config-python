@@ -4,6 +4,7 @@ local JS_FILETYPES = { "javascript", "typescript", "javascriptreact", "typescrip
 local JS_SKIP_FILES = { "<node_internals>/**", "${workspaceFolder}/node_modules/**" }
 local NODE_INSPECT_PORT = 9229
 local CHROME_DEBUG_PORT = 9222
+local JS_DEBUG_HOST = "127.0.0.1"
 local DEFAULT_DEV_SERVER_URL = "http://localhost:5173"
 local DEFAULT_ASGI_APP = "main:app"
 
@@ -210,11 +211,13 @@ function M.setup()
     end
     cb({
       type = "server",
-      host = "127.0.0.1",
+      host = JS_DEBUG_HOST,
       port = "${port}",
       executable = {
         command = "node",
-        args = { path .. "/js-debug/src/dapDebugServer.js", "${port}" },
+        -- without the host argument the server binds "localhost", which node
+        -- 17+ resolves to ::1 first, and the IPv4 connect above is refused
+        args = { path .. "/js-debug/src/dapDebugServer.js", "${port}", JS_DEBUG_HOST },
       },
       -- a cold node start plus launching a browser goes past the 4s default
       options = { initialize_timeout_sec = 20 },
