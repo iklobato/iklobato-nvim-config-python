@@ -86,11 +86,23 @@ kill "$plain_pid" 2>/dev/null
 keys Space b r
 
 # ---------------------------------------------------------------- react in chrome
-(cd "$MONO/frontend" && npm run dev >/dev/null 2>&1) &
+# --strictPort: with 5173 taken, vite would quietly move to 5174 while the
+# chrome configs still open 5173, i.e. some other app. Readiness is a file only
+# this fixture serves, for the same reason.
+(cd "$MONO/frontend" && npm run dev -- --strictPort >/dev/null 2>&1) &
+dev_up=""
 for _ in $(seq 1 40); do
-  curl -s -m 1 http://localhost:5173/ >/dev/null && break
+  curl -s -m 1 http://localhost:5173/src/lib/shape.ts | grep -q "Square" && {
+    dev_up=1
+    break
+  }
   sleep 1
 done
+if [ -n "$dev_up" ]; then
+  ok "the fixture's vite dev server answers on 5173"
+else
+  bad "the fixture's vite dev server answers on 5173" "port 5173 busy or vite failed: $(lsof -nP -iTCP:5173 -sTCP:LISTEN 2>/dev/null | tail -1)"
+fi
 open_file frontend/src/App.tsx
 goto_line 7
 keys Space b b

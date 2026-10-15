@@ -494,10 +494,12 @@ local checks = {
   -- regression: stylua was configured but never installed, so <leader>f on a
   -- Lua file was a silent no-op
   {
-    "formatting: every configured formatter is installed",
+    "formatting: every mason-provided formatter is installed",
     function()
       local conform = require("conform")
-      local seen, missing = {}, {}
+      -- clang-format comes from the system, not mason, and install.sh does not
+      -- add it (README, Formatting): a fresh machine is allowed to lack it
+      local seen, missing = { clang_format = true }, {}
       for _, formatters in pairs(conform.formatters_by_ft) do
         for _, name in ipairs(formatters) do
           if not seen[name] then
