@@ -60,11 +60,12 @@ system/                     # Dotfiles and tool configs, detailed in system/READ
   lazygit.yml               # Lazygit config (delta pager)
   Brewfile                  # Full machine package dump
 tests/
-  run.sh                    # luacheck + headless feature suite (62 checks)
+  run.sh                    # luacheck + headless feature suite (64 checks)
   features.lua              # The checks: options, UI, LSP, DAP, keymaps, autocmds
   tmux_lib.sh               # Shared driver for the tmux suites (keys in, RPC out)
   e2e.sh                    # Real-nvim TUI smoke suite (24 checks)
-  e2e-deep.sh               # Nearly every keymap and every debug feature, over a monorepo
+  e2e-deep.sh               # Runs every deep area below, or only the ones named
+  deep/                     # One script per area, each in its own nvim over a monorepo
   fixtures/monorepo.sh      # Builds that monorepo: django + react/ts + go, cached
   MANUAL.md                 # The handful of checks only eyes can make
 ```
@@ -345,12 +346,21 @@ takes expressions the same way.
 ## Tests
 
 ```bash
-./tests/run.sh       # luacheck, then 62 headless feature checks; nonzero on failure
+./tests/run.sh       # luacheck, then 64 headless feature checks; nonzero on failure
 ./tests/e2e.sh       # real nvim TUI in tmux: real keystrokes, rendered screen,
                      # one full debug session; requires tmux
 ./tests/e2e-deep.sh  # the deep one: nearly every keymap and every debug feature
                      # across python, django, go, typescript and react in a browser
+./tests/e2e-deep.sh lsp dap-python   # only those areas
+./tests/deep/lsp.sh  # one area alone, with its full PASS/FAIL list
 ```
+
+Areas: `ui` (statusline, motions, windows, tabs, explorer, buffers, save and
+quit), `search` (telescope), `lsp` (python LSP keymaps, diagnostics,
+formatting), `tools` (git, markdown, http client, database UI), `dap-python`,
+`dap-go` and `dap-js`. Each one boots its own nvim, so a failure in one area
+cannot leave state behind for the next, and each ends with the same health
+checks (no errors in `:messages`, no hit-enter prompts, a clean quit).
 
 `e2e-deep.sh` drives a realistic monorepo (django backend, react/typescript
 frontend, go service, one git history, an `.http` file and a sqlite db) that
