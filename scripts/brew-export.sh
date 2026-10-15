@@ -14,33 +14,33 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --file|-f)
-      OUTPUT_FILE="$2"
-      shift 2
-      ;;
-    --include-mas)
-      INCLUDE_MAS=true
-      shift
-      ;;
-    --help|-h)
-      echo "Usage: $0 [OPTIONS]"
-      echo ""
-      echo "Export all installed Homebrew packages to a Brewfile"
-      echo ""
-      echo "Options:"
-      echo "  -f, --file FILE        Output file path (default: Brewfile)"
-      echo "  --include-mas          Include Mac App Store apps (requires mas-cli)"
-      echo "  -h, --help             Show this help message"
-      echo ""
-      echo "Environment variables:"
-      echo "  HOMEBREW_BUNDLE_FILE   Default output file location"
-      exit 0
-      ;;
-    *)
-      echo "Unknown option: $1"
-      echo "Use --help for usage information"
-      exit 1
-      ;;
+  --file | -f)
+    OUTPUT_FILE="$2"
+    shift 2
+    ;;
+  --include-mas)
+    INCLUDE_MAS=true
+    shift
+    ;;
+  --help | -h)
+    echo "Usage: $0 [OPTIONS]"
+    echo ""
+    echo "Export all installed Homebrew packages to a Brewfile"
+    echo ""
+    echo "Options:"
+    echo "  -f, --file FILE        Output file path (default: Brewfile)"
+    echo "  --include-mas          Include Mac App Store apps (requires mas-cli)"
+    echo "  -h, --help             Show this help message"
+    echo ""
+    echo "Environment variables:"
+    echo "  HOMEBREW_BUNDLE_FILE   Default output file location"
+    exit 0
+    ;;
+  *)
+    echo "Unknown option: $1"
+    echo "Use --help for usage information"
+    exit 1
+    ;;
   esac
 done
 
@@ -54,7 +54,7 @@ echo "Exporting Homebrew packages to: $OUTPUT_FILE"
 echo ""
 
 # Check if brew is installed
-if ! command -v brew &> /dev/null; then
+if ! command -v brew &>/dev/null; then
   echo "Error: Homebrew is not installed"
   exit 1
 fi
@@ -75,7 +75,7 @@ fi
   echo "# To update this file, run: ./scripts/brew-export.sh"
   echo "#"
   echo ""
-} > "$OUTPUT_FILE"
+} >"$OUTPUT_FILE"
 
 # Export using brew bundle dump
 echo "Exporting formulas, casks, and taps..."
@@ -87,43 +87,43 @@ TEMP_FILE="${OUTPUT_FILE}.tmp"
 # Run brew bundle dump to temp file first
 if brew bundle dump --file="$TEMP_FILE" --force 2>/dev/null; then
   # Append the dump output to our file (after the header)
-  cat "$TEMP_FILE" >> "$OUTPUT_FILE"
+  cat "$TEMP_FILE" >>"$OUTPUT_FILE"
   rm -f "$TEMP_FILE"
 else
   # If dump fails, use alternative method
   echo "Warning: brew bundle dump failed, using alternative method..."
-  
+
   # Export taps
-  echo "" >> "$OUTPUT_FILE"
-  echo "# Taps" >> "$OUTPUT_FILE"
+  echo "" >>"$OUTPUT_FILE"
+  echo "# Taps" >>"$OUTPUT_FILE"
   brew tap | while read -r tap; do
-    echo "tap \"$tap\"" >> "$OUTPUT_FILE"
+    echo "tap \"$tap\"" >>"$OUTPUT_FILE"
   done
-  
+
   # Export formulas (only top-level, not dependencies)
-  echo "" >> "$OUTPUT_FILE"
-  echo "# Formulas" >> "$OUTPUT_FILE"
+  echo "" >>"$OUTPUT_FILE"
+  echo "# Formulas" >>"$OUTPUT_FILE"
   brew leaves | while read -r formula; do
-    echo "brew \"$formula\"" >> "$OUTPUT_FILE"
+    echo "brew \"$formula\"" >>"$OUTPUT_FILE"
   done
-  
+
   # Export casks
-  echo "" >> "$OUTPUT_FILE"
-  echo "# Casks" >> "$OUTPUT_FILE"
+  echo "" >>"$OUTPUT_FILE"
+  echo "# Casks" >>"$OUTPUT_FILE"
   brew list --cask | while read -r cask; do
-    echo "cask \"$cask\"" >> "$OUTPUT_FILE"
+    echo "cask \"$cask\"" >>"$OUTPUT_FILE"
   done
 fi
 
 # Optionally include Mac App Store apps
 if [[ "$INCLUDE_MAS" == "true" ]]; then
-  if command -v mas &> /dev/null; then
-    echo "" >> "$OUTPUT_FILE"
-    echo "# Mac App Store Apps" >> "$OUTPUT_FILE"
+  if command -v mas &>/dev/null; then
+    echo "" >>"$OUTPUT_FILE"
+    echo "# Mac App Store Apps" >>"$OUTPUT_FILE"
     mas list | while read -r line; do
       app_id=$(echo "$line" | awk '{print $1}')
       app_name=$(echo "$line" | cut -d' ' -f2-)
-      echo "mas \"$app_id\" # $app_name" >> "$OUTPUT_FILE"
+      echo "mas \"$app_id\" # $app_name" >>"$OUTPUT_FILE"
     done
   else
     echo "Warning: mas-cli not installed. Install with: brew install mas"
@@ -152,4 +152,3 @@ echo "  brew bundle install --file=\"$OUTPUT_FILE\""
 echo ""
 echo "Or use the import script:"
 echo "  ./scripts/brew-import.sh --file=\"$OUTPUT_FILE\""
-

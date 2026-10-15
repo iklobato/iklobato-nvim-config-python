@@ -15,38 +15,38 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --file|-f)
-      INPUT_FILE="$2"
-      shift 2
-      ;;
-    --dry-run|-n)
-      DRY_RUN=true
-      shift
-      ;;
-    --force)
-      FORCE=true
-      shift
-      ;;
-    --help|-h)
-      echo "Usage: $0 [OPTIONS]"
-      echo ""
-      echo "Import all Homebrew packages from a Brewfile"
-      echo ""
-      echo "Options:"
-      echo "  -f, --file FILE        Input Brewfile path (default: Brewfile)"
-      echo "  -n, --dry-run          Show what would be installed without installing"
-      echo "  --force                Install packages even if already installed"
-      echo "  -h, --help             Show this help message"
-      echo ""
-      echo "Environment variables:"
-      echo "  HOMEBREW_BUNDLE_FILE   Default input file location"
-      exit 0
-      ;;
-    *)
-      echo "Unknown option: $1"
-      echo "Use --help for usage information"
-      exit 1
-      ;;
+  --file | -f)
+    INPUT_FILE="$2"
+    shift 2
+    ;;
+  --dry-run | -n)
+    DRY_RUN=true
+    shift
+    ;;
+  --force)
+    FORCE=true
+    shift
+    ;;
+  --help | -h)
+    echo "Usage: $0 [OPTIONS]"
+    echo ""
+    echo "Import all Homebrew packages from a Brewfile"
+    echo ""
+    echo "Options:"
+    echo "  -f, --file FILE        Input Brewfile path (default: Brewfile)"
+    echo "  -n, --dry-run          Show what would be installed without installing"
+    echo "  --force                Install packages even if already installed"
+    echo "  -h, --help             Show this help message"
+    echo ""
+    echo "Environment variables:"
+    echo "  HOMEBREW_BUNDLE_FILE   Default input file location"
+    exit 0
+    ;;
+  *)
+    echo "Unknown option: $1"
+    echo "Use --help for usage information"
+    exit 1
+    ;;
   esac
 done
 
@@ -57,7 +57,7 @@ if [[ "$INPUT_FILE" != /* ]]; then
 fi
 
 # Check if brew is installed
-if ! command -v brew &> /dev/null; then
+if ! command -v brew &>/dev/null; then
   echo "Error: Homebrew is not installed"
   echo "Install Homebrew first: https://brew.sh"
   exit 1
@@ -101,35 +101,35 @@ if [[ "$DRY_RUN" == "true" ]]; then
   echo ""
   echo "Packages that would be installed:"
   echo ""
-  
+
   # Show taps
   if [[ $TAP_COUNT -gt 0 ]]; then
     echo "Taps:"
     grep "^tap \"" "$INPUT_FILE" | sed 's/^tap "/  - /' | sed 's/"$//'
     echo ""
   fi
-  
+
   # Show formulas
   if [[ $FORMULA_COUNT -gt 0 ]]; then
     echo "Formulas:"
     grep "^brew \"" "$INPUT_FILE" | sed 's/^brew "/  - /' | sed 's/"$//'
     echo ""
   fi
-  
+
   # Show casks
   if [[ $CASK_COUNT -gt 0 ]]; then
     echo "Casks:"
     grep "^cask \"" "$INPUT_FILE" | sed 's/^cask "/  - /' | sed 's/"$//'
     echo ""
   fi
-  
+
   # Show MAS apps
   if [[ $MAS_COUNT -gt 0 ]]; then
     echo "Mac App Store apps:"
     grep "^mas \"" "$INPUT_FILE" | sed 's/^mas "/  - /' | sed 's/" #.*$//' | sed 's/"$//'
     echo ""
   fi
-  
+
   echo "To actually install, run without --dry-run flag"
   exit 0
 fi
@@ -140,7 +140,7 @@ if [[ "$FORCE" != "true" ]]; then
   MISSING_TAPS=0
   MISSING_FORMULAS=0
   MISSING_CASKS=0
-  
+
   # Check taps
   while IFS= read -r line || [[ -n "$line" ]]; do
     tap_name=$(echo "$line" | sed 's/^tap "//' | sed 's/"$//')
@@ -148,7 +148,7 @@ if [[ "$FORCE" != "true" ]]; then
       MISSING_TAPS=$((MISSING_TAPS + 1))
     fi
   done < <(grep "^tap \"" "$INPUT_FILE" 2>/dev/null || true)
-  
+
   # Check formulas
   while IFS= read -r line || [[ -n "$line" ]]; do
     formula_name=$(echo "$line" | sed 's/^brew "//' | sed 's/"$//')
@@ -156,7 +156,7 @@ if [[ "$FORCE" != "true" ]]; then
       MISSING_FORMULAS=$((MISSING_FORMULAS + 1))
     fi
   done < <(grep "^brew \"" "$INPUT_FILE" 2>/dev/null || true)
-  
+
   # Check casks
   while IFS= read -r line || [[ -n "$line" ]]; do
     cask_name=$(echo "$line" | sed 's/^cask "//' | sed 's/"$//')
@@ -164,14 +164,14 @@ if [[ "$FORCE" != "true" ]]; then
       MISSING_CASKS=$((MISSING_CASKS + 1))
     fi
   done < <(grep "^cask \"" "$INPUT_FILE" 2>/dev/null || true)
-  
+
   if [[ ${MISSING_TAPS:-0} -eq 0 ]] && [[ ${MISSING_FORMULAS:-0} -eq 0 ]] && [[ ${MISSING_CASKS:-0} -eq 0 ]]; then
     echo "All packages are already installed!"
     echo ""
     echo "To reinstall anyway, use --force flag"
     exit 0
   fi
-  
+
   echo "Packages to install:"
   echo "  Taps: $MISSING_TAPS"
   echo "  Formulas: $MISSING_FORMULAS"
@@ -217,4 +217,3 @@ else
   echo "Check the output above for details."
   exit 1
 fi
-

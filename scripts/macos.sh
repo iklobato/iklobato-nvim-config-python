@@ -7,7 +7,10 @@
 #
 set -euo pipefail
 
-[[ "$(uname -s)" == Darwin ]] || { echo "macOS only"; exit 1; }
+[[ "$(uname -s)" == Darwin ]] || {
+  echo "macOS only"
+  exit 1
+}
 
 echo "==> keyboard: fast key repeat, no press-and-hold accent popup"
 defaults write NSGlobalDomain KeyRepeat -int 2
