@@ -147,14 +147,6 @@ function M.setup()
   }
 
   dap.adapters.delve = function(cb, config)
-    if config.mode == "remote" and config.request == "attach" then
-      cb({
-        type = "server",
-        host = config.host or "127.0.0.1",
-        port = config.port or 38697,
-      })
-      return
-    end
     local path = mason_path("delve")
     if not path then
       return
