@@ -13,7 +13,10 @@ NVIM_CONFIG_DIR="${NVIM_CONFIG_DIR:-$HOME/.config/nvim}"
 NVIM_MIN_MINOR=12
 NODE_MIN_MAJOR=22
 
-MASON_TOOLS=(lua-language-server pyright ruff typescript-language-server stylua debugpy)
+# delve and js-debug-adapter up front: left to mason-nvim-dap, they install
+# during the first debug session, and that install (delve is a go build)
+# starves debugpy past its initialize timeout. prettier has no other installer.
+MASON_TOOLS=(lua-language-server pyright ruff typescript-language-server stylua debugpy delve js-debug-adapter prettier)
 
 INSTALL_DOTFILES=true
 if [[ "${1:-}" == "--no-dotfiles" ]]; then
@@ -271,13 +274,24 @@ for _, name in ipairs(tools) do
   end
 end
 
+-- treesitter parsers compile in the background; quitting before they finish
+-- left a fresh machine without highlighting until some later session built them
+local parsers = require("config.treesitter").ENSURE_INSTALLED
+require("nvim-treesitter").install(parsers):wait(10 * 60 * 1000)
+local installed = require("nvim-treesitter").get_installed()
+for _, lang in ipairs(parsers) do
+  if not vim.list_contains(installed, lang) then
+    table.insert(failed, "parser:" .. lang)
+  end
+end
+
 if #failed > 0 then
   io.stderr:write("mason failed to install: " .. table.concat(failed, ", ") .. "\n")
   vim.cmd("cquit")
 end
 EOF
 
-  say "installing LSP servers, debugpy and formatters"
+  say "installing LSP servers, debuggers, formatters and treesitter parsers"
   nvim --headless -c "luafile $script" -c "qa!" || say "mason incomplete, finishes on first launch"
 }
 
@@ -310,9 +324,9 @@ setup_logging
 say "log: $LOG_FILE"
 
 case "$(uname -s)" in
-  Darwin) install_deps_macos ;;
-  Linux) install_deps_ubuntu ;;
-  *) echo "Unsupported OS: $(uname -s)" >&2 && exit 1 ;;
+Darwin) install_deps_macos ;;
+Linux) install_deps_ubuntu ;;
+*) echo "Unsupported OS: $(uname -s)" >&2 && exit 1 ;;
 esac
 
 place_config

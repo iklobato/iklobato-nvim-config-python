@@ -8,7 +8,7 @@
 # alone, so `npm install` runs once and not on every suite run.
 set -euo pipefail
 
-VERSION=6
+VERSION=12
 TARGET=${1:?usage: monorepo.sh <target-dir>}
 STAMP="$TARGET/.stamp"
 
@@ -29,7 +29,7 @@ mkdir -p backend
   cd backend
   python3 -m venv .venv
   .venv/bin/python -m pip install --quiet --upgrade pip
-  .venv/bin/python -m pip install --quiet django pytest pytest-django
+  .venv/bin/python -m pip install --quiet django pytest pytest-django uvicorn
   .venv/bin/python -m django startproject core .
   cat >core/views.py <<'EOF'
 from django.http import HttpResponse, JsonResponse
@@ -103,6 +103,35 @@ from core.services import summarize
 numbers = [1, 2, 3, 4]
 print("total", summarize(numbers))
 EOF
+  # a task nobody awaits: its error never reaches "uncaught", the program
+  # exits 0, and only the user-unhandled exception mode stops on the raise
+  cat >async_demo.py <<'EOF'
+import asyncio
+
+
+async def fetch(value):
+    await asyncio.sleep(0)
+    raise ValueError(f"lost {value}")
+
+
+async def main():
+    asyncio.create_task(fetch(1))
+    await asyncio.sleep(0.1)
+
+
+asyncio.run(main())
+EOF
+  # a bare ASGI app, so the uvicorn config is driven without pulling a framework
+  cat >asgi_demo.py <<'EOF'
+async def app(scope, receive, send):
+    if scope["type"] != "http":
+        return
+    total = sum([1, 2, 3])
+    await send({"type": "http.response.start", "status": 200, "headers": []})
+    await send({"type": "http.response.body", "body": f"total={total}".encode()})
+EOF
+  # a bare "build" ignore pattern would hide this file; the anchored one must not
+  printf 'def build():\n    return []\n' >core/builder.py
   # a real repo has lint findings; this one gives the diagnostic keymaps
   # something to jump to
   cat >core/legacy.py <<'EOF'
@@ -116,7 +145,7 @@ def legacy_total(numbers):
         total = total + number
     return total
 EOF
-  printf 'django>=4.2\npytest\npytest-django\n' >requirements.txt
+  printf 'django>=4.2\npytest\npytest-django\nuvicorn\n' >requirements.txt
   printf '[pytest]\nDJANGO_SETTINGS_MODULE = core.settings\npythonpath = .\n' >pytest.ini
 )
 
@@ -175,6 +204,45 @@ func TestSummarize(t *testing.T) {
 	}
 }
 EOF
+  # "Launch file" builds one file, so it needs a program that is one file
+  mkdir -p cmd/hello cmd/wait
+  cat >cmd/hello/main.go <<'EOF'
+package main
+
+import "fmt"
+
+func main() {
+	total := 0
+	for _, n := range []int{1, 2, 3} {
+		total += n
+	}
+	fmt.Println(total)
+}
+EOF
+  # a process that keeps running, for "Attach to process"
+  cat >cmd/wait/main.go <<'EOF'
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func tick(n int) int {
+	return n + 1
+}
+
+func main() {
+	n := 0
+	for {
+		n = tick(n)
+		time.Sleep(200 * time.Millisecond)
+		if n < 0 {
+			fmt.Println(n)
+		}
+	}
+}
+EOF
 )
 
 # ---------- frontend: vite + react + typescript ----------
@@ -185,6 +253,16 @@ npm create --registry=https://registry.npmjs.org/ vite@latest frontend -- --temp
   cd frontend
   printf 'registry=https://registry.npmjs.org/\n' >.npmrc
   npm install >/dev/null 2>&1
+  # vite's template no longer ships eslint, and the eslint language server only
+  # attaches under a project that has both the package and a config
+  npm install --save-dev eslint@9 >/dev/null 2>&1
+  cat >eslint.config.js <<'EOF'
+export default [{ files: ["**/*.js"], rules: { "no-unused-vars": "error" } }];
+EOF
+  cat >src/legacy.js <<'EOF'
+const unused = 1;
+export const used = 2;
+EOF
   mkdir -p src/lib
   cat >src/lib/math.ts <<'EOF'
 export function double(value: number): number {
@@ -198,6 +276,21 @@ export function summarize(numbers: number[]): number {
     total = total + double(number);
   }
   return total;
+}
+EOF
+  # an interface with one implementation, so gi has somewhere to jump; pyright
+  # has no textDocument/implementation, so the python side cannot test it
+  cat >src/lib/shape.ts <<'EOF'
+export interface Shape {
+  area(): number;
+}
+
+export class Square implements Shape {
+  constructor(private side: number) {}
+
+  area(): number {
+    return this.side * this.side;
+  }
 }
 EOF
   cat >src/worker.ts <<'EOF'
@@ -215,14 +308,21 @@ async function main(): Promise<void> {
 
 main();
 EOF
+  # the tick re-renders every second, so a debugger that attaches after the
+  # first render still reaches line 7
   cat >src/App.tsx <<'EOF'
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { summarize } from "./lib/math";
 import "./App.css";
 
 function App() {
   const [count, setCount] = useState(0);
   const total = summarize([count, count + 1]);
+
+  useEffect(() => {
+    const id = setInterval(() => setCount((c) => c + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <main>
@@ -254,6 +354,84 @@ cat >README.md <<'EOF'
 # monorepo
 
 Test fixture. Django backend, React frontend, Go service.
+EOF
+
+# ---------- langs: one file per language the config claims to support ----------
+# each one is what its language server or formatter needs to attach and act;
+# the badly formatted lines are there for the formatter checks
+mkdir -p langs
+cat >langs/tool.lua <<'EOF'
+local M = {}
+
+function M.double(value)
+  return value * 2
+end
+
+local   spaced   =   {1,2}
+
+return M
+EOF
+cat >langs/config.yaml <<'EOF'
+service:
+  name: deep
+  replicas: 2
+EOF
+cat >langs/data.json <<'EOF'
+{ "name":   "deep",   "count": 2 }
+EOF
+cat >langs/run.sh <<'EOF'
+#!/usr/bin/env bash
+echo "deep"
+EOF
+cat >langs/Dockerfile <<'EOF'
+FROM alpine:3.20
+CMD ["echo", "deep"]
+EOF
+cat >langs/main.tf <<'EOF'
+variable "name" {
+  type    = string
+  default = "deep"
+}
+EOF
+cat >langs/hello.c <<'EOF'
+#include <stdio.h>
+
+int main(void) {
+  printf("deep\n");
+  return 0;
+}
+EOF
+cat >langs/index.html <<'EOF'
+<!doctype html>
+<html>
+  <body>
+    <p>deep</p>
+  </body>
+</html>
+EOF
+cat >langs/style.css <<'EOF'
+p {
+  color: red;
+}
+EOF
+cat >langs/app.js <<'EOF'
+export function double(value) {
+  return value * 2;
+}
+EOF
+# plain javascript for the node configs: one that runs and ends, one that waits
+cat >langs/count.js <<'EOF'
+let total = 0;
+for (const n of [1, 2, 3]) {
+  total = total + n;
+}
+console.log(total);
+EOF
+cat >langs/wait.js <<'EOF'
+let n = 0;
+setInterval(() => {
+  n = n + 1;
+}, 200);
 EOF
 command -v sqlite3 >/dev/null && sqlite3 data.db \
   "create table totals (id integer primary key, label text, value integer); insert into totals (label, value) values ('first', 20), ('second', 40);"

@@ -4,7 +4,14 @@ local JS_FILETYPES = { "javascript", "typescript", "javascriptreact", "typescrip
 local JS_SKIP_FILES = { "<node_internals>/**", "${workspaceFolder}/node_modules/**" }
 local NODE_INSPECT_PORT = 9229
 local CHROME_DEBUG_PORT = 9222
+local JS_DEBUG_HOST = "127.0.0.1"
 local DEFAULT_DEV_SERVER_URL = "http://localhost:5173"
+local DEFAULT_ASGI_APP = "main:app"
+
+-- debug mode makes asyncio report what it otherwise drops silently: a coroutine
+-- that was never awaited (with where it was created) and any callback that
+-- blocks the event loop for over 100ms
+M.ASYNCIO_DEBUG_ENV = { PYTHONASYNCIODEBUG = "1" }
 
 -- the frontend of a monorepo is not the directory nvim was opened in, and
 -- chrome resolves every source map against webRoot
@@ -26,6 +33,14 @@ local function prompt_dev_server_url()
     return require("dap").ABORT
   end
   return url
+end
+
+local function prompt_asgi_app()
+  local app = vim.fn.input("ASGI app (module:attribute): ", DEFAULT_ASGI_APP)
+  if app == "" then
+    return require("dap").ABORT
+  end
+  return { app }
 end
 
 function M.python_path()
@@ -55,8 +70,19 @@ end
 
 function M.setup()
   local dap = require("dap")
-  local pick_process = require("dap.utils").pick_process
   dap.set_log_level("ERROR")
+
+  -- the unfiltered picker is every process on the machine (over a thousand on
+  -- macOS) in an unsearchable pager, so narrow it by name first. The filter is
+  -- a plain substring, not a lua pattern: "my-app" must not treat "-" as magic.
+  local function pick_process_by_name()
+    local part = vim.fn.input("Process name contains (empty lists all): ")
+    return require("dap.utils").pick_process({
+      filter = function(proc)
+        return proc.name:find(part, 1, true) ~= nil
+      end,
+    })
+  end
 
   local function debugpy_adapter()
     local path = mason_path("debugpy")
@@ -69,15 +95,9 @@ function M.setup()
     return path .. "/venv/bin/python"
   end
 
-  dap.adapters.python = function(cb, config)
-    if config.request == "attach" then
-      cb({
-        type = "server",
-        port = config.port or 5678,
-        host = config.host or "127.0.0.1",
-      })
-      return
-    end
+  -- a function, not a table: the mason lookup (and its "not installed" notice)
+  -- runs when a session starts, not when nvim-dap loads
+  dap.adapters.python = function(cb)
     cb({
       type = "executable",
       command = debugpy_adapter() or M.python_path(),
@@ -93,6 +113,7 @@ function M.setup()
       request = "launch",
       name = "Launch file",
       program = "${file}",
+      env = M.ASYNCIO_DEBUG_ENV,
       pythonPath = M.python_path,
     },
     {
@@ -110,19 +131,22 @@ function M.setup()
       name = "Pytest file",
       module = "pytest",
       args = { "${file}" },
+      env = M.ASYNCIO_DEBUG_ENV,
+      pythonPath = M.python_path,
+    },
+    {
+      type = "python",
+      request = "launch",
+      name = "Uvicorn app (ASGI)",
+      module = "uvicorn",
+      -- no --reload: every file save would restart the server under the debugger
+      args = prompt_asgi_app,
+      env = M.ASYNCIO_DEBUG_ENV,
       pythonPath = M.python_path,
     },
   }
 
   dap.adapters.delve = function(cb, config)
-    if config.mode == "remote" and config.request == "attach" then
-      cb({
-        type = "server",
-        host = config.host or "127.0.0.1",
-        port = config.port or 38697,
-      })
-      return
-    end
     local path = mason_path("delve")
     if not path then
       return
@@ -172,7 +196,7 @@ function M.setup()
       request = "attach",
       name = "Attach to process",
       mode = "local",
-      processId = pick_process,
+      processId = pick_process_by_name,
     },
   }
 
@@ -184,11 +208,13 @@ function M.setup()
     end
     cb({
       type = "server",
-      host = "127.0.0.1",
+      host = JS_DEBUG_HOST,
       port = "${port}",
       executable = {
         command = "node",
-        args = { path .. "/js-debug/src/dapDebugServer.js", "${port}" },
+        -- without the host argument the server binds "localhost", which node
+        -- 17+ resolves to ::1 first, and the IPv4 connect above is refused
+        args = { path .. "/js-debug/src/dapDebugServer.js", "${port}", JS_DEBUG_HOST },
       },
       -- a cold node start plus launching a browser goes past the 4s default
       options = { initialize_timeout_sec = 20 },
@@ -213,7 +239,7 @@ function M.setup()
       type = "pwa-node",
       request = "attach",
       name = "Attach to process",
-      processId = pick_process,
+      processId = pick_process_by_name,
       cwd = "${workspaceFolder}",
       sourceMaps = true,
       skipFiles = JS_SKIP_FILES,

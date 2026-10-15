@@ -25,7 +25,7 @@ nvim backend/core/services.py
 | 7 | Indent guides | thin vertical lines follow every indent level in `services.py` |
 | 8 | Sticky context | scroll inside `summarize()` until the `def` line leaves the screen. It stays pinned at the top of the window |
 | 9 | Completion popup | type `sum` inside a function: the blink.cmp popup opens with a readable border and the selected item highlighted |
-| 10 | Copilot | in insert mode at the end of a function, ghost text appears after a moment |
+| 10 | Windsurf/Codeium | run `:Codeium Auth` once first; in insert mode at the end of a function, ghost text appears after a moment |
 | 11 | Breakpoint signs | set a plain, a conditional and a log breakpoint on three lines. All three gutter signs are visually distinct |
 | 12 | dap-ui proportions | start a session: the left column (scopes/watches/breakpoints) and right column (repl/console) are readable at your terminal size, no squashed panel |
 | 13 | Markdown preview | `<leader>mp` on `notes.md` opens the browser and renders the heading and paragraph |
@@ -35,19 +35,6 @@ nvim backend/core/services.py
 
 - **Anything the terminal draws.** Colours, glyphs and window proportions are
   in the table above.
-- **Session restore across restarts.** auto-session writes on exit, so asserting
-  it needs a second nvim boot inside the same suite. Check it by hand: open a
-  few buffers, quit, reopen nvim in the same directory, and see them come back.
-- **`<leader>ca` and `gi` results.** The suite only proves the keys fire without
-  wedging nvim: whether a code action or an implementation exists depends on the
-  language server and the cursor position, so a stable assertion would be
-  testing pyright, not this config.
-- **`<leader>mp`/`<leader>mP` and the treesitter motions** (`af`/`if`/`ac`/
-  `ic`). The suite only checks these are bound
-  (`maparg`), it never presses them; markdown preview opening a browser and the
-  treesitter selection/textobject behavior are covered by check 13 above and by
-  `tests/features.lua`'s static maparg checks, respectively.
-- **Attach configurations.** "Attach to process" needs a process picker choice
-  and "Attach to Chrome port 9222" needs a browser already started with the
-  remote debugging port. Both are one-off manual runs, described in the
-  Debugging section of the README.
+- **The rendered markdown preview.** `deep/tools.sh` presses `<leader>mp`, gets
+  a 200 from the preview server and stops it with `<leader>mP`, but records the
+  URL instead of opening a browser. What the page looks like is check 13 above.

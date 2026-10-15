@@ -121,7 +121,16 @@ local checks = {
     "dap: commands registered before dap loads",
     function()
       expect(package.loaded["dap"] == nil, "dap already loaded, this check proves nothing here")
-      expect(vim.fn.exists(":DapContinue") == 2, ":DapContinue not defined")
+      for _, cmd in ipairs({
+        "DapNew",
+        "DapContinue",
+        "DapToggleBreakpoint",
+        "DapTerminate",
+        "DapEval",
+        "DapShowLog",
+      }) do
+        expect(vim.fn.exists(":" .. cmd) == 2, ":" .. cmd .. " not defined")
+      end
     end,
   },
 
@@ -170,6 +179,7 @@ local checks = {
   { "keymap: markdown preview <leader>mp", keymap_exists(" mp") },
   { "keymap: debug pytest <leader>dp", keymap_exists(" dp") },
   { "keymap: breakpoint <leader>bb", keymap_exists(" bb") },
+  { "keymap: python exception stops <leader>be", keymap_exists(" be") },
   { "keymap: debug ui <leader>du", keymap_exists(" du") },
 
   -- lazy-loaded tools (stub commands must be registered)
@@ -204,15 +214,15 @@ local checks = {
     end,
   },
 
-  -- copilot (InsertEnter-gated)
+  -- windsurf/codeium (InsertEnter-gated)
   {
-    "copilot: loads on insert",
+    "windsurf: loads on insert",
     function()
       vim.api.nvim_exec_autocmds("InsertEnter", {})
       vim.wait(2000, function()
-        return vim.fn.exists(":Copilot") == 2
+        return vim.fn.exists(":Codeium") == 2
       end)
-      expect(vim.fn.exists(":Copilot") == 2, ":Copilot not defined")
+      expect(vim.fn.exists(":Codeium") == 2, ":Codeium not defined")
     end,
   },
 
@@ -249,11 +259,11 @@ local checks = {
 
   -- DAP (the lazy-load ordering fixes)
   {
-    "dap: python adapter + 3 configs",
+    "dap: python adapter + 4 configs",
     function()
       local dap = require("dap")
       expect(dap.adapters.python, "no python adapter")
-      expect(#dap.configurations.python == 3, "#configs=" .. #dap.configurations.python)
+      expect(#dap.configurations.python == 4, "#configs=" .. #dap.configurations.python)
     end,
   },
   {
@@ -484,10 +494,12 @@ local checks = {
   -- regression: stylua was configured but never installed, so <leader>f on a
   -- Lua file was a silent no-op
   {
-    "formatting: every configured formatter is installed",
+    "formatting: every mason-provided formatter is installed",
     function()
       local conform = require("conform")
-      local seen, missing = {}, {}
+      -- clang-format comes from the system, not mason, and install.sh does not
+      -- add it (README, Formatting): a fresh machine is allowed to lack it
+      local seen, missing = { clang_format = true }, {}
       for _, formatters in pairs(conform.formatters_by_ft) do
         for _, name in ipairs(formatters) do
           if not seen[name] then

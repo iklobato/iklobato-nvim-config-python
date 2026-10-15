@@ -13,9 +13,13 @@ map(
 map("x", "<leader>S", 'y:%s/<C-r>"/<C-r>"/gI<Left><Left><Left>', { desc = "Replace selection" })
 
 -- Formatting
+-- "F" not "f": "<leader>f" is a prefix of the <leader>f{f,g,b,o} find group in
+-- keymaps/search.lua, so with timeoutlen=300 a slow second keystroke let this
+-- fire Format instead of the find map, leaving the leftover key to run Vim's
+-- own f{char} motion.
 local function format()
   require("conform").format()
 end
 
-map("n", "<leader>f", format, { desc = "Format" })
-map("x", "<leader>f", format, { desc = "Format selection" })
+map("n", "<leader>F", format, { desc = "Format" })
+map("x", "<leader>F", format, { desc = "Format selection" })

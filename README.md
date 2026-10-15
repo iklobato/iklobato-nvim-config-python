@@ -60,11 +60,12 @@ system/                     # Dotfiles and tool configs, detailed in system/READ
   lazygit.yml               # Lazygit config (delta pager)
   Brewfile                  # Full machine package dump
 tests/
-  run.sh                    # luacheck + headless feature suite (62 checks)
+  run.sh                    # luacheck + headless feature suite (64 checks)
   features.lua              # The checks: options, UI, LSP, DAP, keymaps, autocmds
   tmux_lib.sh               # Shared driver for the tmux suites (keys in, RPC out)
   e2e.sh                    # Real-nvim TUI smoke suite (24 checks)
-  e2e-deep.sh               # Nearly every keymap and every debug feature, over a monorepo
+  e2e-deep.sh               # Runs every deep area below, or only the ones named
+  deep/                     # One script per area, each in its own nvim over a monorepo
   fixtures/monorepo.sh      # Builds that monorepo: django + react/ts + go, cached
   MANUAL.md                 # The handful of checks only eyes can make
 ```
@@ -104,7 +105,7 @@ Ignoring this is how the `*.dbout` autocmd ended up registered twice.
 - vim-dadbod + vim-dadbod-ui (SQL client, column/table completion via
   vim-dadbod-completion wired into blink.cmp in sql/mysql/plsql buffers)
 - markdown-preview.nvim (clock-derived port in 8080-9079)
-- github/copilot.vim (bundled language server, no npx)
+- Exafunction/windsurf.nvim (Codeium free tier, ghost text only, no cmp source)
 - vim-maximizer
 - f-person/git-blame.nvim (inline blame, 1s delay off the cursor path)
 
@@ -186,7 +187,7 @@ them with their descriptions. Debug keymaps have their own section further down.
 
 | Key | Does | Note |
 |---|---|---|
-| `<leader>e` | float with the diagnostic under the cursor | |
+| `<leader>gf` | float with the diagnostic under the cursor | |
 | `<leader>E` | the same float, already focused | select and yank the message directly, `q`/`<Esc>` closes it |
 | `[d` / `]d` | previous / next diagnostic | takes a count, `3]d` jumps three |
 | `<leader>gp` / `<leader>gn` | same as `[d` / `]d`, count included | |
@@ -195,7 +196,7 @@ them with their descriptions. Debug keymaps have their own section further down.
 
 | Key | Does | Note |
 |---|---|---|
-| `<leader>f` | format the buffer (normal) or the selection (visual) | conform.nvim, no LSP fallback |
+| `<leader>F` | format the buffer (normal) or the selection (visual) | conform.nvim, no LSP fallback |
 | `<leader>S` | replace the word under the cursor everywhere in the file | fills `:%s/\<word\>/word/gI` with the old word prefilled as the replacement and the cursor after it: clear it with `<C-w>`, type the new text, press Enter |
 | `<leader>S` (visual) | same, using the selection | |
 
@@ -242,6 +243,7 @@ Python only:
 |---|---|---|
 | `<leader>df` | debug the pytest test under the cursor | reads LSP symbols, so `TestClass::test_method` is resolved for a method |
 | `<leader>dp` | picker with every test in the file | plus a "Manual" entry to type any pytest target |
+| `<leader>be` | pick when python exceptions stop the session | uncaught only (default), user unhandled, or raised. Kept for the next sessions too |
 
 Commands, once the plugin has loaded: `:DapEval` (evaluate expressions in a
 scratch window), `:DapToggleRepl`, `:DapPause`, `:DapRestartFrame`,
@@ -262,6 +264,23 @@ With a file that has a `double()` helper called inside a loop:
 7. `<leader>dc` runs to the end; the logpoint lines are waiting in the REPL
 8. `<leader>dt` ends it, `<leader>dl` runs the same config again without asking
 
+### Async python
+
+- Breakpoints inside `async def` stop like any other, and step over on an
+  `await` stays in your code instead of walking into asyncio
+- Launch file, Pytest file, Uvicorn app and the pytest keymaps run with
+  `PYTHONASYNCIODEBUG=1`: a coroutine that was never awaited is reported with
+  where it was created, and a callback that blocks the loop for over 100ms is
+  logged
+- An error raised in a task nobody awaits does not stop the session by default:
+  asyncio keeps the exception, prints "Task exception was never retrieved" and
+  the program exits 0. Press `<leader>be` and pick "user unhandled" to stop on
+  the raise. It also stops on errors that a `try/except` around the `await`
+  handles, which is why it is not the default
+- The REPL lists the running tasks with
+  `[t.get_name() for t in asyncio.all_tasks()]` and takes `await`, for example
+  `await asyncio.sleep(0, result=42)`
+
 ### The UI
 
 Left column: scopes, watches, breakpoints. Right column: REPL and console. Both
@@ -275,10 +294,13 @@ takes expressions the same way.
 ### Adapters and configurations
 
 - mason-nvim-dap ensures debugpy (python), delve (go) and js-debug-adapter
-  (node, typescript, react). debugpy is installed up front by scripts/install.sh;
-  delve and js-debug-adapter install on the first debug session
-- Python: Launch file, Django runserver, Pytest file. The adapter uses mason's
-  debugpy when installed, otherwise the python of the active venv
+  (node, typescript, react). scripts/install.sh installs all three up front: if
+  delve and js-debug-adapter are left for the first debug session, their
+  install (delve is a go build) slows debugpy past its initialize timeout and
+  that first python session fails
+- Python: Launch file, Django runserver, Pytest file, Uvicorn app (asks for the
+  ASGI app, default `main:app`, and runs without `--reload`). The adapter uses
+  mason's debugpy when installed, otherwise the python of the active venv
 - Go: Launch file, Launch package, Test package, Attach to process. delve gets a
   20s initialize timeout because it compiles the program before answering, and
   it is spawned in the file's directory so a monorepo root does not break the
@@ -287,6 +309,12 @@ takes expressions the same way.
   port 9229, Launch Chrome on dev server (asks for the URL, default
   `http://localhost:5173`), Attach to Chrome port 9222. Launching a `.ts` file
   needs no ts-node or tsx: node 22.18+ strips the types itself
+- "Attach to process" (go and node) first asks for part of the process name
+  and lists only the matches; the full list is every process on the machine.
+  For node it only works on a process started with `--inspect` (any port):
+  on a plain node the adapter disconnects with no error. delve attaches to any
+  go process you own
+- Python has no attach configuration: start the program from a launch config
 - The same js-debug-adapter serves node and chrome. React components only stop
   on the chrome configs; the node ones cannot reach browser code
 - The chrome configs resolve `webRoot` to the nearest `package.json` above the
@@ -304,14 +332,14 @@ takes expressions the same way.
 
 ## Formatting
 
-- `<leader>f` uses conform.nvim (no LSP fallback)
+- `<leader>F` uses conform.nvim (no LSP fallback)
 - Formatters: Python `ruff_format`, Lua `stylua`, C `clang_format`,
   JS/TS/JSON/CSS/HTML/YAML/Markdown `prettier` (reads `.prettierrc.json`)
 - stylua, ruff and prettier come from mason; `clang_format` needs a system
   clang-format (mason has clangd only, and install.sh does not add it)
 - A configured formatter whose binary is missing warns once per filetype
   ("Formatters unavailable for X file") and does nothing; run `:ConformInfo` if
-  `<leader>f` seems to do nothing
+  `<leader>F` seems to do nothing
 
 ## Performance
 
@@ -326,12 +354,24 @@ takes expressions the same way.
 ## Tests
 
 ```bash
-./tests/run.sh       # luacheck, then 62 headless feature checks; nonzero on failure
+./tests/run.sh       # luacheck, then 64 headless feature checks; nonzero on failure
 ./tests/e2e.sh       # real nvim TUI in tmux: real keystrokes, rendered screen,
                      # one full debug session; requires tmux
 ./tests/e2e-deep.sh  # the deep one: nearly every keymap and every debug feature
                      # across python, django, go, typescript and react in a browser
+./tests/e2e-deep.sh lsp dap-python   # only those areas
+./tests/deep/lsp.sh  # one area alone, with its full PASS/FAIL list
 ```
+
+Areas: `ui` (statusline, motions, windows, tabs, explorer, buffers, save and
+quit), `search` (telescope), `lsp` (python and typescript LSP keymaps,
+diagnostics, formatting), `langs` (every other language server attaches, and
+prettier/stylua format), `completion` (blink.cmp in insert mode and on the
+command line), `session` (save on quit, restore on start, no explorer over a
+restored session), `tools` (git, markdown, http client, database UI),
+`dap-python`, `dap-go` and `dap-js`. Each one boots its own nvim, so a failure in one area
+cannot leave state behind for the next, and each ends with the same health
+checks (no errors in `:messages`, no hit-enter prompts, a clean quit).
 
 `e2e-deep.sh` drives a realistic monorepo (django backend, react/typescript
 frontend, go service, one git history, an `.http` file and a sqlite db) that
@@ -370,8 +410,10 @@ What it sets up:
   platform lazygit path, plus oh-my-zsh and the zsh-syntax-highlighting plugin
   the zshrc expects
 - **Plugins**: `Lazy! sync` headless, then mason installs pyright, ruff, lua_ls,
-  ts_ls, stylua and debugpy. delve and js-debug-adapter are not installed here:
-  mason-nvim-dap pulls them the first time you open a debug session
+  ts_ls, stylua, prettier, debugpy, delve and js-debug-adapter. The other
+  language servers the config enables (yamlls, jsonls, bashls, dockerls,
+  terraformls, tflint, clangd, html, cssls, tailwindcss, eslint, marksman) are
+  not installed by the script: add them with `:MasonInstall` when you need them
 
 `system/Brewfile` is *not* installed by the script: it's a full machine dump.
 Use `./scripts/brew-import.sh` if you want it.
@@ -383,7 +425,7 @@ After install, set your terminal font to "MesloLGS Nerd Font" so icons render.
 - macOS or Ubuntu/Debian (other systems: install deps manually, then run the script)
 - Neovim 0.12+ (nvim-treesitter main branch), tree-sitter CLI 0.26.1+, a C compiler
 - Python 3 (for LSP and DAP)
-- Node.js 22.18+ and ripgrep (for Telescope, LSP servers, Copilot, and the
+- Node.js 22.18+ and ripgrep (for Telescope, LSP servers, and the
   node/typescript debugger)
 - Go (only to debug Go: mason builds delve with the local toolchain)
 - tmux (for tests/e2e.sh and tests/e2e-deep.sh; e2e-deep also needs npm, curl,
