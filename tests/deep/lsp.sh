@@ -17,7 +17,11 @@ wait_lexpr "pyright attaches to the backend file" \
   '#vim.lsp.get_clients({ bufnr = vim.fn.bufnr("services.py"), name = "pyright" }) > 0 and 1 or 0' 40
 keys Space f o
 wait_lexpr "keymap <leader>fo opens the symbol picker" "$(win_with_ft TelescopePrompt)" 15
-keys Escape Escape
+keys "summarize"
+wait_lexpr "fo narrows to the summarize symbol" \
+  '(function() local entry = require("telescope.actions.state").get_selected_entry() return (entry and tostring(entry.ordinal or ""):match("summarize")) and 1 or 0 end)()' 15
+keys Enter
+wait_lexpr "picking a symbol jumps to its definition" 'vim.fn.getline(".") == "def summarize(numbers):" and 1 or 0' 15
 goto_line 9
 cursor_on double
 keys g d
@@ -40,6 +44,8 @@ goto_line 9
 cursor_on double
 keys Space g r
 wait_lexpr "keymap <leader>gr opens references in telescope" "$(win_with_ft TelescopePrompt)" 15
+wait_lexpr "gr lists the references in the test file too" \
+  '(function() local picker = require("telescope.actions.state").get_current_picker(vim.api.nvim_get_current_buf()) if not picker then return 0 end for entry in picker.manager:iter() do if tostring(entry.filename):match("test_services%.py$") then return 1 end end return 0 end)()' 20
 keys Escape Escape
 open_file backend/core/services.py
 goto_line 1

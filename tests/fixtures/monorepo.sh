@@ -8,7 +8,7 @@
 # alone, so `npm install` runs once and not on every suite run.
 set -euo pipefail
 
-VERSION=8
+VERSION=9
 TARGET=${1:?usage: monorepo.sh <target-dir>}
 STAMP="$TARGET/.stamp"
 
@@ -130,6 +130,8 @@ async def app(scope, receive, send):
     await send({"type": "http.response.start", "status": 200, "headers": []})
     await send({"type": "http.response.body", "body": f"total={total}".encode()})
 EOF
+  # a bare "build" ignore pattern would hide this file; the anchored one must not
+  printf 'def build():\n    return []\n' >core/builder.py
   # a real repo has lint findings; this one gives the diagnostic keymaps
   # something to jump to
   cat >core/legacy.py <<'EOF'
