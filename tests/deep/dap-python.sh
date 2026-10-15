@@ -47,7 +47,9 @@ wait_lexpr "keymap <leader>dk steps into double()" "$(frame_name double)" 20
 keys Space d o
 wait_lexpr "keymap <leader>do steps back out to summarize()" "$(frame_name summarize)" 20
 keys Space d j
-wait_lexpr "keymap <leader>dj steps over" "$(session_stopped)" 20
+# step out lands back on the loop body's line 9; a step over has to leave it
+wait_lexpr "keymap <leader>dj steps over to another line" \
+  '(function() local s = require("dap").session() local f = s and s.current_frame return (f and f.line ~= 9 and f.name:match("summarize")) and 1 or 0 end)()' 20
 
 focus_ft dapui_watches
 keys i "total * 10" Enter
@@ -86,14 +88,37 @@ keys Space b r
 open_file backend/tests/test_services.py
 wait_lexpr "pyright attaches to the test file" \
   '#vim.lsp.get_clients({ bufnr = vim.fn.bufnr("test_services.py"), name = "pyright" }) > 0 and 1 or 0' 40
+# a breakpoint inside the method proves which pytest target was built: only
+# "TestServices::test_double_negative" reaches line 16
+goto_line 16
+keys Space b b
+wait_lexpr "breakpoint inside TestServices.test_double_negative" "$(bp_count) == 1 and 1 or 0"
 keys Space d p
-wait_screen "keymap <leader>dp lists the tests of the file" "test_summarize" 20
-keys Escape
-keys Escape ":4" Enter "fd"
+# Class::method is only ever written in the picker, never in the buffer
+wait_screen "keymap <leader>dp lists the class method as Class::method" "TestServices::test_double_negative" 20
+choice=$(screen | grep -oE '^ *[0-9]+: TestServices::test_double_negative' | head -1 | grep -oE '[0-9]+' | head -1)
+keys "${choice:-0}" Enter
+wait_lexpr "picking it in <leader>dp stops inside the method" "$(session_stopped)" 60
+wait_lexpr "the dp session stopped on line 16 of test_double_negative" \
+  "($(frame_line 16) == 1 and $(frame_name test_double_negative) == 1) and 1 or 0" 10
+keys Space d c
+wait_lexpr "the dp pytest run finishes" "$(no_session)" 60
+keys Space d p
+wait_screen "the dp picker is up again" "Manual (type pytest target)" 20
+keys 1 Enter
+wait_screen "the Manual entry asks for a pytest target" "Pytest target (e.g." 10
+keys "TestServices::test_double_negative" Enter
+wait_lexpr "a typed Manual target stops inside the method" "$(frame_name test_double_negative)" 60
+keys Space d c
+wait_lexpr "the Manual pytest run finishes" "$(no_session)" 60
+goto_line 15
+cursor_on test_double_negative
 keys Space d f
-wait_lexpr "keymap <leader>df debugs the test under the cursor" \
-  '(function() local s = require("dap").session() return s ~= nil and 1 or 0 end)()' 40
-wait_lexpr "the pytest session finishes" "$(no_session)" 60
+wait_lexpr "keymap <leader>df resolves the method under the cursor to Class::method" "$(session_stopped)" 60
+wait_lexpr "the df session stopped inside test_double_negative" "$(frame_name test_double_negative)" 10
+keys Space d c
+wait_lexpr "the df pytest run finishes" "$(no_session)" 60
+keys Space b r
 
 # ---------------------------------------------------------------- django
 # the Django config launches ${workspaceFolder}/manage.py, so the working

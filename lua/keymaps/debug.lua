@@ -121,11 +121,12 @@ local function dap_pytest_picker()
       if choice == nil then
         return
       end
+      -- vim.ui.select hands back the whole item, not its value
       local selector
-      if choice == "__manual__" then
+      if choice.value == "__manual__" then
         selector = vim.fn.input("Pytest target (e.g. test_foo or TestClass::test_method): ")
       else
-        selector = choice
+        selector = choice.value
       end
       if selector ~= nil and selector ~= "" then
         dap_run_pytest(selector)
