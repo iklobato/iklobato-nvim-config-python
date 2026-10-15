@@ -1,10 +1,6 @@
--- UI-related autocmds
 local group = vim.api.nvim_create_augroup("UserUi", { clear = true })
 
--- Resize query result output window to 75% of screen. No filetype guard: the
--- *.dbout pattern already scopes it, and dadbod-ui sets filetype=dbout from its
--- own BufRead autocmd that runs AFTER this one, so at callback time the filetype
--- is still empty and the guard skipped the resize every time.
+-- no filetype guard: dadbod-ui sets ft=dbout after this runs, so it is still empty
 vim.api.nvim_create_autocmd("BufReadPost", {
   group = group,
   pattern = "*.dbout",

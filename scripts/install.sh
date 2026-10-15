@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
-#
-# Installs this Neovim config + the system dotfiles from scratch.
-#
-#   Local:  ./scripts/install.sh [--no-dotfiles]
-#   Remote: curl -fsSL https://raw.githubusercontent.com/iklobato/iklobato-nvim-config-python/main/scripts/install.sh | bash
-#
+# Installs this Neovim config and dotfiles. Usage: ./scripts/install.sh [--no-dotfiles]
 set -euo pipefail
 
 REPO_URL="https://github.com/iklobato/iklobato-nvim-config-python.git"
@@ -13,9 +8,7 @@ NVIM_CONFIG_DIR="${NVIM_CONFIG_DIR:-$HOME/.config/nvim}"
 NVIM_MIN_MINOR=12
 NODE_MIN_MAJOR=22
 
-# delve and js-debug-adapter up front: left to mason-nvim-dap, they install
-# during the first debug session, and that install (delve is a go build)
-# starves debugpy past its initialize timeout. prettier has no other installer.
+# Lazy delve/js-debug install timed out 1st debug session; prettier has no other installer
 MASON_TOOLS=(lua-language-server pyright ruff typescript-language-server stylua debugpy delve js-debug-adapter prettier)
 
 INSTALL_DOTFILES=true
@@ -126,9 +119,7 @@ install_deps_ubuntu() {
   if ! fc-list 2>/dev/null | grep -qi "nerd font"; then
     say "installing Meslo LG Nerd Font"
     mkdir -p "$HOME/.local/share/fonts"
-    # mktemp, not a fixed /tmp name another process could have created first.
-    # The URL is "latest", so its hash changes every release and cannot be
-    # pinned here; unzip -t is what proves the download arrived whole.
+    # URL is "latest", so no hash can be pinned; unzip -t is the integrity check.
     local font_zip
     font_zip="$(mktemp -t Meslo.XXXXXX)"
     curl -fsSL -o "$font_zip" \
@@ -188,8 +179,6 @@ install_dotfiles() {
   fi
 }
 
-# Links the portable dotfiles (prompt, tmux, tool configs). Paths under
-# ~/.config honor XDG_CONFIG_HOME so this works on Linux too.
 link_dotfiles() {
   local system_dir="$1"
   local config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
@@ -213,9 +202,7 @@ link_dotfiles() {
   link_file "$system_dir/pgcli/config" "$config_home/pgcli/config"
 }
 
-# Link the versioned Claude Code config (settings, CLAUDE.md, hooks, agents,
-# skills, commands). Skips the machine-local state Claude regenerates: sessions,
-# caches, transcripts, and the 159M agents/refs pentest clones.
+# Per-entry links: ~/.claude also holds machine-local state (sessions, caches, transcripts).
 link_claude() {
   local system_dir="$1"
   local claude_dir="$HOME/.claude"
@@ -229,8 +216,6 @@ link_claude() {
   link_file "$system_dir/claude/commands" "$claude_dir/commands"
 }
 
-# Point iTerm2 at the versioned prefs folder. iTerm reads from it at launch and
-# writes back on quit, so any UI tweak stays versioned. Restart iTerm to apply.
 install_iterm() {
   local iterm_dir="$1"
   [[ -f "$iterm_dir/com.googlecode.iterm2.plist" ]] || return 0
@@ -274,8 +259,7 @@ for _, name in ipairs(tools) do
   end
 end
 
--- treesitter parsers compile in the background; quitting before they finish
--- left a fresh machine without highlighting until some later session built them
+-- parsers build async; quitting early leaves a fresh machine without highlighting
 local parsers = require("config.treesitter").ENSURE_INSTALLED
 require("nvim-treesitter").install(parsers):wait(10 * 60 * 1000)
 local installed = require("nvim-treesitter").get_installed()

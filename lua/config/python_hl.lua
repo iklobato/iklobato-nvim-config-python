@@ -3,8 +3,7 @@ local function apply_python_highlights()
   local type_hl = vim.api.nvim_get_hl(0, { name = "Type" })
   vim.api.nvim_set_hl(0, "@string.documentation.python", { link = "Comment" })
   vim.api.nvim_set_hl(0, "@variable.parameter.python", { fg = type_hl.fg, bold = true })
-  -- the python highlights query captures decorators as @attribute, not
-  -- @function.decorator, so the latter never matched anything
+  -- the python query captures decorators as @attribute, not @function.decorator
   vim.api.nvim_set_hl(0, "@attribute.python", { fg = keyword.fg, bold = true })
   vim.api.nvim_set_hl(0, "@type.builtin.python", { fg = type_hl.fg, italic = true })
 end

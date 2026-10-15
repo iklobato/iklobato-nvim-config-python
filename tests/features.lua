@@ -1,6 +1,4 @@
--- Feature test suite for this nvim config.
--- Run: ./tests/run.sh  (or: nvim --headless "+luafile tests/features.lua")
--- Exits 0 when every check passes, 1 otherwise.
+-- Feature suite: ./tests/run.sh (exits 0 when every check passes)
 
 local function expect(cond, msg)
   if not cond then
@@ -38,7 +36,6 @@ local function edit(name, lines)
 end
 
 local checks = {
-  -- core options
   {
     "option: lazyredraw off",
     function()
@@ -63,22 +60,18 @@ local checks = {
       expect(vim.g.mapleader == " ", "mapleader=" .. tostring(vim.g.mapleader))
     end,
   },
-  -- regression: 'timeout' off made every prefix map (<leader>e, <leader>f, gr)
-  -- block forever instead of firing
   {
     "option: mapping timeout on",
     function()
       expect(vim.o.timeout == true, "timeout is off, prefix maps will hang")
     end,
   },
-  -- regression: auto-session cannot restore filetype-local options without it
   {
     "option: sessionoptions has localoptions",
     function()
       expect(vim.o.sessionoptions:find("localoptions"), "sessionoptions=" .. vim.o.sessionoptions)
     end,
   },
-  -- regression: a postgres URL used to be hardcoded into vim.g.dbs
   {
     "option: no hardcoded db connection",
     function()
@@ -86,10 +79,7 @@ local checks = {
     end,
   },
 
-  -- regression: W and B were mapped to each other with remap=true, so both
-  -- failed with E223. <Tab> in normal mode is the same byte as <C-i> and would
-  -- take jumplist-forward with it. Read the GLOBAL table: nvim-tree maps W
-  -- buffer-locally and would shadow maparg().
+  -- read the global keymap table: nvim-tree's buffer-local W would shadow maparg()
   {
     "keymap: W swap is not recursive",
     function()
@@ -104,8 +94,7 @@ local checks = {
       expect(w.noremap == 1, "W is recursive, it will raise E223")
     end,
   },
-  -- assert on <Tab>, not <C-i>: maparg treats them as distinct strings even
-  -- though the terminal sends the same byte, so querying <C-i> proves nothing
+  -- assert on <Tab>: maparg treats <C-i> as distinct, so querying it proves nothing
   {
     "keymap: <C-i> free for jumplist",
     function()
@@ -115,8 +104,7 @@ local checks = {
     end,
   },
 
-  -- regression: nvim-dap had no cmd list, so :Dap* did not exist until a debug
-  -- keymap was pressed. Must run BEFORE the dap checks below require("dap").
+  -- must run BEFORE the dap checks below require("dap")
   {
     "dap: commands registered before dap loads",
     function()
@@ -134,7 +122,6 @@ local checks = {
     end,
   },
 
-  -- UI (PyCharm-style)
   {
     "ui: darcula-dark colorscheme",
     function()
@@ -149,7 +136,6 @@ local checks = {
   { "ui: indent guides (ibl)", loads("ibl") },
   { "ui: treesitter-context", loads("treesitter-context") },
 
-  -- editing core
   {
     "treesitter: python parser",
     function()
@@ -173,7 +159,6 @@ local checks = {
   { "telescope", loads("telescope") },
   { "telescope command", command_exists("Telescope") },
 
-  -- keymaps (one per category file)
   { "keymap: file explorer <leader>ee", keymap_exists(" ee") },
   { "keymap: maximize split <leader>sm", keymap_exists(" sm") },
   { "keymap: markdown preview <leader>mp", keymap_exists(" mp") },
@@ -182,13 +167,11 @@ local checks = {
   { "keymap: python exception stops <leader>be", keymap_exists(" be") },
   { "keymap: debug ui <leader>du", keymap_exists(" du") },
 
-  -- lazy-loaded tools (stub commands must be registered)
   { "dadbod-ui stub command", command_exists("DBUI") },
   { "maximizer stub command", command_exists("MaximizerToggle") },
   { "mason command", command_exists("Mason") },
   { "session: auto-session", loads("auto-session") },
 
-  -- markdown preview (the port-collision fix)
   {
     "markdown-preview: loads on md file",
     function()
@@ -206,7 +189,6 @@ local checks = {
     end,
   },
 
-  -- git blame (delayed off the cursor path)
   {
     "git-blame: loaded with 1000ms delay",
     function()
@@ -214,7 +196,6 @@ local checks = {
     end,
   },
 
-  -- windsurf/codeium (InsertEnter-gated)
   {
     "windsurf: loads on insert",
     function()
@@ -226,7 +207,6 @@ local checks = {
     end,
   },
 
-  -- kulala (http-file-gated)
   {
     "kulala: loads on http file",
     function()
@@ -240,7 +220,6 @@ local checks = {
     end,
   },
 
-  -- luarocks is disabled: a rockspec build failure aborts the whole config
   {
     "lazy: luarocks disabled",
     function()
@@ -248,7 +227,6 @@ local checks = {
     end,
   },
 
-  -- autocmds
   {
     "autocmd: jq as json formatprg",
     function()
@@ -257,7 +235,6 @@ local checks = {
     end,
   },
 
-  -- DAP (the lazy-load ordering fixes)
   {
     "dap: python adapter + 4 configs",
     function()
@@ -322,8 +299,6 @@ local checks = {
       expect(vim.fn.filereadable(server) == 1, server .. " not readable")
     end,
   },
-  -- regression: mason.nvim had no config, so loading it as a dap dependency
-  -- left the registry empty and every adapter looked "not installed"
   {
     "dap: mason registry populated when dap pulls mason in",
     function()
@@ -339,7 +314,6 @@ local checks = {
     end,
   },
 
-  -- LSP end to end: pyright attaches to a python buffer
   {
     "lsp: pyright binary installed",
     function()
@@ -359,8 +333,6 @@ local checks = {
       expect(#clients > 0, "no LSP client attached after 15s")
     end,
   },
-  -- regression: mason-lspconfig v2 ignores `handlers`, so on_attach never ran
-  -- and none of these existed on any buffer
   {
     "lsp: on_attach maps land on the buffer",
     function()
@@ -371,12 +343,7 @@ local checks = {
       expect(next(want) == nil, "missing maps: " .. table.concat(vim.tbl_keys(want), ", "))
     end,
   },
-  -- regression: lua/lsp/servers/*.lua used to run AFTER mason-lspconfig.setup(),
-  -- so vim.lsp.enable() started the clients before their settings were registered.
-  -- Needs a fresh process AND the file opened after VimEnter: passing the file on
-  -- the command line is the one path that was never broken (vim_did_enter is 0
-  -- there, so enable() defers). Runs from the scratch dir so auto-session has no
-  -- session to restore ahead of the :edit.
+  -- fresh nvim, file opened after VimEnter (a CLI arg never broke), cwd scratch: no session
   {
     "lsp: server settings survive a late open",
     function()
@@ -413,8 +380,6 @@ local checks = {
       expect(len == 88, "ruff lineLength=" .. tostring(len))
     end,
   },
-  -- regression: automatic_enable defaults to true and started every server
-  -- installed in mason (25), not the allowlist
   {
     "lsp: only the allowlisted servers are enabled",
     function()
@@ -430,11 +395,7 @@ local checks = {
       end
       local allowlist = require("mason-lspconfig.settings").current.automatic_enable
       expect(type(allowlist) == "table", "automatic_enable is not an allowlist")
-      -- assert containment, not equality: mason-lspconfig only enables servers
-      -- that are BOTH allowlisted AND installed, so a fresh machine (install.sh
-      -- installs 4 of the 16) enables fewer than the allowlist and is still
-      -- correct. The property that matters is that nothing OUTSIDE the allowlist
-      -- is enabled.
+      -- containment, not equality: only allowlisted AND installed servers get enabled
       local allowed = {}
       for _, name in ipairs(allowlist) do
         allowed[name] = true
@@ -451,7 +412,6 @@ local checks = {
       )
     end,
   },
-  -- regression: the textobjects block was configured but the plugin was missing
   {
     "treesitter: function textobject is mapped",
     function()
@@ -459,8 +419,6 @@ local checks = {
       expect(vim.fn.maparg("if", "o") ~= "", "no operator-pending map for if")
     end,
   },
-  -- regression: queries/html/injections.scm could only ADD rules, so <script>
-  -- was parsed by tsx AND javascript, and <style> by css twice
   {
     "treesitter: html script injects tsx, not javascript",
     function()
@@ -475,8 +433,6 @@ local checks = {
       expect(not langs.javascript, "javascript still injected alongside tsx")
     end,
   },
-  -- regression: nvim-treesitter master's #set-lang-from-mimetype! directive
-  -- called :range() on the node list nvim 0.12 passes, crashing the highlighter
   {
     "treesitter: html typed script parses and highlights",
     function()
@@ -491,14 +447,11 @@ local checks = {
       )
     end,
   },
-  -- regression: stylua was configured but never installed, so <leader>f on a
-  -- Lua file was a silent no-op
   {
     "formatting: every mason-provided formatter is installed",
     function()
       local conform = require("conform")
-      -- clang-format comes from the system, not mason, and install.sh does not
-      -- add it (README, Formatting): a fresh machine is allowed to lack it
+      -- clang-format comes from the system, not mason: a fresh machine may lack it
       local seen, missing = { clang_format = true }, {}
       for _, formatters in pairs(conform.formatters_by_ft) do
         for _, name in ipairs(formatters) do
@@ -513,21 +466,15 @@ local checks = {
       expect(#missing == 0, "not installed: " .. table.concat(missing, ", "))
     end,
   },
-  -- regression: the same autocmd was registered in lua/autocmds/ui.lua and in
-  -- the dadbod-ui spec's config function
   {
     "autocmd: single *.dbout handler",
     function()
-      -- the duplicate lived in dadbod-ui's config body, so the plugin has to be
-      -- loaded for the count to mean anything. Scope to our augroup: dadbod-ui
-      -- registers *.dbout autocmds of its own and those are legitimate.
+      -- load dadbod-ui or the count is vacuous; scope to UserUi, its own autocmds are fine
       require("lazy").load({ plugins = { "vim-dadbod-ui" } })
       local found = vim.api.nvim_get_autocmds({ group = "UserUi", pattern = "*.dbout" })
       expect(#found == 1, #found .. " autocmds in UserUi for *.dbout")
     end,
   },
-  -- regression: sessions re-saved buffers for files that no longer existed, so
-  -- a stale session kept coming back with dead tabs in the bufferline
   {
     "session: dead buffers are dropped before saving",
     function()
@@ -546,8 +493,6 @@ local checks = {
       expect(vim.api.nvim_buf_is_valid(kept), "buffer for an existing file was dropped")
     end,
   },
-  -- regression: respect_buf_cwd let a window-local cwd (one stray `lcd` in a
-  -- restored session was enough) reroot the tree away from the project
   {
     "nvim-tree: root follows the global cwd only",
     function()

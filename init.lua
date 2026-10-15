@@ -1,4 +1,3 @@
--- Bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.uv.fs_stat(lazypath) then
   local out = vim.fn.system({
@@ -9,51 +8,39 @@ if not vim.uv.fs_stat(lazypath) then
     "--branch=stable",
     lazypath,
   })
-  -- surface the real git error instead of the misleading "module 'lazy' not
-  -- found" that a failed clone otherwise produces further down
   if vim.v.shell_error ~= 0 then
     error("Failed to clone lazy.nvim:\n" .. out)
   end
 end
 vim.opt.rtp:prepend(lazypath)
 
--- Enable Lua bytecode caching
 vim.loader.enable(true)
 
--- Disable unused providers
 vim.g.loaded_ruby_provider = 0
 vim.g.loaded_perl_provider = 0
 vim.g.loaded_node_provider = 0
 vim.g.loaded_python3_provider = 0
 
--- Leader key
 vim.g.mapleader = " "
 
--- Disable netrw (use nvim-tree)
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 
--- Load core configuration
 require("core.options")
 
--- Load keymaps
 require("keymaps")
 
--- Load plugins
 require("plugins")
 
--- Load LSP configuration (deferred: mason is heavy, LSP isn't needed until a buffer opens)
 vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
   once = true,
   callback = function()
     require("lsp")
-    -- vim.lsp.enable() ran after this buffer's FileType event, so re-fire
-    -- it for already-open buffers (nvim only does this after VimEnter)
+    -- lsp loads after this buffer's FileType fired; re-fire so servers attach to it
     vim.schedule(function()
       pcall(vim.cmd.doautoall, "nvim.lsp.enable FileType")
     end)
   end,
 })
 
--- Load autocmds
 require("autocmds")

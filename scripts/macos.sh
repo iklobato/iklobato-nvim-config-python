@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
-#
-# Opinionated macOS system defaults for a dev machine. Run by hand on a new Mac:
-#   ./scripts/macos.sh
-# Not called by install.sh. Review before running; log out or restart for all of
-# it to take effect. Every setting here is reversible via System Settings.
-#
+# macOS defaults for a dev machine, run by hand (not by install.sh); log out to apply.
 set -euo pipefail
 
-[[ "$(uname -s)" == Darwin ]] || { echo "macOS only"; exit 1; }
+[[ "$(uname -s)" == Darwin ]] || {
+  echo "macOS only"
+  exit 1
+}
 
 echo "==> keyboard: fast key repeat, no press-and-hold accent popup"
 defaults write NSGlobalDomain KeyRepeat -int 2

@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Deep e2e, search: telescope pickers.
-# Run alone: ./tests/deep/search.sh   (./tests/e2e-deep.sh runs every area)
+# Deep e2e, search: telescope file, grep and buffer pickers.
 set -uo pipefail
 
 TESTS="$(cd "$(dirname "$0")/.." && pwd)"
@@ -10,10 +9,7 @@ source "$TESTS/tmux_lib.sh"
 deep_setup search
 deep_boot backend/core/services.py
 
-# ---------------------------------------------------------------- telescope
-# The prompt echoes what was typed, so every query below is spelled without a
-# character its result has (the dot): a screen match can only come from the
-# result list, never from the prompt line.
+# queries skip the "." so only the result list, not the prompt echo, can match
 keys Space f f
 wait_lexpr "keymap <leader>ff opens the file picker" "$(win_with_ft TelescopePrompt)"
 keys "datadb"
@@ -44,7 +40,7 @@ open_file backend/core/services.py
 keys Space f b
 wait_lexpr "keymap <leader>fb opens the buffer picker" "$(win_with_ft TelescopePrompt)"
 keys "notes"
-# bufferline also shows notes.md, so wait on the picker's own selection
+# bufferline also shows notes.md, so check the picker's selection, not the screen
 wait_lexpr "fb filters to the typed buffer" \
   '(function() local entry = require("telescope.actions.state").get_selected_entry() return (entry and tostring(entry.filename or entry.value):match("notes%.md$")) and 1 or 0 end)()' 15
 keys Enter

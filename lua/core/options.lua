@@ -22,8 +22,7 @@ opt.scrolloff = 8
 opt.sidescrolloff = 8
 
 opt.updatetime = 300
--- Keep 'timeout' on: with it off, every map that is a prefix of a longer one
--- (<leader>e, <leader>f, gr) blocks forever instead of firing.
+-- Keep 'timeout' on: with it off, maps that prefix longer ones block forever.
 opt.timeoutlen = 300
 opt.ttimeoutlen = 50
 opt.redrawtime = 1500

@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Deep e2e, dap-go: go debugging with delve.
-# Run alone: ./tests/deep/dap-go.sh   (./tests/e2e-deep.sh runs every area)
+# Deep e2e, dap-go: delve launch, test, launch file and attach configs.
 set -uo pipefail
 
 TESTS="$(cd "$(dirname "$0")/.." && pwd)"
@@ -10,7 +9,6 @@ source "$TESTS/tmux_lib.sh"
 deep_setup dap-go
 deep_boot service/main.go
 
-# ---------------------------------------------------------------- go
 open_file service/main.go
 open_file service/math.go
 goto_line 11
@@ -37,7 +35,6 @@ keys Space d t
 wait_lexpr "the go test session terminates" "$(no_session)" 25
 keys Space b r
 
-# ---------------------------------------------------------------- launch file
 open_file service/cmd/hello/main.go
 goto_line 8
 keys Space b b
@@ -50,9 +47,6 @@ keys Space d t
 wait_lexpr "the launch file session terminates" "$(no_session)" 25
 keys Space b r
 
-# ---------------------------------------------------------------- attach to process
-# the picker first asks for part of the process name, then lists only the
-# matches; the one this suite started is picked by its number on screen
 waiter="$MONO/service/cmd/wait/deep-wait"
 (cd "$MONO/service" && go build -gcflags=all="-N -l" -o "$waiter" ./cmd/wait >/dev/null 2>&1)
 "$waiter" >/dev/null 2>&1 &
@@ -67,7 +61,7 @@ wait_screen "attach asks for part of the process name" "Process name contains" 1
 keys "deep-wait" Enter
 picked=""
 for _ in $(seq 1 30); do
-  # the binary itself, not a shell whose command line mentions deep-wait
+  # anchored on /deep-wait$: match the binary, not a shell mentioning deep-wait
   picked=$(screen | grep -E "^ *[0-9]+: id=[0-9]+ name=[^ ]*/deep-wait$" | head -1 | grep -oE '^ *[0-9]+' | tr -d ' ')
   [ -n "$picked" ] && break
   sleep 0.5

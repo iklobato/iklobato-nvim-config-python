@@ -50,9 +50,7 @@ return {
         width = math.max(30, math.floor(vim.o.columns * 0.2)),
       },
       actions = { open_file = { window_picker = { enable = false } } },
-      -- follow the global cwd only. respect_buf_cwd would follow the WINDOW's
-      -- cwd instead, so one stray `lcd` (a session is enough) reroots the tree
-      -- somewhere unrelated and `nvim .` stops showing the project.
+      -- not respect_buf_cwd: one stray `lcd` would reroot the tree elsewhere
       sync_root_with_cwd = true,
       update_focused_file = { enable = true },
       filters = {
