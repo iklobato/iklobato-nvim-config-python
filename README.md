@@ -307,6 +307,12 @@ takes expressions the same way.
   port 9229, Launch Chrome on dev server (asks for the URL, default
   `http://localhost:5173`), Attach to Chrome port 9222. Launching a `.ts` file
   needs no ts-node or tsx: node 22.18+ strips the types itself
+- "Attach to process" (go and node) first asks for part of the process name
+  and lists only the matches; the full list is every process on the machine.
+  For node it only works on a process started with `--inspect` (any port):
+  on a plain node the adapter disconnects with no error. delve attaches to any
+  go process you own
+- Python has no attach configuration: start the program from a launch config
 - The same js-debug-adapter serves node and chrome. React components only stop
   on the chrome configs; the node ones cannot reach browser code
 - The chrome configs resolve `webRoot` to the nearest `package.json` above the

@@ -8,7 +8,7 @@
 # alone, so `npm install` runs once and not on every suite run.
 set -euo pipefail
 
-VERSION=11
+VERSION=12
 TARGET=${1:?usage: monorepo.sh <target-dir>}
 STAMP="$TARGET/.stamp"
 
@@ -204,6 +204,45 @@ func TestSummarize(t *testing.T) {
 	}
 }
 EOF
+  # "Launch file" builds one file, so it needs a program that is one file
+  mkdir -p cmd/hello cmd/wait
+  cat >cmd/hello/main.go <<'EOF'
+package main
+
+import "fmt"
+
+func main() {
+	total := 0
+	for _, n := range []int{1, 2, 3} {
+		total += n
+	}
+	fmt.Println(total)
+}
+EOF
+  # a process that keeps running, for "Attach to process"
+  cat >cmd/wait/main.go <<'EOF'
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func tick(n int) int {
+	return n + 1
+}
+
+func main() {
+	n := 0
+	for {
+		n = tick(n)
+		time.Sleep(200 * time.Millisecond)
+		if n < 0 {
+			fmt.Println(n)
+		}
+	}
+}
+EOF
 )
 
 # ---------- frontend: vite + react + typescript ----------
@@ -269,14 +308,21 @@ async function main(): Promise<void> {
 
 main();
 EOF
+  # the tick re-renders every second, so a debugger that attaches after the
+  # first render still reaches line 7
   cat >src/App.tsx <<'EOF'
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { summarize } from "./lib/math";
 import "./App.css";
 
 function App() {
   const [count, setCount] = useState(0);
   const total = summarize([count, count + 1]);
+
+  useEffect(() => {
+    const id = setInterval(() => setCount((c) => c + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <main>
@@ -372,6 +418,20 @@ cat >langs/app.js <<'EOF'
 export function double(value) {
   return value * 2;
 }
+EOF
+# plain javascript for the node configs: one that runs and ends, one that waits
+cat >langs/count.js <<'EOF'
+let total = 0;
+for (const n of [1, 2, 3]) {
+  total = total + n;
+}
+console.log(total);
+EOF
+cat >langs/wait.js <<'EOF'
+let n = 0;
+setInterval(() => {
+  n = n + 1;
+}, 200);
 EOF
 command -v sqlite3 >/dev/null && sqlite3 data.db \
   "create table totals (id integer primary key, label text, value integer); insert into totals (label, value) values ('first', 20), ('second', 40);"

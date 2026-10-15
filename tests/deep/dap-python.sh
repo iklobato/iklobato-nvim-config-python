@@ -56,6 +56,17 @@ keys i "total * 10" Enter
 wait_lexpr "a watch expression is registered and evaluated" \
   '(function() local w = require("dapui").elements.watches.get() for _, e in ipairs(w) do if e.expression == "total * 10" then return 1 end end return 0 end)()' 20
 keys Escape
+# the remove mapping ("d") on the watch line drops it again
+lexpr '(function() vim.api.nvim_win_set_cursor(0, { 1, 0 }) return 1 end)()' >/dev/null
+keys d
+wait_lexpr "d in the watches panel removes the watch" '#require("dapui").elements.watches.get() == 0 and 1 or 0' 10
+
+# the expand mapping (<CR>) on a list variable shows its items
+focus_ft dapui_scopes
+wait_lexpr "the scopes panel lists numbers" \
+  '(function() for i, l in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, false)) do if l:match("numbers") then vim.api.nvim_win_set_cursor(0, { i, 0 }) _G.__scope_lines = vim.api.nvim_buf_line_count(0) return 1 end end return 0 end)()' 15
+keys Enter
+wait_lexpr "<CR> in the scopes panel expands the list" 'vim.api.nvim_buf_line_count(0) > (_G.__scope_lines or math.huge) and 1 or 0' 10
 
 focus_ft dap-repl
 lexpr '(function() _G.__repl_lines_before = #vim.api.nvim_buf_get_lines(0, 0, -1, true) return 1 end)()' >/dev/null

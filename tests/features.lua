@@ -121,7 +121,16 @@ local checks = {
     "dap: commands registered before dap loads",
     function()
       expect(package.loaded["dap"] == nil, "dap already loaded, this check proves nothing here")
-      expect(vim.fn.exists(":DapContinue") == 2, ":DapContinue not defined")
+      for _, cmd in ipairs({
+        "DapNew",
+        "DapContinue",
+        "DapToggleBreakpoint",
+        "DapTerminate",
+        "DapEval",
+        "DapShowLog",
+      }) do
+        expect(vim.fn.exists(":" .. cmd) == 2, ":" .. cmd .. " not defined")
+      end
     end,
   },
 

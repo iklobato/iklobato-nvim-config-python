@@ -38,9 +38,3 @@ nvim backend/core/services.py
 - **The rendered markdown preview.** `deep/tools.sh` presses `<leader>mp`, gets
   a 200 from the preview server and stops it with `<leader>mP`, but records the
   URL instead of opening a browser. What the page looks like is check 13 above.
-- **The treesitter motions** (`af`/`if`/`ac`/`ic`). `tests/features.lua` only
-  checks `af`/`if` are bound (`maparg`); nothing presses them yet.
-- **Attach configurations.** "Attach to process" needs a process picker choice
-  and "Attach to Chrome port 9222" needs a browser already started with the
-  remote debugging port. Both are one-off manual runs, described in the
-  Debugging section of the README.
