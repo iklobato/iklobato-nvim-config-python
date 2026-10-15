@@ -98,4 +98,23 @@ keys Space d b
 wait_lexpr "keymap <leader>db closes the database UI" \
   "(function() return $(win_with_ft dbui) == 1 and 0 or 1 end)()" 25
 
+# ---------------------------------------------------------------- database queries
+# the fixture's data.db holds totals (first 20, second 40)
+DBOUT_WIN='(function() for _, w in ipairs(vim.api.nvim_list_wins()) do if vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(w)):match("%.dbout$") then return w end end end)()'
+open_file notes.md
+keys Escape ":DB sqlite:data.db select label, value from totals order by id" Enter
+wait_lexpr "a dadbod query shows its rows in a .dbout window" \
+  "(function() local w = $DBOUT_WIN if not w then return 0 end local text = table.concat(vim.api.nvim_buf_get_lines(vim.api.nvim_win_get_buf(w), 0, -1, false), \" \") return (text:match(\"second\") and text:match(\"40\")) and 1 or 0 end)()" 20
+# the resize runs 100ms after the buffer is read
+wait_lexpr "the result window takes 75% of the screen" \
+  "(function() local w = $DBOUT_WIN return (w and vim.api.nvim_win_get_height(w) >= math.floor((vim.o.lines - 2) * 0.75) - 1) and 1 or 0 end)()" 10
+keys Escape ":silent! only" Enter
+
+# blink only offers dadbod completions in sql buffers that know their database
+lexpr '(function() vim.cmd("enew!") vim.bo.filetype = "sql" vim.b.db = "sqlite:data.db" return 1 end)()' >/dev/null
+keys i "select * from tot"
+wait_lexpr "sql completion offers the table from the database" \
+  '(function() for _, item in ipairs(require("blink.cmp.completion.list").items or {}) do if item.label == "totals" and item.source_id == "dadbod" then return 1 end end return 0 end)()' 30
+keys Escape
+
 deep_finish
