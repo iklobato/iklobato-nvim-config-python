@@ -5,6 +5,12 @@ local JS_SKIP_FILES = { "<node_internals>/**", "${workspaceFolder}/node_modules/
 local NODE_INSPECT_PORT = 9229
 local CHROME_DEBUG_PORT = 9222
 local DEFAULT_DEV_SERVER_URL = "http://localhost:5173"
+local DEFAULT_ASGI_APP = "main:app"
+
+-- debug mode makes asyncio report what it otherwise drops silently: a coroutine
+-- that was never awaited (with where it was created) and any callback that
+-- blocks the event loop for over 100ms
+M.ASYNCIO_DEBUG_ENV = { PYTHONASYNCIODEBUG = "1" }
 
 -- the frontend of a monorepo is not the directory nvim was opened in, and
 -- chrome resolves every source map against webRoot
@@ -26,6 +32,14 @@ local function prompt_dev_server_url()
     return require("dap").ABORT
   end
   return url
+end
+
+local function prompt_asgi_app()
+  local app = vim.fn.input("ASGI app (module:attribute): ", DEFAULT_ASGI_APP)
+  if app == "" then
+    return require("dap").ABORT
+  end
+  return { app }
 end
 
 function M.python_path()
@@ -93,6 +107,7 @@ function M.setup()
       request = "launch",
       name = "Launch file",
       program = "${file}",
+      env = M.ASYNCIO_DEBUG_ENV,
       pythonPath = M.python_path,
     },
     {
@@ -110,6 +125,17 @@ function M.setup()
       name = "Pytest file",
       module = "pytest",
       args = { "${file}" },
+      env = M.ASYNCIO_DEBUG_ENV,
+      pythonPath = M.python_path,
+    },
+    {
+      type = "python",
+      request = "launch",
+      name = "Uvicorn app (ASGI)",
+      module = "uvicorn",
+      -- no --reload: every file save would restart the server under the debugger
+      args = prompt_asgi_app,
+      env = M.ASYNCIO_DEBUG_ENV,
       pythonPath = M.python_path,
     },
   }

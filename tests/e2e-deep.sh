@@ -34,6 +34,7 @@ cleanup() {
   stop_django
   pkill -f "$MONO/frontend.*vite" 2>/dev/null
   pkill -f "npm run dev" 2>/dev/null
+  pkill -f "asgi_demo:app" 2>/dev/null
   tmux kill-session -t "$S" 2>/dev/null
   rm -rf "$(dirname "$SOCK")"
   return 0
@@ -419,6 +420,47 @@ wait_lexpr "a real request stops in the django view" "$(session_stopped)" 45
 wait_lexpr "it stopped on the view's total line" "$(frame_line 8)" 10
 keys Space d t
 wait_lexpr "the django session terminates" "$(no_session)" 25
+keys Space b r
+
+# ---------------------------------------------------------------- asyncio
+open_file async_demo.py
+keys Space b e
+wait_screen "keymap <leader>be lists the exception stop modes" "user unhandled" 15
+keys 2 Enter
+keys Space d c
+wait_screen "the config menu lists the uvicorn config" "Uvicorn" 20
+keys 1 Enter
+wait_lexpr "the error lost in an asyncio task stops the session" "$(session_stopped)" 60
+wait_lexpr "it stopped on the raise inside the task" "$(frame_line 6)" 10
+lexpr '(function() local s = require("dap").session() s:request("evaluate", { expression = "asyncio.get_running_loop().get_debug()", frameId = s.current_frame.id, context = "repl" }, function(_, r) _G.__loop_debug = r and r.result end) return 1 end)()' >/dev/null
+wait_lexpr "Launch file runs the event loop in asyncio debug mode" '_G.__loop_debug == "True" and 1 or 0' 15
+keys Space d c
+wait_lexpr "the asyncio run finishes after the stop" "$(no_session)" 30
+keys Space b e
+keys 1 Enter
+wait_lexpr "keymap <leader>be puts back the uncaught-only default" \
+  '(function() local f = require("dap").defaults.python.exception_breakpoints return (#f == 1 and f[1] == "uncaught") and 1 or 0 end)()' 10
+
+open_file asgi_demo.py
+goto_line 4
+keys Space b b
+keys Space d c
+wait_screen "the config menu is up for the uvicorn run" "Uvicorn" 20
+keys 4 Enter
+wait_screen "it asks for the ASGI app with a default" "main:app" 15
+keys C-u "asgi_demo:app" Enter
+(
+  for _ in $(seq 1 45); do
+    curl -s -m 3 -o /dev/null http://127.0.0.1:8000/
+    # same as the django probe: only a request held at the breakpoint stops it
+    [ $? -eq 28 ] && break
+    sleep 1
+  done
+) &
+wait_lexpr "a real request stops in the ASGI app" "$(session_stopped)" 45
+wait_lexpr "it stopped on the app's total line" "$(frame_line 4)" 10
+keys Space d t
+wait_lexpr "the uvicorn session terminates" "$(no_session)" 25
 keys Space b r
 keys Escape ":cd .." Enter
 

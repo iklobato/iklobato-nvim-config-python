@@ -242,6 +242,7 @@ Python only:
 |---|---|---|
 | `<leader>df` | debug the pytest test under the cursor | reads LSP symbols, so `TestClass::test_method` is resolved for a method |
 | `<leader>dp` | picker with every test in the file | plus a "Manual" entry to type any pytest target |
+| `<leader>be` | pick when python exceptions stop the session | uncaught only (default), user unhandled, or raised. Kept for the next sessions too |
 
 Commands, once the plugin has loaded: `:DapEval` (evaluate expressions in a
 scratch window), `:DapToggleRepl`, `:DapPause`, `:DapRestartFrame`,
@@ -262,6 +263,23 @@ With a file that has a `double()` helper called inside a loop:
 7. `<leader>dc` runs to the end; the logpoint lines are waiting in the REPL
 8. `<leader>dt` ends it, `<leader>dl` runs the same config again without asking
 
+### Async python
+
+- Breakpoints inside `async def` stop like any other, and step over on an
+  `await` stays in your code instead of walking into asyncio
+- Launch file, Pytest file, Uvicorn app and the pytest keymaps run with
+  `PYTHONASYNCIODEBUG=1`: a coroutine that was never awaited is reported with
+  where it was created, and a callback that blocks the loop for over 100ms is
+  logged
+- An error raised in a task nobody awaits does not stop the session by default:
+  asyncio keeps the exception, prints "Task exception was never retrieved" and
+  the program exits 0. Press `<leader>be` and pick "user unhandled" to stop on
+  the raise. It also stops on errors that a `try/except` around the `await`
+  handles, which is why it is not the default
+- The REPL lists the running tasks with
+  `[t.get_name() for t in asyncio.all_tasks()]` and takes `await`, for example
+  `await asyncio.sleep(0, result=42)`
+
 ### The UI
 
 Left column: scopes, watches, breakpoints. Right column: REPL and console. Both
@@ -277,8 +295,9 @@ takes expressions the same way.
 - mason-nvim-dap ensures debugpy (python), delve (go) and js-debug-adapter
   (node, typescript, react). debugpy is installed up front by scripts/install.sh;
   delve and js-debug-adapter install on the first debug session
-- Python: Launch file, Django runserver, Pytest file. The adapter uses mason's
-  debugpy when installed, otherwise the python of the active venv
+- Python: Launch file, Django runserver, Pytest file, Uvicorn app (asks for the
+  ASGI app, default `main:app`, and runs without `--reload`). The adapter uses
+  mason's debugpy when installed, otherwise the python of the active venv
 - Go: Launch file, Launch package, Test package, Attach to process. delve gets a
   20s initialize timeout because it compiles the program before answering, and
   it is spawned in the file's directory so a monorepo root does not break the

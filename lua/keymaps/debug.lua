@@ -16,8 +16,42 @@ local function dap_run_pytest(selector)
     name = "Pytest: " .. selector,
     module = "pytest",
     args = { file_path .. "::" .. selector },
+    env = require("config.dap").ASYNCIO_DEBUG_ENV,
     pythonPath = require("config.dap").python_path,
   })
+end
+
+-- "uncaught" alone never fires for an error inside an asyncio task nobody
+-- awaits: the task keeps the exception and the program exits 0. "userUnhandled"
+-- does, but in async code it also stops on errors that a try/except around the
+-- await handles, so it is a mode to pick while hunting, not the default
+local PYTHON_EXCEPTION_STOP_MODES = {
+  { label = "uncaught only (debugpy default)", filters = { "uncaught" } },
+  {
+    label = "user unhandled: also errors lost in asyncio tasks",
+    filters = { "uncaught", "userUnhandled" },
+  },
+  { label = "raised: every exception, caught or not", filters = { "raised", "uncaught" } },
+}
+
+local function pick_python_exception_stops()
+  vim.ui.select(PYTHON_EXCEPTION_STOP_MODES, {
+    prompt = "Stop on python exceptions:",
+    format_item = function(mode)
+      return mode.label
+    end,
+  }, function(mode)
+    if mode == nil then
+      return
+    end
+    local dap = require("dap")
+    -- read when a session starts, so the choice also holds for the next run
+    dap.defaults.python.exception_breakpoints = mode.filters
+    local session = dap.session()
+    if session and session.config.type == "python" then
+      session:set_exception_breakpoints(mode.filters)
+    end
+  end)
 end
 
 local function dap_pytest_selectors_from_lsp(callback)
@@ -129,6 +163,7 @@ end, { desc = "Logpoint" })
 map("n", "<leader>br", function()
   require("dap").clear_breakpoints()
 end, { desc = "Clear breakpoints" })
+map("n", "<leader>be", pick_python_exception_stops, { desc = "Python exception stops" })
 map("n", "<leader>ba", function()
   require("dap").list_breakpoints()
   vim.cmd.copen()

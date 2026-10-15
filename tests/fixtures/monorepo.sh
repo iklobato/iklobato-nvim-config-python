@@ -8,7 +8,7 @@
 # alone, so `npm install` runs once and not on every suite run.
 set -euo pipefail
 
-VERSION=6
+VERSION=7
 TARGET=${1:?usage: monorepo.sh <target-dir>}
 STAMP="$TARGET/.stamp"
 
@@ -29,7 +29,7 @@ mkdir -p backend
   cd backend
   python3 -m venv .venv
   .venv/bin/python -m pip install --quiet --upgrade pip
-  .venv/bin/python -m pip install --quiet django pytest pytest-django
+  .venv/bin/python -m pip install --quiet django pytest pytest-django uvicorn
   .venv/bin/python -m django startproject core .
   cat >core/views.py <<'EOF'
 from django.http import HttpResponse, JsonResponse
@@ -103,6 +103,33 @@ from core.services import summarize
 numbers = [1, 2, 3, 4]
 print("total", summarize(numbers))
 EOF
+  # a task nobody awaits: its error never reaches "uncaught", the program
+  # exits 0, and only the user-unhandled exception mode stops on the raise
+  cat >async_demo.py <<'EOF'
+import asyncio
+
+
+async def fetch(value):
+    await asyncio.sleep(0)
+    raise ValueError(f"lost {value}")
+
+
+async def main():
+    asyncio.create_task(fetch(1))
+    await asyncio.sleep(0.1)
+
+
+asyncio.run(main())
+EOF
+  # a bare ASGI app, so the uvicorn config is driven without pulling a framework
+  cat >asgi_demo.py <<'EOF'
+async def app(scope, receive, send):
+    if scope["type"] != "http":
+        return
+    total = sum([1, 2, 3])
+    await send({"type": "http.response.start", "status": 200, "headers": []})
+    await send({"type": "http.response.body", "body": f"total={total}".encode()})
+EOF
   # a real repo has lint findings; this one gives the diagnostic keymaps
   # something to jump to
   cat >core/legacy.py <<'EOF'
@@ -116,7 +143,7 @@ def legacy_total(numbers):
         total = total + number
     return total
 EOF
-  printf 'django>=4.2\npytest\npytest-django\n' >requirements.txt
+  printf 'django>=4.2\npytest\npytest-django\nuvicorn\n' >requirements.txt
   printf '[pytest]\nDJANGO_SETTINGS_MODULE = core.settings\npythonpath = .\n' >pytest.ini
 )
 

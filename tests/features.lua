@@ -170,6 +170,7 @@ local checks = {
   { "keymap: markdown preview <leader>mp", keymap_exists(" mp") },
   { "keymap: debug pytest <leader>dp", keymap_exists(" dp") },
   { "keymap: breakpoint <leader>bb", keymap_exists(" bb") },
+  { "keymap: python exception stops <leader>be", keymap_exists(" be") },
   { "keymap: debug ui <leader>du", keymap_exists(" du") },
 
   -- lazy-loaded tools (stub commands must be registered)
@@ -249,11 +250,11 @@ local checks = {
 
   -- DAP (the lazy-load ordering fixes)
   {
-    "dap: python adapter + 3 configs",
+    "dap: python adapter + 4 configs",
     function()
       local dap = require("dap")
       expect(dap.adapters.python, "no python adapter")
-      expect(#dap.configurations.python == 3, "#configs=" .. #dap.configurations.python)
+      expect(#dap.configurations.python == 4, "#configs=" .. #dap.configurations.python)
     end,
   },
   {
