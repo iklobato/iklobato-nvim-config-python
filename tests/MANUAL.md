@@ -38,15 +38,11 @@ nvim backend/core/services.py
 - **Session restore across restarts.** auto-session writes on exit, so asserting
   it needs a second nvim boot inside the same suite. Check it by hand: open a
   few buffers, quit, reopen nvim in the same directory, and see them come back.
-- **`<leader>ca` and `gi` results.** The suite only proves the keys fire without
-  wedging nvim: whether a code action or an implementation exists depends on the
-  language server and the cursor position, so a stable assertion would be
-  testing pyright, not this config.
-- **`<leader>mp`/`<leader>mP` and the treesitter motions** (`af`/`if`/`ac`/
-  `ic`). The suite only checks these are bound
-  (`maparg`), it never presses them; markdown preview opening a browser and the
-  treesitter selection/textobject behavior are covered by check 13 above and by
-  `tests/features.lua`'s static maparg checks, respectively.
+- **The rendered markdown preview.** `deep/tools.sh` presses `<leader>mp`, gets
+  a 200 from the preview server and stops it with `<leader>mP`, but records the
+  URL instead of opening a browser. What the page looks like is check 13 above.
+- **The treesitter motions** (`af`/`if`/`ac`/`ic`). `tests/features.lua` only
+  checks `af`/`if` are bound (`maparg`); nothing presses them yet.
 - **Attach configurations.** "Attach to process" needs a process picker choice
   and "Attach to Chrome port 9222" needs a browser already started with the
   remote debugging port. Both are one-off manual runs, described in the
