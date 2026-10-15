@@ -20,11 +20,14 @@ SUITE_LABEL=deep
 SOCK="$(mktemp -d)/nvim.sock"
 
 # the servers are started inside subshells, so $! is the subshell and killing it
-# leaves the real python/node child holding its port
+# leaves the real python/node child holding its port.
+# Another listener on *:8000 (a docker container) also answers 127.0.0.1:8000,
+# so "got a response" is never proof that the fixture's server is the one up:
+# every probe checks for the fixture's own body.
 stop_django() {
   pkill -f "manage.py runserver" 2>/dev/null
   for _ in $(seq 1 20); do
-    curl -s -m 1 http://127.0.0.1:8000/ >/dev/null || return 0
+    curl -s -m 1 http://127.0.0.1:8000/api/totals/ | grep -q '"total"' || return 0
     sleep 1
   done
   return 0
@@ -294,7 +297,7 @@ wait_lexpr "keymap <leader>mP is bound to MarkdownPreviewStop" \
 # a real server, so the request has something to answer it
 (cd "$MONO/backend" && "$VIRTUAL_ENV/bin/python" manage.py runserver 8000 --noreload >/dev/null 2>&1) &
 for _ in $(seq 1 30); do
-  curl -s -m 1 http://127.0.0.1:8000/api/totals/ >/dev/null && break
+  curl -s -m 1 http://127.0.0.1:8000/api/totals/ | grep -q '"total"' && break
   sleep 1
 done
 open_file api.http
@@ -412,7 +415,10 @@ wait_screen "the config menu is up for the django run" "Django runserver" 20
 keys 2 Enter
 (
   for _ in $(seq 1 45); do
-    curl -s -m 3 http://127.0.0.1:8000/ >/dev/null && break
+    curl -s -m 3 -o /dev/null http://127.0.0.1:8000/
+    # 28 is curl's timeout: the request is held at the breakpoint. A fast answer
+    # means the server is not up yet and something else on the port replied
+    [ $? -eq 28 ] && break
     sleep 1
   done
 ) &
