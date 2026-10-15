@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Deep e2e, dap-python: breakpoints and every python debug config: launch, pytest, django, asyncio, uvicorn.
-# Run alone: ./tests/deep/dap-python.sh   (./tests/e2e-deep.sh runs every area)
+# Deep e2e, dap-python: breakpoints, dap-ui and every python debug config.
 set -uo pipefail
 
 TESTS="$(cd "$(dirname "$0")/.." && pwd)"
@@ -10,7 +9,6 @@ source "$TESTS/tmux_lib.sh"
 deep_setup dap-python
 deep_boot backend/core/services.py
 
-# ---------------------------------------------------------------- breakpoints
 open_file backend/core/services.py
 goto_line 2
 keys Space b b
@@ -29,7 +27,6 @@ keys Escape ":cclose" Enter
 keys Space b r
 wait_lexpr "keymap <leader>br clears every breakpoint" "$(bp_count) == 0 and 1 or 0"
 
-# ---------------------------------------------------------------- python session
 goto_line 9
 keys Space b c "number == 3" Enter
 goto_line 3
@@ -47,7 +44,7 @@ wait_lexpr "keymap <leader>dk steps into double()" "$(frame_name double)" 20
 keys Space d o
 wait_lexpr "keymap <leader>do steps back out to summarize()" "$(frame_name summarize)" 20
 keys Space d j
-# step out lands back on the loop body's line 9; a step over has to leave it
+# step out lands back on line 9, so a step over must leave it
 wait_lexpr "keymap <leader>dj steps over to another line" \
   '(function() local s = require("dap").session() local f = s and s.current_frame return (f and f.line ~= 9 and f.name:match("summarize")) and 1 or 0 end)()' 20
 
@@ -56,12 +53,10 @@ keys i "total * 10" Enter
 wait_lexpr "a watch expression is registered and evaluated" \
   '(function() local w = require("dapui").elements.watches.get() for _, e in ipairs(w) do if e.expression == "total * 10" then return 1 end end return 0 end)()' 20
 keys Escape
-# the remove mapping ("d") on the watch line drops it again
 lexpr '(function() vim.api.nvim_win_set_cursor(0, { 1, 0 }) return 1 end)()' >/dev/null
 keys d
 wait_lexpr "d in the watches panel removes the watch" '#require("dapui").elements.watches.get() == 0 and 1 or 0' 10
 
-# the expand mapping (<CR>) on a list variable shows its items
 focus_ft dapui_scopes
 wait_lexpr "the scopes panel lists numbers" \
   '(function() for i, l in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, false)) do if l:match("numbers") then vim.api.nvim_win_set_cursor(0, { i, 0 }) _G.__scope_lines = vim.api.nvim_buf_line_count(0) return 1 end end return 0 end)()' 15
@@ -82,7 +77,7 @@ keys Space d u
 wait_lexpr "keymap <leader>du shows the UI again" "$(win_with_ft dapui_scopes)" 15
 keys Space d c
 wait_lexpr "keymap <leader>dc continues to the end of the run" "$(no_session)" 30
-# run_last re-expands ${file}, and the debugger left the cursor in services.py
+# run_last re-expands ${file}, and the cursor was left in services.py
 open_file backend/demo.py
 keys Space d l
 wait_lexpr "keymap <leader>dl reruns the last config without the menu" "$(session_stopped)" 40
@@ -95,17 +90,15 @@ keys Space d d
 wait_lexpr "keymap <leader>dd disconnects the session" "$(no_session)" 25
 keys Space b r
 
-# ---------------------------------------------------------------- pytest
 open_file backend/tests/test_services.py
 wait_lexpr "pyright attaches to the test file" \
   '#vim.lsp.get_clients({ bufnr = vim.fn.bufnr("test_services.py"), name = "pyright" }) > 0 and 1 or 0' 40
-# a breakpoint inside the method proves which pytest target was built: only
-# "TestServices::test_double_negative" reaches line 16
+# only the TestServices::test_double_negative target reaches line 16
 goto_line 16
 keys Space b b
 wait_lexpr "breakpoint inside TestServices.test_double_negative" "$(bp_count) == 1 and 1 or 0"
 keys Space d p
-# Class::method is only ever written in the picker, never in the buffer
+# Class::method only appears in the picker, never in the buffer
 wait_screen "keymap <leader>dp lists the class method as Class::method" "TestServices::test_double_negative" 20
 choice=$(screen | grep -oE '^ *[0-9]+: TestServices::test_double_negative' | head -1 | grep -oE '[0-9]+' | head -1)
 keys "${choice:-0}" Enter
@@ -131,9 +124,7 @@ keys Space d c
 wait_lexpr "the df pytest run finishes" "$(no_session)" 60
 keys Space b r
 
-# ---------------------------------------------------------------- django
-# the Django config launches ${workspaceFolder}/manage.py, so the working
-# directory has to be the django project, not the monorepo root
+# the Django config runs ${workspaceFolder}/manage.py, so cwd must be backend
 keys Escape ":cd backend" Enter
 open_file core/views.py
 goto_line 8
@@ -144,8 +135,7 @@ keys 2 Enter
 (
   for _ in $(seq 1 45); do
     curl -s -m 3 -o /dev/null http://127.0.0.1:8000/
-    # 28 is curl's timeout: the request is held at the breakpoint. A fast answer
-    # means the server is not up yet and something else on the port replied
+    # 28 is curl's timeout: the request is held at the breakpoint
     [ $? -eq 28 ] && break
     sleep 1
   done
@@ -156,7 +146,6 @@ keys Space d t
 wait_lexpr "the django session terminates" "$(no_session)" 25
 keys Space b r
 
-# ---------------------------------------------------------------- asyncio
 open_file async_demo.py
 keys Space b e
 wait_screen "keymap <leader>be lists the exception stop modes" "user unhandled" 15
@@ -186,7 +175,7 @@ keys C-u "asgi_demo:app" Enter
 (
   for _ in $(seq 1 45); do
     curl -s -m 3 -o /dev/null http://127.0.0.1:8000/
-    # same as the django probe: only a request held at the breakpoint stops it
+    # 28 is curl's timeout: the request is held at the breakpoint
     [ $? -eq 28 ] && break
     sleep 1
   done

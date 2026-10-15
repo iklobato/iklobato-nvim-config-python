@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Deep e2e, lsp: python LSP keymaps, diagnostics, formatting and editing.
-# Run alone: ./tests/deep/lsp.sh   (./tests/e2e-deep.sh runs every area)
 set -uo pipefail
 
 TESTS="$(cd "$(dirname "$0")/.." && pwd)"
@@ -10,9 +9,7 @@ source "$TESTS/tmux_lib.sh"
 deep_setup lsp
 deep_boot backend/core/services.py
 
-# ---------------------------------------------------------------- lsp
-# by name: ruff attaches first, and a picker opened before pyright is there
-# answers "server does not support textDocument/documentSymbol"
+# by name: ruff attaches first and has no textDocument/documentSymbol
 wait_lexpr "pyright attaches to the backend file" \
   '#vim.lsp.get_clients({ bufnr = vim.fn.bufnr("services.py"), name = "pyright" }) > 0 and 1 or 0' 40
 keys Space f o
@@ -56,14 +53,11 @@ wait_lexpr "keymap <leader>rn renames the symbol across the buffer" \
   '(function() for _, l in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, false)) do if l:match("renamed_double") then return 1 end end return 0 end)()' 20
 keys Escape "u"
 
-# ---------------------------------------------------------------- diagnostics
 FLOAT_OPEN='(function() for _, w in ipairs(vim.api.nvim_list_wins()) do if vim.api.nvim_win_get_config(w).relative ~= "" then return true end end return false end)()'
 open_file backend/core/legacy.py
 wait_lexpr "ruff reports the unused imports in legacy.py" \
   '#vim.diagnostic.get(0) > 0 and 1 or 0' 60
-# nvim 0.12 ships its own [d/]d that make the same jump without a float, so
-# the float is what proves the config's maps ran; goto_line moves the cursor,
-# which closes any float left over from the step before
+# nvim's own [d/]d jump without a float, so only the float proves the config's maps
 goto_line 8
 keys "[" d
 wait_lexpr "keymap [d jumps back to a diagnostic and shows it" "(vim.fn.line(\".\") <= 2 and $FLOAT_OPEN) and 1 or 0"
@@ -86,8 +80,6 @@ wait_lexpr "keymap <leader>E puts the cursor inside the diagnostic float" \
 keys q
 wait_lexpr "q closes the focused float" 'vim.api.nvim_win_get_config(0).relative == "" and 1 or 0' 10
 
-# ruff offers "Remove unused import" for line 1; picking it has to edit the
-# buffer, not only show a menu
 goto_line 1
 keys Space c a
 wait_screen "keymap <leader>ca lists ruff's fixes" "Remove unused import" 15
@@ -96,8 +88,7 @@ keys "${choice:-0}" Enter
 wait_lexpr "the picked code action removes the import" 'vim.fn.getline(1) ~= "import json" and 1 or 0' 15
 keys Escape ":e!" Enter
 
-# ---------------------------------------------------------------- typescript
-# gi lives here: pyright has no textDocument/implementation, ts_ls does
+# gi is tested on ts: pyright has no textDocument/implementation
 open_file frontend/src/lib/shape.ts
 wait_lexpr "ts_ls attaches to the typescript file" \
   '#vim.lsp.get_clients({ bufnr = vim.fn.bufnr("shape.ts"), name = "ts_ls" }) > 0 and 1 or 0' 60
@@ -106,7 +97,6 @@ cursor_on Shape
 keys g i
 wait_lexpr "keymap gi jumps to the class implementing the interface" 'vim.fn.line(".") == 5 and 1 or 0' 20
 
-# ---------------------------------------------------------------- editing
 open_file backend/core/services.py
 keys G o "value    =    1" Escape
 keys Space F
@@ -116,8 +106,7 @@ keys Escape ":1" Enter
 keys Space S
 wait_screen "keymap <leader>S prefills the substitute command" ":%s/" 10
 keys Escape
-# an Escape and an "O" in one burst reach nvim as "ESC O", the SS3 prefix of a
-# terminal key code, and the O command plus the text after it are lost
+# Escape and "O" in one burst become a terminal key code (SS3), losing the O
 wait_lexpr "the substitute prompt is cancelled" 'vim.api.nvim_get_mode().mode == "n" and 1 or 0' 10
 keys "O" "spaced    =    2" Escape
 keys "V" Space F

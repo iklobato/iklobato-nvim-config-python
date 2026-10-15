@@ -1,9 +1,7 @@
 return {
   {
     "nvim-treesitter/nvim-treesitter",
-    -- main branch: master is frozen and only works up to nvim 0.11; on 0.12 its
-    -- query directives get node lists and crash the highlighter. main does not
-    -- support lazy-loading.
+    -- main: master crashes the highlighter on nvim 0.12; main can't lazy-load
     branch = "main",
     lazy = false,
     build = ":TSUpdate",
@@ -58,11 +56,7 @@ return {
     "chrisgrieser/nvim-puppeteer",
     dependencies = "nvim-treesitter/nvim-treesitter",
     ft = { "python" },
-    -- the plugin's own autocmds cover js/ts/lua/vue/astro/svelte too (rewriting
-    -- strings on InsertLeave), read at ITS OWN plugin-file source time, so this
-    -- has to be `init`, not `config`. Without it, whether a .ts/.lua buffer gets
-    -- auto-rewritten depends on whether a .py file happened to load earlier in
-    -- the session, not on this ft gate.
+    -- `init`, not `config`: the plugin reads this var when its plugin file is sourced
     init = function()
       vim.g.puppeteer_disabled_filetypes = {
         "lua",
@@ -89,9 +83,6 @@ return {
   {
     "saghen/blink.cmp",
     version = "*",
-    -- BufReadPost/BufNewFile are here because lua/lsp/init.lua requires blink so
-    -- its plugin file registers vim.lsp.config('*').capabilities before any
-    -- server starts. It really does load on the first buffer, so say so.
     event = { "InsertEnter", "CmdlineEnter", "BufReadPost", "BufNewFile" },
     config = function()
       require("config.blink").setup()
@@ -99,8 +90,6 @@ return {
   },
   {
     "stevearc/conform.nvim",
-    -- conform only defines :ConformInfo; a stub :Conform would load the plugin
-    -- and then fail with "Not an editor command"
     cmd = { "ConformInfo" },
     config = function()
       require("config.conform").setup()

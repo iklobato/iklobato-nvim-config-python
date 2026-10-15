@@ -1,8 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# Anchored to the script, not the cwd: export and import must agree on the file
-# no matter where you run this from.
+# anchored to the script, not the cwd: export and import must find the same file
 output_file="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/installed_packages.txt"
 
 export_packages() {

@@ -1,18 +1,15 @@
 #!/bin/bash
 
-# Homebrew Package Import Script
-# Imports all packages from a Brewfile
+# Installs packages from a Brewfile. Usage: ./scripts/brew-import.sh [-f FILE] [-n] [--force]
 
 set -e
 
-# Default values
 INPUT_FILE="${HOMEBREW_BUNDLE_FILE:-system/Brewfile}"
 DRY_RUN=false
 FORCE=false
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Parse command line arguments
 while [[ $# -gt 0 ]]; do
   case $1 in
   --file | -f)
@@ -50,20 +47,16 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Resolve input file path
 if [[ "$INPUT_FILE" != /* ]]; then
-  # Relative path - use repo root
   INPUT_FILE="$REPO_ROOT/$INPUT_FILE"
 fi
 
-# Check if brew is installed
 if ! command -v brew &>/dev/null; then
   echo "Error: Homebrew is not installed"
   echo "Install Homebrew first: https://brew.sh"
   exit 1
 fi
 
-# Check if Brewfile exists
 if [[ ! -f "$INPUT_FILE" ]]; then
   echo "Error: Brewfile not found at: $INPUT_FILE"
   echo ""
@@ -75,13 +68,12 @@ fi
 echo "Importing Homebrew packages from: $INPUT_FILE"
 echo ""
 
-# Count packages in Brewfile
 FORMULA_COUNT=$(grep -c "^brew \"" "$INPUT_FILE" 2>/dev/null || echo "0")
 CASK_COUNT=$(grep -c "^cask \"" "$INPUT_FILE" 2>/dev/null || echo "0")
 TAP_COUNT=$(grep -c "^tap \"" "$INPUT_FILE" 2>/dev/null || echo "0")
 MAS_COUNT=$(grep -c "^mas \"" "$INPUT_FILE" 2>/dev/null || echo "0")
 
-# Remove any whitespace/newlines from counts
+# grep -c || echo yields "0\n0" on no match; strip newlines so -gt comparisons work
 FORMULA_COUNT=$(echo "$FORMULA_COUNT" | tr -d '[:space:]')
 CASK_COUNT=$(echo "$CASK_COUNT" | tr -d '[:space:]')
 TAP_COUNT=$(echo "$TAP_COUNT" | tr -d '[:space:]')
@@ -102,28 +94,24 @@ if [[ "$DRY_RUN" == "true" ]]; then
   echo "Packages that would be installed:"
   echo ""
 
-  # Show taps
   if [[ $TAP_COUNT -gt 0 ]]; then
     echo "Taps:"
     grep "^tap \"" "$INPUT_FILE" | sed 's/^tap "/  - /' | sed 's/"$//'
     echo ""
   fi
 
-  # Show formulas
   if [[ $FORMULA_COUNT -gt 0 ]]; then
     echo "Formulas:"
     grep "^brew \"" "$INPUT_FILE" | sed 's/^brew "/  - /' | sed 's/"$//'
     echo ""
   fi
 
-  # Show casks
   if [[ $CASK_COUNT -gt 0 ]]; then
     echo "Casks:"
     grep "^cask \"" "$INPUT_FILE" | sed 's/^cask "/  - /' | sed 's/"$//'
     echo ""
   fi
 
-  # Show MAS apps
   if [[ $MAS_COUNT -gt 0 ]]; then
     echo "Mac App Store apps:"
     grep "^mas \"" "$INPUT_FILE" | sed 's/^mas "/  - /' | sed 's/" #.*$//' | sed 's/"$//'
@@ -134,14 +122,12 @@ if [[ "$DRY_RUN" == "true" ]]; then
   exit 0
 fi
 
-# Check if packages are already installed
 if [[ "$FORCE" != "true" ]]; then
   echo "Checking which packages are already installed..."
   MISSING_TAPS=0
   MISSING_FORMULAS=0
   MISSING_CASKS=0
 
-  # Check taps
   while IFS= read -r line || [[ -n "$line" ]]; do
     tap_name=$(echo "$line" | sed 's/^tap "//' | sed 's/"$//')
     if [[ -n "$tap_name" ]] && ! brew tap 2>/dev/null | grep -q "^$tap_name$"; then
@@ -149,7 +135,6 @@ if [[ "$FORCE" != "true" ]]; then
     fi
   done < <(grep "^tap \"" "$INPUT_FILE" 2>/dev/null || true)
 
-  # Check formulas
   while IFS= read -r line || [[ -n "$line" ]]; do
     formula_name=$(echo "$line" | sed 's/^brew "//' | sed 's/"$//')
     if [[ -n "$formula_name" ]] && ! brew list --formula 2>/dev/null | grep -q "^$formula_name$"; then
@@ -157,7 +142,6 @@ if [[ "$FORCE" != "true" ]]; then
     fi
   done < <(grep "^brew \"" "$INPUT_FILE" 2>/dev/null || true)
 
-  # Check casks
   while IFS= read -r line || [[ -n "$line" ]]; do
     cask_name=$(echo "$line" | sed 's/^cask "//' | sed 's/"$//')
     if [[ -n "$cask_name" ]] && ! brew list --cask 2>/dev/null | grep -q "^$cask_name$"; then
@@ -179,7 +163,6 @@ if [[ "$FORCE" != "true" ]]; then
   echo ""
 fi
 
-# Confirm installation
 echo "This will install packages from the Brewfile."
 read -p "Continue? (y/N) " -n 1 -r
 echo
@@ -192,13 +175,11 @@ echo ""
 echo "Installing packages..."
 echo ""
 
-# Install using brew bundle
 BUNDLE_ARGS="--file=\"$INPUT_FILE\""
 if [[ "$FORCE" == "true" ]]; then
   BUNDLE_ARGS="$BUNDLE_ARGS --force"
 fi
 
-# Run brew bundle install
 if eval "brew bundle install $BUNDLE_ARGS"; then
   echo ""
   echo "Installation complete!"

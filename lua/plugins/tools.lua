@@ -4,8 +4,6 @@ return {
     dependencies = { "nvim-lua/plenary.nvim" },
     event = "InsertEnter",
     config = function()
-      -- ghost text only, mirrors the copilot.vim setup it replaces; no
-      -- nvim-cmp/blink.cmp source (this config doesn't use nvim-cmp)
       require("codeium").setup({
         enable_cmp_source = false,
         virtual_text = { enabled = true },
@@ -15,12 +13,9 @@ return {
   {
     "f-person/git-blame.nvim",
     event = "BufRead",
-    -- `nvim .` opens a directory, so BufRead never fires and <leader>gb died
-    -- with E492 until some file was read. The command has to load the plugin.
+    -- `nvim .` never fires BufRead, so <leader>gb needs cmd to load the plugin
     cmd = { "GitBlameToggle", "GitBlameEnable", "GitBlameDisable" },
-    -- init, not config: the plugin's own plugin/gitblame.lua calls setup(),
-    -- which snapshots vim.g.gitblame_* the moment it is sourced. config runs
-    -- after that, so the delay was already baked in at the 250ms default.
+    -- init, not config: plugin/gitblame.lua snapshots vim.g.gitblame_* when sourced
     init = function()
       vim.g.gitblame_enabled = true
       vim.g.gitblame_delay = 1000
@@ -83,10 +78,6 @@ return {
         toc = {},
       }
     end,
-    -- no `config`: the plugin's own plugin/mkdp.vim already registers a
-    -- BufEnter/FileType autocmd that defines :MarkdownPreview & friends for
-    -- every mkdp_filetypes buffer; re-sourcing it here on every markdown
-    -- FileType event just rebuilt the same augroup again for nothing.
   },
   {
     "kristijanhusak/vim-dadbod-ui",
@@ -98,14 +89,9 @@ return {
         cmd = { "DB" },
       },
       {
-        -- "postgres" is never a real filetype (dadbod-ui uses "sql" for it);
-        -- "plsql" was missing. See lua/config/blink.lua for the blink source
-        -- wiring this plugin needs to actually produce completions.
         "kristijanhusak/vim-dadbod-completion",
         ft = { "sql", "mysql", "plsql" },
       },
     },
-    -- connections live in ~/.local/share/db_ui/connections.json;
-    -- the *.dbout window sizing is in lua/autocmds/ui.lua
   },
 }

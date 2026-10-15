@@ -1,18 +1,11 @@
 #!/usr/bin/env bash
-# Shared driver for the tmux suites: real keystrokes go terminal -> PTY -> nvim,
-# assertions read back real state over RPC (--remote-expr) and the actually
-# rendered screen (capture-pane).
-#
-# The caller sets S (tmux session name) and SOCK (nvim --listen socket) before
-# sourcing this, then uses wait_lexpr / wait_screen / keys and ends with summary.
+# Shared tmux driver: caller sets S and SOCK before sourcing, ends with summary.
 
 PASS=0
 FAIL=0
 declare -a RESULTS
 declare -a PROMPTS
 
-# printed as they happen, not only in the summary: a suite that wedges halfway
-# still has to say how far it got
 ok() {
   RESULTS+=("PASS  $1")
   PASS=$((PASS + 1))
@@ -28,8 +21,6 @@ bad() {
   return 0
 }
 
-# once nvim stops answering RPC every later check just burns its timeout, so
-# stop and say so instead of grinding through the rest of the suite
 DEAD_RPC=0
 give_up_if_wedged() {
   [ -n "$(expr_ '1')" ] && return 0
@@ -43,16 +34,14 @@ give_up_if_wedged() {
   exit 1
 }
 
-# every RPC call gets its own watchdog: a wedged nvim (e.g. stuck on a
-# hit-enter prompt) must fail the check, never hang the suite
+# per-call watchdog: a wedged nvim (hit-enter prompt) must fail the check, not hang
 expr_() { perl -e 'alarm shift; exec @ARGV' 5 nvim --server "$SOCK" --remote-expr "$1" 2>/dev/null; }
-# lua snippets must use double quotes internally and evaluate to 1 (pass) or 0
+# lua snippets: double quotes only, must evaluate to 1 (pass) or 0
 lexpr() { expr_ "luaeval('$1')"; }
 keys() { tmux send-keys -t "$S" "$@"; }
 screen() { tmux capture-pane -pt "$S"; }
 
-# dismiss hit-enter prompts the way a real user does, but record what
-# was on screen so the underlying message still fails the suite
+# record each prompt so dismissing it still fails the suite
 dismiss_prompts() {
   if screen | grep -q "Press ENTER"; then
     PROMPTS+=("$(screen | tail -3 | tr '\n' ' ')")
@@ -60,7 +49,7 @@ dismiss_prompts() {
   fi
 }
 
-wait_lexpr() { # name, lua-expr-evaluating-to-1, timeout-seconds
+wait_lexpr() {
   local name=$1 e=$2 t=${3:-10} r=""
   local tries=$((t * 2))
   for ((i = 0; i < tries; i++)); do
@@ -76,7 +65,7 @@ wait_lexpr() { # name, lua-expr-evaluating-to-1, timeout-seconds
   return 1
 }
 
-wait_screen() { # name, grep-pattern, timeout-seconds
+wait_screen() {
   local name=$1 pat=$2 t=${3:-10}
   local tries=$((t * 2))
   for ((i = 0; i < tries; i++)); do
@@ -91,24 +80,14 @@ wait_screen() { # name, grep-pattern, timeout-seconds
   return 1
 }
 
-summary() { # label
+summary() {
   printf '%s\n' "${RESULTS[@]}"
   echo
   echo "$PASS/$((PASS + FAIL)) ${1:-e2e} checks passed"
   [ "$FAIL" -eq 0 ]
 }
 
-# ---------------------------------------------------------------- deep suite
-# Each script in tests/deep/ drives one area in its own nvim over the realistic
-# monorepo: deep_setup <area>, deep_boot <file>, its checks, deep_finish. A
-# fresh nvim per area means one broken area cannot cascade into the next, and
-# one area can be rerun alone in a couple of minutes.
-
-# the servers are started inside subshells, so $! is the subshell and killing it
-# leaves the real python/node child holding its port.
-# Another listener on *:8000 (a docker container) also answers 127.0.0.1:8000,
-# so "got a response" is never proof that the fixture's server is the one up:
-# every probe checks for the fixture's own body.
+# pkill, not kill $! (subshell); grep the body: another *:8000 listener also answers
 stop_django() {
   pkill -f "manage.py runserver" 2>/dev/null
   for _ in $(seq 1 20); do
@@ -128,20 +107,18 @@ deep_cleanup() {
   return 0
 }
 
-deep_setup() { # area
+deep_setup() {
   MONO="${XDG_CACHE_HOME:-$HOME/.cache}/nvim-e2e-deep/monorepo"
   S="nvim-deep-$1-$$"
   SUITE_LABEL="deep/$1"
   SOCK="$(mktemp -d)/nvim.sock"
   trap deep_cleanup EXIT
   "$TESTS/fixtures/monorepo.sh" "$MONO" || exit 1
-  # the python adapter follows VIRTUAL_ENV, and the fixture's venv is the one
-  # with django and a working pytest
   export VIRTUAL_ENV="$MONO/backend/.venv"
   export PATH="$VIRTUAL_ENV/bin:$PATH"
 }
 
-deep_boot() { # file, relative to the monorepo root
+deep_boot() {
   cd "$MONO" || exit 1
   tmux new-session -d -s "$S" -x 220 -y 60 "nvim --listen '$SOCK' $1"
   wait_lexpr "nvim boots on the monorepo and answers RPC" "1" 20
@@ -174,16 +151,12 @@ deep_finish() {
   summary "$SUITE_LABEL"
 }
 
-# focus a window by filetype. The keys sent into the panel afterwards are real;
-# only the jump is scripted, because <C-w> hops through a 5-window layout are
-# too brittle to assert on.
 focus_ft() {
   lexpr '(function() for _, w in ipairs(vim.api.nvim_list_wins()) do if vim.bo[vim.api.nvim_win_get_buf(w)].filetype == "'"$1"'" then vim.api.nvim_set_current_win(w) return 1 end end return 0 end)()' >/dev/null
 }
 
-# a phase that starts from whatever the previous one left behind cascades its
-# failures, so every file switch closes floats and splits and is asserted
-open_file() { # relative-path
+# close floats/splits on every switch, or one phase's leftovers cascade into the next
+open_file() {
   local base=${1##*/}
   keys Escape Escape
   keys Escape ":silent! cclose" Enter
@@ -194,8 +167,7 @@ open_file() { # relative-path
 
 goto_line() { keys Escape ":$1" Enter; }
 
-# f/w counting breaks the moment a fixture line changes; searching does not
-cursor_on() { # word
+cursor_on() {
   keys Escape "0"
   keys Escape "/$1" Enter
   keys Escape

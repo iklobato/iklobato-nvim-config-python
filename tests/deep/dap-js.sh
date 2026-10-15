@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Deep e2e, dap-js: node/typescript and react-in-chrome debugging with js-debug.
-# Run alone: ./tests/deep/dap-js.sh   (./tests/e2e-deep.sh runs every area)
+# Deep e2e, dap-js: js-debug for node, typescript, attach and react in chrome.
 set -uo pipefail
 
 TESTS="$(cd "$(dirname "$0")/.." && pwd)"
@@ -10,7 +9,6 @@ source "$TESTS/tmux_lib.sh"
 deep_setup dap-js
 deep_boot frontend/src/worker.ts
 
-# ---------------------------------------------------------------- typescript
 open_file frontend/src/lib/math.ts
 goto_line 9
 keys Space b c "number == 3" Enter
@@ -26,7 +24,6 @@ keys Space d t
 wait_lexpr "the typescript session terminates" "$(no_session)" 25
 keys Space b r
 
-# ---------------------------------------------------------------- plain javascript
 open_file langs/count.js
 goto_line 3
 keys Space b b
@@ -40,8 +37,6 @@ keys Space b r
 keys Space d c
 wait_lexpr "the .js run continues to the end" "$(no_session)" 40
 
-# ---------------------------------------------------------------- node attach
-# wait.js keeps running, so both attach configs have a live process to reach
 node --inspect=127.0.0.1:9229 "$MONO/langs/wait.js" >/dev/null 2>&1 &
 inspect_pid=$!
 open_file langs/wait.js
@@ -56,9 +51,7 @@ keys Space d d
 wait_lexpr "the port attach disconnects" "$(no_session)" 25
 kill "$inspect_pid" 2>/dev/null
 
-# js-debug's attach by pid needs a node that already runs an inspector: on a
-# plain node it disconnects without a word (see the README's Debugging notes).
-# A port other than 9229 proves the pid path, not the fixed-port one, is used.
+# pid attach needs node already on --inspect; 9339 (not 9229) proves the pid path
 node --inspect=127.0.0.1:9339 "$MONO/langs/wait.js" >/dev/null 2>&1 &
 plain_pid=$!
 keys Space d c
@@ -85,10 +78,7 @@ fi
 kill "$plain_pid" 2>/dev/null
 keys Space b r
 
-# ---------------------------------------------------------------- react in chrome
-# --strictPort: with 5173 taken, vite would quietly move to 5174 while the
-# chrome configs still open 5173, i.e. some other app. Readiness is a file only
-# this fixture serves, for the same reason.
+# --strictPort and a fixture-only file: else vite moves to 5174, 5173 is another app
 (cd "$MONO/frontend" && npm run dev -- --strictPort >/dev/null 2>&1) &
 dev_up=""
 for _ in $(seq 1 40); do
@@ -117,10 +107,6 @@ keys Space d t
 wait_lexpr "the react session terminates" "$(no_session)" 25
 keys Space b r
 
-# ---------------------------------------------------------------- chrome attach
-# a headless Chrome with its own profile dir, so nothing here touches the
-# user's browser; App.tsx re-renders every second, so line 7 is hit again
-# after the debugger attaches
 chrome="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 profile="$(mktemp -d)/nvim-deep-chrome"
 "$chrome" --headless=new --remote-debugging-port=9222 --user-data-dir="$profile" \

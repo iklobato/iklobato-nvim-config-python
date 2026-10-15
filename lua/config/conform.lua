@@ -6,10 +6,7 @@ function M.setup()
   require("conform").setup({
     formatters = {
       stylua = {
-        -- stylua's --range-end is the first BYTE OFFSET excluded, but conform's
-        -- computed end_offset points AT the last selected byte (matching how
-        -- ruff_format/prettier read it), so a linewise visual selection of a
-        -- single line left that line unformatted. +1 covers the last byte.
+        -- stylua --range-end excludes the byte; conform's end_offset includes it
         range_args = function(self, ctx)
           local util = require("conform.util")
           local start_offset, end_offset = util.get_offsets_from_range(ctx.buf, ctx.range)
@@ -31,7 +28,6 @@ function M.setup()
       lua = { "stylua" },
       python = { "ruff_format" },
       c = { "clang_format" },
-      -- these read .prettierrc.json from the project root
       javascript = prettier,
       javascriptreact = prettier,
       typescript = prettier,

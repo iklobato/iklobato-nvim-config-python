@@ -1,11 +1,8 @@
 #!/usr/bin/env bash
-# End-to-end suite: drives a REAL nvim TUI inside tmux with genuine
-# keystrokes (terminal -> PTY -> nvim), asserting via RPC state
-# (--remote-expr) and the actually rendered screen (capture-pane).
-# Run: ./tests/e2e.sh   Exits 0 when every check passes.
+# E2E suite, real nvim TUI driven through tmux: ./tests/e2e.sh
 set -uo pipefail
 
-# resolved before the cd below, so sourcing still works from the scratch project
+# resolve before the cd below, or sourcing breaks from the scratch project
 HERE="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=tests/tmux_lib.sh
 source "$HERE/tmux_lib.sh"
@@ -20,7 +17,6 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# scratch project: git repo so gitsigns/git-blame have something real
 cd "$PROJ" || exit 1
 git init -q
 git -c user.email=e2e@test -c user.name=e2e commit -q --allow-empty -m init
@@ -32,30 +28,24 @@ EOF
 git add app.py
 git -c user.email=e2e@test -c user.name=e2e commit -q -m "add app.py"
 
-# ---- boot a real nvim TUI ----
 tmux new-session -d -s "$S" -x 220 -y 60 "nvim --listen '$SOCK' app.py"
 wait_lexpr "nvim TUI up and responding to RPC" "1" 15
 
-# ---- rendering: statusline + editor tabs actually painted ----
 wait_screen "lualine renders (mode in statusline)" "NORMAL" 15
 wait_screen "bufferline renders (file tab on top row)" "app.py"
 
-# ---- real keystrokes: <Space>ee toggles nvim-tree ----
 keys Space e e
 wait_lexpr "keymap <leader>ee opens nvim-tree window" \
   "(function() for _, w in ipairs(vim.api.nvim_list_wins()) do if vim.bo[vim.api.nvim_win_get_buf(w)].filetype == \"NvimTree\" then return 1 end end return 0 end)()"
-# "Project" is the bufferline offset header nvim-tree owns; "app.py" would
-# match the bufferline tab that is already on screen and never fail
+# "Project", not "app.py": the bufferline tab already shows app.py, so it never fails
 wait_screen "nvim-tree panel visible on screen" "Project"
 keys Space e e
 wait_lexpr "keymap <leader>ee closes nvim-tree again" \
   "(function() for _, w in ipairs(vim.api.nvim_list_wins()) do if vim.bo[vim.api.nvim_win_get_buf(w)].filetype == \"NvimTree\" then return 0 end end return 1 end)()"
 
-# ---- LSP attaches to the real buffer ----
 wait_lexpr "LSP client attaches to app.py" \
   "#vim.lsp.get_clients({ bufnr = vim.fn.bufnr(\"app.py\") }) > 0 and 1 or 0" 30
 
-# ---- gitsigns attaches in a real repo, sees a real edit ----
 wait_lexpr "gitsigns attaches (repo status available)" \
   "vim.b[vim.fn.bufnr(\"app.py\")].gitsigns_status_dict ~= nil and 1 or 0" 15
 keys g g c c "x = 99" Escape
@@ -63,9 +53,7 @@ wait_lexpr "gitsigns marks the modified hunk" \
   "#require(\"gitsigns\").get_hunks(vim.fn.bufnr(\"app.py\")) > 0 and 1 or 0" 15
 keys ":e!" Enter
 
-# ---- completion popup appears while typing ----
-# settle after the :e! above: typing before the LSP re-syncs the reloaded
-# buffer means blink gets an empty first response and never re-triggers
+# let LSP re-sync after :e!, else blink gets an empty first response and never retriggers
 wait_lexpr "LSP re-attached after buffer reload" \
   "#vim.lsp.get_clients({ bufnr = vim.fn.bufnr(\"app.py\") }) > 0 and 1 or 0" 15
 sleep 2
@@ -74,19 +62,16 @@ wait_lexpr "blink.cmp popup opens while typing" \
   "require(\"blink.cmp\").is_visible() and 1 or 0" 15
 keys Escape ":e!" Enter
 
-# ---- telescope opens via real keys, finds the file ----
 keys Space f f
 wait_lexpr "keymap <leader>ff opens telescope prompt" \
   "(function() for _, w in ipairs(vim.api.nvim_list_wins()) do if vim.bo[vim.api.nvim_win_get_buf(w)].filetype == \"TelescopePrompt\" then return 1 end end return 0 end)()"
 keys "app"
-# the typed prompt line, not "app.py": that string is already on screen as the
-# bufferline tab, so grepping it would pass even if telescope rendered nothing
+# "> app", not "app.py": the bufferline tab would pass even if telescope rendered nothing
 wait_screen "telescope prompt shows the typed query" "> app"
 keys Escape Escape
 wait_lexpr "telescope closes on Escape" \
   "(function() for _, w in ipairs(vim.api.nvim_list_wins()) do if vim.bo[vim.api.nvim_win_get_buf(w)].filetype == \"TelescopePrompt\" then return 0 end end return 1 end)()"
 
-# ---- full DAP session: breakpoint -> run -> stop -> UI -> terminate ----
 keys "2" G Space b b
 wait_lexpr "keymap <leader>bb sets a breakpoint" \
   "(function() local n = 0 for _, bp in pairs(require(\"dap.breakpoints\").get()) do n = n + #bp end return n == 1 and 1 or 0 end)()"
@@ -103,17 +88,13 @@ wait_lexpr "keymap <leader>dt terminates the session" \
 wait_lexpr "dap-ui closes after termination" \
   "(function() for _, w in ipairs(vim.api.nvim_list_wins()) do if vim.bo[vim.api.nvim_win_get_buf(w)].filetype == \"dapui_scopes\" then return 0 end end return 1 end)()" 15
 
-# ---- markdown-preview registers for a real .md buffer ----
 keys ":e note.md" Enter
 wait_lexpr "markdown-preview command available on .md" \
   "vim.fn.exists(\":MarkdownPreview\") == 2 and 1 or 0" 15
 
-# ---- no LSP spawn failures anywhere in the session ----
 sleep 2
 dismiss_prompts
-# a dead/wedged nvim answers "" to both calls below, which used to read as
-# "no errors" (empty string never matches the grep); check liveness first so
-# an unreachable nvim fails the check instead of passing it by accident
+# liveness first: a dead nvim answers "" and that would read as "no errors"
 if [ "$(expr_ '1')" != "1" ]; then
   bad "no errors in :messages" "nvim unreachable, cannot read :messages"
 else
@@ -130,7 +111,6 @@ else
   ok "no hit-enter prompts during the run"
 fi
 
-# ---- clean shutdown ----
 keys ":qa!" Enter
 for ((i = 0; i < 20; i++)); do
   tmux has-session -t "$S" 2>/dev/null || break

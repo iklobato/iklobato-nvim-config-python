@@ -1,13 +1,8 @@
 #!/usr/bin/env bash
-# Builds the realistic project the deep suite drives: a django backend, a
-# vite/react/typescript frontend and a go service in one git repo, with an
-# .http file, a sqlite db and real history so gitsigns has hunks to show.
-#
-# Usage: monorepo.sh <target-dir>
-# Idempotent: an existing target with a .stamp of the current version is left
-# alone, so `npm install` runs once and not on every suite run.
+# Fixture: builds the deep suite's django/react/go monorepo in <target-dir>.
 set -euo pipefail
 
+# bump on any fixture change: a target stamped with this version is reused as is
 VERSION=12
 TARGET=${1:?usage: monorepo.sh <target-dir>}
 STAMP="$TARGET/.stamp"
@@ -21,9 +16,7 @@ rm -rf "$TARGET"
 mkdir -p "$TARGET"
 cd "$TARGET"
 
-# ---------- backend: django ----------
-# its own venv, like a real project: the machine's global python may carry
-# broken pytest plugins, and the dap python adapter follows VIRTUAL_ENV
+# own venv: global python may have broken pytest plugins; dap follows VIRTUAL_ENV
 mkdir -p backend
 (
   cd backend
@@ -95,16 +88,13 @@ class TestServices:
         result = double(-3)
         assert result == -6
 EOF
-  # entry point for "Launch file": the breakpoints go in services.py, so a
-  # session has to step across files, like a real one does
   cat >demo.py <<'EOF'
 from core.services import summarize
 
 numbers = [1, 2, 3, 4]
 print("total", summarize(numbers))
 EOF
-  # a task nobody awaits: its error never reaches "uncaught", the program
-  # exits 0, and only the user-unhandled exception mode stops on the raise
+  # unawaited task: never "uncaught", only user-unhandled mode stops on the raise
   cat >async_demo.py <<'EOF'
 import asyncio
 
@@ -121,7 +111,6 @@ async def main():
 
 asyncio.run(main())
 EOF
-  # a bare ASGI app, so the uvicorn config is driven without pulling a framework
   cat >asgi_demo.py <<'EOF'
 async def app(scope, receive, send):
     if scope["type"] != "http":
@@ -132,8 +121,7 @@ async def app(scope, receive, send):
 EOF
   # a bare "build" ignore pattern would hide this file; the anchored one must not
   printf 'def build():\n    return []\n' >core/builder.py
-  # a real repo has lint findings; this one gives the diagnostic keymaps
-  # something to jump to
+  # unused imports on purpose: the diagnostic keymaps jump to them
   cat >core/legacy.py <<'EOF'
 import json
 import os
@@ -149,7 +137,6 @@ EOF
   printf '[pytest]\nDJANGO_SETTINGS_MODULE = core.settings\npythonpath = .\n' >pytest.ini
 )
 
-# ---------- service: go ----------
 mkdir -p service
 (
   cd service
@@ -204,7 +191,6 @@ func TestSummarize(t *testing.T) {
 	}
 }
 EOF
-  # "Launch file" builds one file, so it needs a program that is one file
   mkdir -p cmd/hello cmd/wait
   cat >cmd/hello/main.go <<'EOF'
 package main
@@ -219,7 +205,6 @@ func main() {
 	fmt.Println(total)
 }
 EOF
-  # a process that keeps running, for "Attach to process"
   cat >cmd/wait/main.go <<'EOF'
 package main
 
@@ -245,16 +230,13 @@ func main() {
 EOF
 )
 
-# ---------- frontend: vite + react + typescript ----------
-# the default registry on this machine can be a private one with an expired
-# token, so pin the public registry for this throwaway project only
+# pin the public registry: the machine default can be private with an expired token
 npm create --registry=https://registry.npmjs.org/ vite@latest frontend -- --template react-ts >/dev/null
 (
   cd frontend
   printf 'registry=https://registry.npmjs.org/\n' >.npmrc
   npm install >/dev/null 2>&1
-  # vite's template no longer ships eslint, and the eslint language server only
-  # attaches under a project that has both the package and a config
+  # the eslint server only attaches with both the package and a config present
   npm install --save-dev eslint@9 >/dev/null 2>&1
   cat >eslint.config.js <<'EOF'
 export default [{ files: ["**/*.js"], rules: { "no-unused-vars": "error" } }];
@@ -278,8 +260,6 @@ export function summarize(numbers: number[]): number {
   return total;
 }
 EOF
-  # an interface with one implementation, so gi has somewhere to jump; pyright
-  # has no textDocument/implementation, so the python side cannot test it
   cat >src/lib/shape.ts <<'EOF'
 export interface Shape {
   area(): number;
@@ -308,8 +288,7 @@ async function main(): Promise<void> {
 
 main();
 EOF
-  # the tick re-renders every second, so a debugger that attaches after the
-  # first render still reaches line 7
+  # the tick re-renders every second, so a late chrome attach still reaches line 7
   cat >src/App.tsx <<'EOF'
 import { useEffect, useState } from "react";
 import { summarize } from "./lib/math";
@@ -339,7 +318,6 @@ export default App;
 EOF
 )
 
-# ---------- odds and ends a real repo has ----------
 cat >api.http <<'EOF'
 GET http://127.0.0.1:8000/api/totals/
 Accept: application/json
@@ -356,9 +334,7 @@ cat >README.md <<'EOF'
 Test fixture. Django backend, React frontend, Go service.
 EOF
 
-# ---------- langs: one file per language the config claims to support ----------
-# each one is what its language server or formatter needs to attach and act;
-# the badly formatted lines are there for the formatter checks
+# the badly formatted lines are on purpose, for the formatter checks
 mkdir -p langs
 cat >langs/tool.lua <<'EOF'
 local M = {}
@@ -419,7 +395,6 @@ export function double(value) {
   return value * 2;
 }
 EOF
-# plain javascript for the node configs: one that runs and ends, one that waits
 cat >langs/count.js <<'EOF'
 let total = 0;
 for (const n of [1, 2, 3]) {
@@ -438,7 +413,6 @@ command -v sqlite3 >/dev/null && sqlite3 data.db \
 
 printf 'node_modules/\n__pycache__/\n*.pyc\ndata.db\n.venv/\n' >.gitignore
 
-# ---------- history, so gitsigns has something real to draw ----------
 git init -q
 git -c user.email=deep@test -c user.name=deep add -A
 git -c user.email=deep@test -c user.name=deep commit -qm "initial monorepo"

@@ -8,13 +8,9 @@ local JS_DEBUG_HOST = "127.0.0.1"
 local DEFAULT_DEV_SERVER_URL = "http://localhost:5173"
 local DEFAULT_ASGI_APP = "main:app"
 
--- debug mode makes asyncio report what it otherwise drops silently: a coroutine
--- that was never awaited (with where it was created) and any callback that
--- blocks the event loop for over 100ms
 M.ASYNCIO_DEBUG_ENV = { PYTHONASYNCIODEBUG = "1" }
 
--- the frontend of a monorepo is not the directory nvim was opened in, and
--- chrome resolves every source map against webRoot
+-- not cwd: a monorepo frontend lives elsewhere and chrome maps sources from webRoot
 local function web_root()
   local package_json = vim.fs.find("package.json", {
     path = vim.fn.expand("%:p:h"),
@@ -29,7 +25,6 @@ end
 local function prompt_dev_server_url()
   local url = vim.fn.input("Dev server URL: ", DEFAULT_DEV_SERVER_URL)
   if url == "" then
-    -- empty means the prompt was cancelled; chrome would open about:blank
     return require("dap").ABORT
   end
   return url
@@ -50,8 +45,6 @@ function M.python_path()
   return "python3"
 end
 
--- without this the adapters fall back to whatever happens to be on PATH, which
--- dies with "exited with 1" and never mentions the missing package
 local function mason_path(package_name)
   local ok, mason_registry = pcall(require, "mason-registry")
   if
@@ -72,9 +65,7 @@ function M.setup()
   local dap = require("dap")
   dap.set_log_level("ERROR")
 
-  -- the unfiltered picker is every process on the machine (over a thousand on
-  -- macOS) in an unsearchable pager, so narrow it by name first. The filter is
-  -- a plain substring, not a lua pattern: "my-app" must not treat "-" as magic.
+  -- plain find, not a lua pattern: "my-app" must not treat "-" as magic
   local function pick_process_by_name()
     local part = vim.fn.input("Process name contains (empty lists all): ")
     return require("dap.utils").pick_process({
@@ -95,8 +86,7 @@ function M.setup()
     return path .. "/venv/bin/python"
   end
 
-  -- a function, not a table: the mason lookup (and its "not installed" notice)
-  -- runs when a session starts, not when nvim-dap loads
+  -- a function, not a table: the mason lookup runs at session start, not at load
   dap.adapters.python = function(cb)
     cb({
       type = "executable",
@@ -157,13 +147,10 @@ function M.setup()
       executable = {
         command = path .. "/dlv",
         args = { "dap", "-l", "127.0.0.1:${port}" },
-        -- dlv compiles the program from its OWN working directory, not from
-        -- the cwd in the launch request: without this it fails with "cannot
-        -- find main module" whenever nvim was opened above the go module
+        -- dlv builds from its own cwd, not the request's: else "cannot find main module"
         cwd = config.cwd,
       },
-      -- dlv compiles the program before answering, which blows the 4s default
-      -- on a cold go build cache and fires a bogus "adapter didn't respond"
+      -- dlv builds before answering; a cold go build cache exceeds the 4s default
       options = { initialize_timeout_sec = 20 },
     })
   end
@@ -200,7 +187,6 @@ function M.setup()
     },
   }
 
-  -- one vscode-js-debug server serves both the node and the chrome side
   local function js_debug_adapter(cb)
     local path = mason_path("js-debug-adapter")
     if not path then
@@ -212,11 +198,10 @@ function M.setup()
       port = "${port}",
       executable = {
         command = "node",
-        -- without the host argument the server binds "localhost", which node
-        -- 17+ resolves to ::1 first, and the IPv4 connect above is refused
+        -- without host it binds "localhost" (::1 on node 17+) and the IPv4 connect fails
         args = { path .. "/js-debug/src/dapDebugServer.js", "${port}", JS_DEBUG_HOST },
       },
-      -- a cold node start plus launching a browser goes past the 4s default
+      -- cold node start plus a browser launch exceeds the 4s default
       options = { initialize_timeout_sec = 20 },
     })
   end
@@ -228,7 +213,6 @@ function M.setup()
     {
       type = "pwa-node",
       request = "launch",
-      -- .ts included: node 22.18+ strips types natively, no ts-node/tsx needed
       name = "Launch file",
       program = "${file}",
       cwd = "${workspaceFolder}",
@@ -255,8 +239,6 @@ function M.setup()
       sourceMaps = true,
       skipFiles = JS_SKIP_FILES,
     },
-    -- react/jsx lives in the browser, so the node adapter above can never stop
-    -- inside a component: that is what the chrome side is for
     {
       type = "pwa-chrome",
       request = "launch",

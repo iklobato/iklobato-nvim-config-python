@@ -1,9 +1,6 @@
--- Order matters: everything that registers a vim.lsp.config entry must run
--- before mason-lspconfig's automatic_enable calls vim.lsp.enable(), otherwise
--- servers started after VimEnter come up with nvim-lspconfig's defaults.
+-- Order matters: every vim.lsp.config call must run before mason-lspconfig enables.
 
--- blink.cmp's plugin file is what sets vim.lsp.config('*').capabilities;
--- requiring it here is load-bearing, not a leftover.
+-- blink.cmp sets vim.lsp.config('*').capabilities on load; not a leftover.
 require("blink.cmp")
 
 require("lsp.servers.lua")
@@ -24,8 +21,6 @@ local function on_attach(_, bufnr)
   map("n", "<leader>ca", vim.lsp.buf.code_action, "Code action")
 end
 
--- mason-lspconfig v2 dropped the `handlers` option, so on_attach has to be
--- wired through LspAttach instead.
 vim.api.nvim_create_autocmd("LspAttach", {
   group = vim.api.nvim_create_augroup("UserLspAttach", { clear = true }),
   callback = function(args)
@@ -33,13 +28,11 @@ vim.api.nvim_create_autocmd("LspAttach", {
   end,
 })
 
--- mason.nvim's own spec runs setup(); requiring it here only forces that to
--- happen before mason-lspconfig, which warns when the order is wrong
+-- forces mason's setup before mason-lspconfig, which warns on the wrong order
 require("mason")
 require("mason-lspconfig").setup({
   ensure_installed = { "lua_ls", "ts_ls", "pyright", "ruff" },
-  -- automatic_enable defaults to true, which starts EVERY server installed in
-  -- mason. Keep it to the ones actually used.
+  -- the default (true) starts EVERY server installed in mason
   automatic_enable = {
     "pyright",
     "ruff",
@@ -60,7 +53,6 @@ require("mason-lspconfig").setup({
   },
 })
 
--- LSP diagnostics performance
 vim.diagnostic.config({
   virtual_text = false,
   signs = true,

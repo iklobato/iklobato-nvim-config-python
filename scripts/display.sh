@@ -1,17 +1,11 @@
 #!/usr/bin/env bash
-#
-# Applies the tuned color profile for the Samsung C49HG9x external display.
-# Idempotent: safe to re-run. Values chosen for neutral, natural work color
-# (counters the limited-range washout of the panel). Adjust and re-run to taste.
-#
-# Requires BetterDisplay: brew install --cask betterdisplay
-#
+# Applies the tuned color profile to the Samsung C49HG9x (needs BetterDisplay). Idempotent.
 set -euo pipefail
 
 DISPLAY_NAME="C49HG9x"
-CONTRAST=0.3       # -0.9..0.9  lift, un-flattens the limited-range look
-GAMMA=0.25         # -0.8..0.8  midtone lift (hardware brightness maxed)
-TEMPERATURE=-0.08  # -0.5..0.5  slightly cooler white, kills the yellow cast
+CONTRAST=0.3      # range -0.9..0.9
+GAMMA=0.25        # range -0.8..0.8
+TEMPERATURE=-0.08 # range -0.5..0.5
 
 if ! command -v betterdisplaycli >/dev/null 2>&1; then
   echo "betterdisplaycli not found. Install: brew install --cask betterdisplay" >&2

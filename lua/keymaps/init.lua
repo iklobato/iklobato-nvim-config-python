@@ -1,4 +1,3 @@
--- Load all keymap categories
 require("keymaps.navigation")
 require("keymaps.search")
 require("keymaps.editing")

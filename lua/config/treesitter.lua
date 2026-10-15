@@ -24,8 +24,7 @@ local ENSURE_INSTALLED = {
   "make",
 }
 
--- scripts/install.sh waits on these, so a fresh machine has them before its
--- first session
+-- read by scripts/install.sh
 M.ENSURE_INSTALLED = ENSURE_INSTALLED
 
 local MAX_HIGHLIGHT_FILESIZE = 1024 * 1024
@@ -54,7 +53,6 @@ local function on_filetype(args)
   if vim.list_contains(ts.get_installed(), lang) then
     attach(args.buf, lang)
   elseif vim.list_contains(ts.get_available(), lang) then
-    -- auto_install replacement: the main branch dropped that option
     ts.install(lang):await(function()
       vim.schedule(function()
         attach(args.buf, lang)

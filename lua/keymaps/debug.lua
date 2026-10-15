@@ -1,6 +1,5 @@
 local map = vim.keymap.set
 
--- Debugging helper functions
 local function dap_run_pytest(selector)
   if selector == nil or selector == "" then
     return
@@ -21,10 +20,6 @@ local function dap_run_pytest(selector)
   })
 end
 
--- "uncaught" alone never fires for an error inside an asyncio task nobody
--- awaits: the task keeps the exception and the program exits 0. "userUnhandled"
--- does, but in async code it also stops on errors that a try/except around the
--- await handles, so it is a mode to pick while hunting, not the default
 local PYTHON_EXCEPTION_STOP_MODES = {
   { label = "uncaught only (debugpy default)", filters = { "uncaught" } },
   {
@@ -45,7 +40,6 @@ local function pick_python_exception_stops()
       return
     end
     local dap = require("dap")
-    -- read when a session starts, so the choice also holds for the next run
     dap.defaults.python.exception_breakpoints = mode.filters
     local session = dap.session()
     if session and session.config.type == "python" then
@@ -56,8 +50,7 @@ end
 
 local function dap_pytest_selectors_from_lsp(callback)
   local bufnr = vim.api.nvim_get_current_buf()
-  -- buf_request never calls the handler when no client supports the method,
-  -- which would swallow the picker (manual entry included)
+  -- buf_request never calls the handler with no capable client; picker would never open
   if #vim.lsp.get_clients({ bufnr = bufnr, method = "textDocument/documentSymbol" }) == 0 then
     callback({})
     return
@@ -121,7 +114,6 @@ local function dap_pytest_picker()
       if choice == nil then
         return
       end
-      -- vim.ui.select hands back the whole item, not its value
       local selector
       if choice.value == "__manual__" then
         selector = vim.fn.input("Pytest target (e.g. test_foo or TestClass::test_method): ")
@@ -135,7 +127,6 @@ local function dap_pytest_picker()
   end)
 end
 
--- Debug keymaps
 map("n", "<leader>dp", dap_pytest_picker, { desc = "Debug pytest (picker)" })
 map("n", "<leader>df", function()
   local word = vim.fn.expand("<cword>")
@@ -189,9 +180,7 @@ map("n", "<leader>dd", function()
   require("dapui").close()
 end, { desc = "Disconnect debugger" })
 map("n", "<leader>du", function()
-  -- load nvim-dap first: dapui's module requires dap at load time, and if dapui
-  -- is what pulls dap in, dap's own config re-enters require("dapui") mid-load
-  -- ("loop or previous error loading module 'dapui'") and dapui.setup() never runs
+  -- load dap first, else dap's config re-enters require("dapui") mid-load and setup fails
   require("dap")
   require("dapui").toggle()
 end, { desc = "Debug UI" })

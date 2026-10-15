@@ -17,9 +17,7 @@ function M.setup()
       },
     },
     sources = {
-      -- vim-dadbod-completion only self-registers with nvim-cmp/compe/completion;
-      -- without this the dependency loads and fetches DB metadata but nothing
-      -- ever asks it for completions
+      -- dadbod-completion only self-registers with nvim-cmp; blink needs this wiring
       per_filetype = {
         sql = { "dadbod", inherit_defaults = true },
         mysql = { "dadbod", inherit_defaults = true },
