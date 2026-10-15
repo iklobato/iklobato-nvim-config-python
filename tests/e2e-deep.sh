@@ -274,6 +274,9 @@ keys Escape ":1" Enter
 keys Space S
 wait_screen "keymap <leader>S prefills the substitute command" ":%s/" 10
 keys Escape
+# an Escape and an "O" in one burst reach nvim as "ESC O", the SS3 prefix of a
+# terminal key code, and the O command plus the text after it are lost
+wait_lexpr "the substitute prompt is cancelled" 'vim.api.nvim_get_mode().mode == "n" and 1 or 0' 10
 keys "O" "spaced    =    2" Escape
 keys "V" Space F
 wait_lexpr "keymap <leader>F formats a visual selection" \
