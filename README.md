@@ -104,7 +104,7 @@ Ignoring this is how the `*.dbout` autocmd ended up registered twice.
 - vim-dadbod + vim-dadbod-ui (SQL client, column/table completion via
   vim-dadbod-completion wired into blink.cmp in sql/mysql/plsql buffers)
 - markdown-preview.nvim (clock-derived port in 8080-9079)
-- github/copilot.vim (bundled language server, no npx)
+- Exafunction/windsurf.nvim (Codeium free tier, ghost text only, no cmp source)
 - vim-maximizer
 - f-person/git-blame.nvim (inline blame, 1s delay off the cursor path)
 
@@ -383,7 +383,7 @@ After install, set your terminal font to "MesloLGS Nerd Font" so icons render.
 - macOS or Ubuntu/Debian (other systems: install deps manually, then run the script)
 - Neovim 0.12+ (nvim-treesitter main branch), tree-sitter CLI 0.26.1+, a C compiler
 - Python 3 (for LSP and DAP)
-- Node.js 22.18+ and ripgrep (for Telescope, LSP servers, Copilot, and the
+- Node.js 22.18+ and ripgrep (for Telescope, LSP servers, and the
   node/typescript debugger)
 - Go (only to debug Go: mason builds delve with the local toolchain)
 - tmux (for tests/e2e.sh and tests/e2e-deep.sh; e2e-deep also needs npm, curl,

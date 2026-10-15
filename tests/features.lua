@@ -204,15 +204,15 @@ local checks = {
     end,
   },
 
-  -- copilot (InsertEnter-gated)
+  -- windsurf/codeium (InsertEnter-gated)
   {
-    "copilot: loads on insert",
+    "windsurf: loads on insert",
     function()
       vim.api.nvim_exec_autocmds("InsertEnter", {})
       vim.wait(2000, function()
-        return vim.fn.exists(":Copilot") == 2
+        return vim.fn.exists(":Codeium") == 2
       end)
-      expect(vim.fn.exists(":Copilot") == 2, ":Copilot not defined")
+      expect(vim.fn.exists(":Codeium") == 2, ":Codeium not defined")
     end,
   },
 

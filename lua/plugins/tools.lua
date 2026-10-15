@@ -1,20 +1,15 @@
 return {
   {
-    "github/copilot.vim",
+    "Exafunction/windsurf.nvim",
+    dependencies = { "nvim-lua/plenary.nvim" },
     event = "InsertEnter",
-    init = function()
-      -- default is npx @github/copilot-language-server, which dies when the
-      -- npm registry is unreachable; always run the bundled server
-      vim.g.copilot_npx = false
-    end,
     config = function()
-      -- copilot.vim only starts its client from its own VimEnter/FileType
-      -- autocmds, both of which already fired for the buffer opened at startup
-      -- by the time InsertEnter loads this plugin. Without this, the file you
-      -- opened nvim with never gets suggestions until a second buffer's
-      -- FileType fires. copilot#Init() starts the client; buffers attach on
-      -- demand from there.
-      vim.fn["copilot#Init"]()
+      -- ghost text only, mirrors the copilot.vim setup it replaces; no
+      -- nvim-cmp/blink.cmp source (this config doesn't use nvim-cmp)
+      require("codeium").setup({
+        enable_cmp_source = false,
+        virtual_text = { enabled = true },
+      })
     end,
   },
   {
