@@ -186,7 +186,7 @@ them with their descriptions. Debug keymaps have their own section further down.
 
 | Key | Does | Note |
 |---|---|---|
-| `<leader>e` | float with the diagnostic under the cursor | |
+| `<leader>gf` | float with the diagnostic under the cursor | |
 | `<leader>E` | the same float, already focused | select and yank the message directly, `q`/`<Esc>` closes it |
 | `[d` / `]d` | previous / next diagnostic | takes a count, `3]d` jumps three |
 | `<leader>gp` / `<leader>gn` | same as `[d` / `]d`, count included | |
@@ -195,7 +195,7 @@ them with their descriptions. Debug keymaps have their own section further down.
 
 | Key | Does | Note |
 |---|---|---|
-| `<leader>f` | format the buffer (normal) or the selection (visual) | conform.nvim, no LSP fallback |
+| `<leader>F` | format the buffer (normal) or the selection (visual) | conform.nvim, no LSP fallback |
 | `<leader>S` | replace the word under the cursor everywhere in the file | fills `:%s/\<word\>/word/gI` with the old word prefilled as the replacement and the cursor after it: clear it with `<C-w>`, type the new text, press Enter |
 | `<leader>S` (visual) | same, using the selection | |
 
@@ -304,14 +304,14 @@ takes expressions the same way.
 
 ## Formatting
 
-- `<leader>f` uses conform.nvim (no LSP fallback)
+- `<leader>F` uses conform.nvim (no LSP fallback)
 - Formatters: Python `ruff_format`, Lua `stylua`, C `clang_format`,
   JS/TS/JSON/CSS/HTML/YAML/Markdown `prettier` (reads `.prettierrc.json`)
 - stylua, ruff and prettier come from mason; `clang_format` needs a system
   clang-format (mason has clangd only, and install.sh does not add it)
 - A configured formatter whose binary is missing warns once per filetype
   ("Formatters unavailable for X file") and does nothing; run `:ConformInfo` if
-  `<leader>f` seems to do nothing
+  `<leader>F` seems to do nothing
 
 ## Performance
 

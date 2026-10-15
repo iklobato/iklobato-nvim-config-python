@@ -251,8 +251,8 @@ goto_line 1
 keys Space g n
 wait_lexpr "keymap <leader>gn jumps to the next diagnostic" 'vim.fn.line(".") == 2 and 1 or 0'
 goto_line 1
-keys Space e
-wait_lexpr "keymap <leader>e opens the diagnostic float" \
+keys Space g f
+wait_lexpr "keymap <leader>gf opens the diagnostic float" \
   '(function() for _, w in ipairs(vim.api.nvim_list_wins()) do if vim.api.nvim_win_get_config(w).relative ~= "" then return 1 end end return 0 end)()' 10
 keys Escape
 keys Space E
@@ -263,16 +263,16 @@ keys Escape
 # ---------------------------------------------------------------- editing
 open_file backend/core/services.py
 keys G o "value    =    1" Escape
-keys Space f
-wait_lexpr "keymap <leader>f reformats the buffer with ruff" \
+keys Space F
+wait_lexpr "keymap <leader>F reformats the buffer with ruff" \
   '(function() for _, l in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, false)) do if l == "value = 1" then return 1 end end return 0 end)()' 20
 keys Escape ":1" Enter
 keys Space S
 wait_screen "keymap <leader>S prefills the substitute command" ":%s/" 10
 keys Escape
 keys "O" "spaced    =    2" Escape
-keys "V" Space f
-wait_lexpr "keymap <leader>f formats a visual selection" \
+keys "V" Space F
+wait_lexpr "keymap <leader>F formats a visual selection" \
   '(function() for _, l in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, false)) do if l == "spaced = 2" then return 1 end end return 0 end)()' 15
 keys Escape ":e!" Enter
 

@@ -9,7 +9,10 @@ local function diagnostic_jump(count)
   end
 end
 
-map("n", "<leader>e", vim.diagnostic.open_float, { desc = "Diagnostic float" })
+-- "gf" not "e": "<leader>e" is a prefix of the <leader>e{e,f} explorer group
+-- in keymaps/navigation.lua, the same ambiguous-mapping bug that <leader>f
+-- had against the find group (see editing.lua).
+map("n", "<leader>gf", vim.diagnostic.open_float, { desc = "Diagnostic float" })
 map("n", "[d", diagnostic_jump(-1), { desc = "Prev diagnostic" })
 map("n", "]d", diagnostic_jump(1), { desc = "Next diagnostic" })
 map("n", "<leader>gp", diagnostic_jump(-1), { desc = "Prev diagnostic" })
