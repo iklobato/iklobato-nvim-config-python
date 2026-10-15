@@ -70,8 +70,19 @@ end
 
 function M.setup()
   local dap = require("dap")
-  local pick_process = require("dap.utils").pick_process
   dap.set_log_level("ERROR")
+
+  -- the unfiltered picker is every process on the machine (over a thousand on
+  -- macOS) in an unsearchable pager, so narrow it by name first. The filter is
+  -- a plain substring, not a lua pattern: "my-app" must not treat "-" as magic.
+  local function pick_process_by_name()
+    local part = vim.fn.input("Process name contains (empty lists all): ")
+    return require("dap.utils").pick_process({
+      filter = function(proc)
+        return proc.name:find(part, 1, true) ~= nil
+      end,
+    })
+  end
 
   local function debugpy_adapter()
     local path = mason_path("debugpy")
@@ -84,15 +95,9 @@ function M.setup()
     return path .. "/venv/bin/python"
   end
 
-  dap.adapters.python = function(cb, config)
-    if config.request == "attach" then
-      cb({
-        type = "server",
-        port = config.port or 5678,
-        host = config.host or "127.0.0.1",
-      })
-      return
-    end
+  -- a function, not a table: the mason lookup (and its "not installed" notice)
+  -- runs when a session starts, not when nvim-dap loads
+  dap.adapters.python = function(cb)
     cb({
       type = "executable",
       command = debugpy_adapter() or M.python_path(),
@@ -199,7 +204,7 @@ function M.setup()
       request = "attach",
       name = "Attach to process",
       mode = "local",
-      processId = pick_process,
+      processId = pick_process_by_name,
     },
   }
 
@@ -242,7 +247,7 @@ function M.setup()
       type = "pwa-node",
       request = "attach",
       name = "Attach to process",
-      processId = pick_process,
+      processId = pick_process_by_name,
       cwd = "${workspaceFolder}",
       sourceMaps = true,
       skipFiles = JS_SKIP_FILES,
