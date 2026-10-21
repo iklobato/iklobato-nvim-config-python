@@ -32,6 +32,8 @@ require("keymaps")
 
 require("plugins")
 
+vim.cmd.colorscheme("terminal-noir")
+
 vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
   once = true,
   callback = function()

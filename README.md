@@ -47,6 +47,9 @@ lua/
     dap.lua                 # DAP adapters and launch configs
     dapui.lua               # DAP UI
     session.lua             # auto-session
+colors/
+  terminal-noir.lua         # Terminal Noir theme, same palette as the iTerm2 profile;
+                            # vendored from nandomoreirame/terminalnoir, copy it again to update
 queries/
   html_tags/injections.scm  # replaces the bundled query: <script> injects tsx
 scripts/
@@ -84,7 +87,6 @@ Ignoring this is how the `*.dbout` autocmd ended up registered twice.
 
 ## Plugins
 
-- xiantang/darcula-dark.nvim (PyCharm Darcula theme)
 - akinsho/bufferline.nvim (editor tabs)
 - nvim-lualine/lualine.nvim (statusline)
 - lewis6991/gitsigns.nvim (gutter change stripes)
