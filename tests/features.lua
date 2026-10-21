@@ -123,9 +123,9 @@ local checks = {
   },
 
   {
-    "ui: darcula-dark colorscheme",
+    "ui: terminal-noir colorscheme",
     function()
-      expect(vim.g.colors_name == "darcula-dark", "colorscheme=" .. tostring(vim.g.colors_name))
+      expect(vim.g.colors_name == "terminal-noir", "colorscheme=" .. tostring(vim.g.colors_name))
     end,
   },
   { "ui: bufferline", loads("bufferline") },

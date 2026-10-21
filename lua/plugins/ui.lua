@@ -1,13 +1,5 @@
 return {
   {
-    "xiantang/darcula-dark.nvim",
-    lazy = false,
-    priority = 1000,
-    config = function()
-      vim.cmd.colorscheme("darcula-dark")
-    end,
-  },
-  {
     "akinsho/bufferline.nvim",
     event = "VeryLazy",
     dependencies = { "nvim-tree/nvim-web-devicons" },
