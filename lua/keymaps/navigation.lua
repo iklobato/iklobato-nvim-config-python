@@ -33,18 +33,18 @@ map("n", "<leader>se", function()
   vim.api.nvim_set_current_tabpage(cur_tab)
 end, { desc = "Equalize splits" })
 map("n", "<leader>sm", "<cmd>MaximizerToggle<CR>", { desc = "Maximize split" })
-map("n", "<leader>to", ":tabnew<CR>", { desc = "New tab" })
-map("n", "<leader>tn", ":tabn<CR>", { desc = "Next tab" })
-map("n", "<leader>tp", ":tabp<CR>", { desc = "Previous tab" })
+map("n", "<leader>to", "<cmd>tabnew<CR>", { desc = "New tab" })
+map("n", "<leader>tn", "<cmd>tabn<CR>", { desc = "Next tab" })
+map("n", "<leader>tp", "<cmd>tabp<CR>", { desc = "Previous tab" })
 
 -- Not on <Tab>: in a terminal it is <C-i>, so it would kill jumplist-forward.
 map("n", "<leader>bn", "<cmd>BufferLineCycleNext<CR>", { desc = "Next buffer" })
 map("n", "<leader>bp", "<cmd>BufferLineCyclePrev<CR>", { desc = "Previous buffer" })
 map("n", "<leader>bd", "<cmd>bdelete<CR>", { desc = "Close buffer" })
 
-map("n", "<leader>ww", ":w<CR>", { desc = "Save file" })
-map("n", "<leader>wq", ":wq<CR>", { desc = "Save and quit" })
-map("n", "<leader>qq", ":q!<CR>", { desc = "Quit without saving" })
+map("n", "<leader>ww", "<cmd>w<CR>", { desc = "Save file" })
+map("n", "<leader>wq", "<cmd>wq<CR>", { desc = "Save and quit" })
+map("n", "<leader>qq", "<cmd>q!<CR>", { desc = "Quit without saving" })
 
 -- No remap: W<->B is a swap, and a recursive map fails with E223.
 map("n", "H", "^", { desc = "Line start" })
