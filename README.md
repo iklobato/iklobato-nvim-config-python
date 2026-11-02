@@ -1,415 +1,30 @@
 # Neovim Config (Minimal)
 
-A flat, minimal Neovim setup focused on Python/Django with LSP, DAP, Treesitter,
-blink.cmp, and Conform. PyCharm-style UI: Darcula theme, editor tabs, statusline
-and gutter change stripes. Debugging also covers go, node, typescript and react.
+A flat Neovim setup for Python/Django: LSP, debugging, search, an HTTP client
+and a database UI. Debugging also covers Go, Node, TypeScript and React.
 
-## Structure
+![Neovim 0.12+](https://img.shields.io/badge/Neovim-0.12%2B-57A143?logo=neovim&logoColor=white)
+![macOS and Linux](https://img.shields.io/badge/macOS%20%7C%20Linux-supported-555)
+![Debug](https://img.shields.io/badge/debug-python%20%7C%20go%20%7C%20node%20%7C%20react-F5A623)
 
-```
-init.lua                    # Main entry point
-lua/
-  core/                     # Core configuration
-    options.lua
-  plugins/                  # Modular plugin configurations
-    init.lua                # Plugin loader
-    core.lua                # Core plugins (treesitter, telescope, blink, conform)
-    ui.lua                  # UI plugins (theme, bufferline, lualine, gitsigns, nvim-tree)
-    lsp.lua                 # LSP plugins
-    dap.lua                 # Debugging plugins
-    tools.lua               # Utility plugins
-  keymaps/                  # Categorized keymaps
-    init.lua                # Keymap loader
-    navigation.lua          # Window/tab navigation
-    search.lua              # Telescope and search
-    editing.lua             # Formatting and replace
-    debug.lua               # Debugging keymaps
-    git.lua                 # Git operations
-    tools.lua               # Various tool keymaps
-  lsp/                      # Enhanced LSP configuration
-    init.lua                # Main LSP setup
-    servers/                # Server-specific configurations
-      python.lua            # pyright + ruff (native `ruff server`)
-      lua.lua               # lua_ls
-      typescript.lua        # ts_ls
-      terraform.lua         # terraformls 0.11 compat shim
-  autocmds/                 # Organized autocommands
-    init.lua                # Autocmd loader
-    filetypes.lua           # Filetype-specific settings
-    session.lua             # Session management
-    ui.lua                  # UI-related autocommands
-  config/                   # Plugin setup bodies (see the rule below)
-    blink.lua               # blink.cmp completion
-    telescope.lua           # Telescope
-    treesitter.lua          # Treesitter
-    python_hl.lua           # Python-specific highlights
-    conform.lua             # Formatters
-    dap.lua                 # DAP adapters and launch configs
-    dapui.lua               # DAP UI
-    session.lua             # auto-session
-colors/
-  terminal-noir.lua         # Terminal Noir theme, same palette as the iTerm2 profile;
-                            # vendored from nandomoreirame/terminalnoir, copy it again to update
-queries/
-  html_tags/injections.scm  # replaces the bundled query: <script> injects tsx
-scripts/
-  install.sh                # From-scratch installer (deps, config, dotfiles, plugins)
-  brew-export.sh            # Dump installed Homebrew packages to system/Brewfile
-  brew-import.sh            # Install everything from system/Brewfile
-  mac_packs.sh, macos.sh    # macOS packages and defaults
-  display.sh                # External monitor color profile (run by hand)
-system/                     # Dotfiles and tool configs, detailed in system/README.md
-  zshrc                     # Shell config (linked to ~/.zshrc)
-  lazygit.yml               # Lazygit config (delta pager)
-  Brewfile                  # Full machine package dump
-tests/
-  run.sh                    # luacheck + headless feature suite (64 checks)
-  features.lua              # The checks: options, UI, LSP, DAP, keymaps, autocmds
-  tmux_lib.sh               # Shared driver for the tmux suites (keys in, RPC out)
-  e2e.sh                    # Real-nvim TUI smoke suite (24 checks)
-  e2e-deep.sh               # Runs every deep area below, or only the ones named
-  deep/                     # One script per area, each in its own nvim over a monorepo
-  fixtures/monorepo.sh      # Builds that monorepo: django + react/ts + go, cached
-  MANUAL.md                 # The handful of checks only eyes can make
-```
+**[Install](#install)** · **[Leader map](#leader-map)** · **[Tour](#tour)** ·
+**[All keys](#all-keys)** · **[Debugging](#debugging)** ·
+**[Development](docs/DEVELOPMENT.md)**
 
-### Where a plugin's config goes
-
-One rule, so a plugin is never configured in two places at once:
-
-- **`lua/plugins/*.lua`** holds the lazy spec (repo, lazy trigger, `opts`) and any
-  `config`/`init` body up to about five lines.
-- **`lua/config/<plugin>.lua`** holds anything longer, exposing `M.setup()`, and the
-  spec just calls it.
-- Autocmds that are not part of a plugin's own setup live in `lua/autocmds/`.
-
-Ignoring this is how the `*.dbout` autocmd ended up registered twice.
-
-## Plugins
-
-- akinsho/bufferline.nvim (editor tabs)
-- nvim-lualine/lualine.nvim (statusline)
-- lewis6991/gitsigns.nvim (gutter change stripes)
-- lazy.nvim
-- nvim-lspconfig, mason.nvim, mason-lspconfig.nvim
-- blink.cmp (completion, loads on the first buffer; see Performance)
-- telescope.nvim (plenary.nvim, loads on demand)
-- nvim-treesitter
-  - nvim-treesitter-context (scope context)
-  - nvim-treesitter-textobjects (af/if/ac/ic, main branch)
-  - indent-blankline.nvim (indent guides)
-  - nvim-puppeteer (Python f-string auto-conversion)
-- nvim-tree (nvim-web-devicons)
-- conform.nvim
-- nvim-dap + nvim-dap-ui (nvim-nio) + mason-nvim-dap
-- auto-session
-- kulala.nvim (HTTP client, pure Lua, no luarocks)
-- vim-dadbod + vim-dadbod-ui (SQL client, column/table completion via
-  vim-dadbod-completion wired into blink.cmp in sql/mysql/plsql buffers)
-- markdown-preview.nvim (clock-derived port in 8080-9079)
-- Exafunction/windsurf.nvim (Codeium free tier, ghost text only, no cmp source)
-- vim-maximizer
-- f-person/git-blame.nvim (inline blame, 1s delay off the cursor path)
-
-## LSP
-
-- Servers ensured: pyright, ruff (native `ruff server`), lua_ls, ts_ls
-- mason-lspconfig v2 auto-enables every installed server, so `automatic_enable`
-  in `lua/lsp/init.lua` is an explicit allowlist. Add a server there to use it.
-- `lua/lsp/servers/*.lua` must be required *before* `mason-lspconfig.setup()`:
-  `vim.lsp.enable()` starts clients immediately, and a `vim.lsp.config()` call
-  after that is ignored for the running client
-- Loads deferred on the first buffer, then re-fires `nvim.lsp.enable` so the
-  file opened from the command line also attaches
-- Buffer-local LSP keymaps via `LspAttach`: `gd`, `gr`, `gi`, `K`,
-  `<leader>rn`, `<leader>ca`. Global: `<leader>gd` (vsplit), `<leader>gr` (telescope)
-- terraformls: default on_attach disabled on nvim 0.11 (uses a 0.12-only API)
-
-## Treesitter
-
-- Context showing function/class scope at top of window
-- Textobjects: `af`/`if` (function), `ac`/`ic` (class)
-- Incremental selection (built into nvim 0.12): `an` grows, `in` shrinks, in visual mode
-- Indent guides (indent-blankline)
-- Language parsers: lua, python, javascript, typescript, tsx, html, http, css,
-  json, markdown, bash, vim, go, rust, ruby, toml, yaml, requirements,
-  dockerfile, make, tmux
-- `queries/html_tags/injections.scm` replaces the bundled query so a bare
-  `<script>` injects tsx (JSX highlights in plain .html). It has to live under
-  `html_tags/`, not `html/`: html_tags is a base lang for html, so a file under
-  `queries/html/` can only add rules, never remove the javascript one
-
-## Keymaps
-
-Leader is `<Space>`. Every map carries a `desc`, so `:Telescope keymaps` lists
-them with their descriptions. Debug keymaps have their own section further down.
-
-### Motions
-
-| Key | Does | Note |
-|---|---|---|
-| `H` / `L` | go to line start / line end | `^` and `$` without the symbol keys |
-| `W` / `B` | word back / word forward | deliberately swapped from vim's defaults, normal mode only (operators and visual still use the builtins) |
-| `<leader>j` / `<leader>k` | down / up one *screen* line | `gj`/`gk`, moves inside a wrapped line |
-
-### Files, windows, tabs, buffers
-
-| Key | Does | Note |
-|---|---|---|
-| `<leader>ww` | save | |
-| `<leader>wq` | save and quit | |
-| `<leader>qq` | quit and throw away changes | `:q!` |
-| `<leader>ee` | file explorer on/off | nvim-tree |
-| `<leader>ef` | reveal the current file in the explorer | |
-| `<leader>sv` / `<leader>sh` | split vertical / horizontal | |
-| `<leader>se` | equalize splits, in every tab | |
-| `<leader>sm` | maximize the split, press again to restore | vim-maximizer |
-| `<leader>to` / `<leader>tn` / `<leader>tp` / `<leader>td` | new / next / previous / close tab | the tabs bufferline draws on top (buffers). Tab pages use the native `gt` / `gT`. Not on `<Tab>`: in a terminal that is the same byte as `<C-i>`, and it would kill jumplist-forward |
-
-![file explorer and the tabs on the top bar](docs/demos/01-explorer-tabs.gif)
-
-![splits: vertical, horizontal, maximize, equalize](docs/demos/02-splits.gif)
-
-### Search
-
-| Key | Does | Note |
-|---|---|---|
-| `<leader>ff` | find files | includes gitignored files (`no_ignore`) |
-| `<leader>fg` | grep the whole project as you type | e.g. type `def index` to land on the Django view |
-| `<leader>fb` | pick an open buffer | |
-| `<leader>fo` | symbols of the current file | name column width follows the window width |
-
-![telescope: files, grep, symbols, buffers](docs/demos/03-search.gif)
-
-### LSP
-
-| Key | Does | Note |
-|---|---|---|
-| `gd` / `gr` / `gi` / `K` | definition / references / implementations / hover | buffer-local, appear only after a server attaches |
-| `<leader>rn` / `<leader>ca` | rename / code action | buffer-local |
-| `<leader>gd` | definition in a vertical split | splits only after a result comes back, so a miss leaves no empty window |
-| `<leader>gr` | references in telescope | |
-
-![LSP: hover, definition in a split, references, rename](docs/demos/04-lsp.gif)
-
-### Diagnostics
-
-| Key | Does | Note |
-|---|---|---|
-| `<leader>gf` | float with the diagnostic under the cursor | |
-| `<leader>E` | the same float, already focused | select and yank the message directly, `q`/`<Esc>` closes it |
-| `[d` / `]d` | previous / next diagnostic | takes a count, `3]d` jumps three |
-| `<leader>gp` / `<leader>gn` | same as `[d` / `]d`, count included | |
-
-### Editing
-
-| Key | Does | Note |
-|---|---|---|
-| `<leader>F` | format the buffer (normal) or the selection (visual) | conform.nvim, no LSP fallback |
-| `<leader>S` | replace the word under the cursor everywhere in the file | fills `:%s/\<word\>/word/gI` with the old word prefilled as the replacement and the cursor after it: clear it with `<C-w>`, type the new text, press Enter |
-| `<leader>S` (visual) | same, using the selection | |
-
-![diagnostics, format and replace the word under the cursor](docs/demos/05-diagnostics-edit.gif)
-
-### Git and tools
-
-| Key | Does | Note |
-|---|---|---|
-| `<leader>gb` | inline git blame on/off | |
-| `<leader>mp` / `<leader>mP` | markdown preview start / stop | |
-| `<leader>rr` | run the HTTP request under the cursor | kulala, in `.http` files |
-| `<leader>db` | database UI on/off | dadbod-ui. Queries run with its own buffer-local `<leader>S` |
-
-![HTTP request under the cursor with kulala](docs/demos/08-http-client.gif)
-
-![database UI on a SQLite file, then a query](docs/demos/09-database.gif)
-
-## Debugging
-
-Works in python, go, javascript, typescript and both react filetypes. Any other
-filetype has no configuration, and `<leader>dc` says so instead of starting.
-
-### Breakpoint keymaps
-
-| Key | Does | Example |
-|---|---|---|
-| `<leader>bb` | breakpoint on the current line, press again to remove | |
-| `<leader>bc` | breakpoint that only stops when a condition holds | asks for it, answer `i == 3` to stop on the 4th pass of a loop |
-| `<leader>bl` | logpoint: prints instead of stopping | asks for the message, answer `double {value}` and every call prints in the REPL with `value` filled in |
-| `<leader>ba` | put every breakpoint in the quickfix window | `:cclose` to close it again |
-| `<leader>br` | delete every breakpoint | |
-
-### Session keymaps
-
-| Key | Does | Note |
-|---|---|---|
-| `<leader>dc` | start, or continue when stopped | the first press shows the numbered config menu for the filetype |
-| `<leader>dj` | step over | |
-| `<leader>dk` | step into | steps into the function being called on the current line |
-| `<leader>do` | step out | back to the caller |
-| `<leader>dl` | run the last config again | no menu. `${file}` is re-expanded, so it follows the buffer you are on, not the one the last run used |
-| `<leader>dt` | terminate the session | UI closes with it |
-| `<leader>dd` | disconnect and close the UI | |
-| `<leader>du` | show / hide the UI | the session keeps running |
-
-Python only:
-
-| Key | Does | Note |
-|---|---|---|
-| `<leader>df` | debug the pytest test under the cursor | reads LSP symbols, so `TestClass::test_method` is resolved for a method |
-| `<leader>dp` | picker with every test in the file | plus a "Manual" entry to type any pytest target |
-| `<leader>be` | pick when python exceptions stop the session | uncaught only (default), user unhandled, or raised. Kept for the next sessions too |
-
-![debug the pytest test under the cursor, then the test picker](docs/demos/07-debug-pytest.gif)
-
-Commands, once the plugin has loaded: `:DapEval` (evaluate expressions in a
-scratch window), `:DapToggleRepl`, `:DapPause`, `:DapRestartFrame`,
-`:DapShowLog`.
-
-### A full run, start to finish
-
-With a file that has a `double()` helper called inside a loop:
-
-1. `<leader>bc` on the loop line, answer `i == 3`
-2. `<leader>bl` on the first line of `double`, answer `double {value}`
-3. `<leader>ba` to confirm both are registered, `:cclose`
-4. `<leader>dc`, pick `1` (Launch file); the UI opens and execution stops on the
-   loop only when `i` is 3
-5. read `i` and `total` in the Scopes panel
-6. `<leader>dk` steps into `double`, `<leader>do` comes back, `<leader>dj` moves
-   one line
-7. `<leader>dc` runs to the end; the logpoint lines are waiting in the REPL
-8. `<leader>dt` ends it, `<leader>dl` runs the same config again without asking
-
-![python debug run: conditional breakpoint, logpoint, step into, out and over](docs/demos/06-debug-python.gif)
-
-### Async python
-
-- Breakpoints inside `async def` stop like any other, and step over on an
-  `await` stays in your code instead of walking into asyncio
-- Launch file, Pytest file, Uvicorn app and the pytest keymaps run with
-  `PYTHONASYNCIODEBUG=1`: a coroutine that was never awaited is reported with
-  where it was created, and a callback that blocks the loop for over 100ms is
-  logged
-- An error raised in a task nobody awaits does not stop the session by default:
-  asyncio keeps the exception, prints "Task exception was never retrieved" and
-  the program exits 0. Press `<leader>be` and pick "user unhandled" to stop on
-  the raise. It also stops on errors that a `try/except` around the `await`
-  handles, which is why it is not the default
-- The REPL lists the running tasks with
-  `[t.get_name() for t in asyncio.all_tasks()]` and takes `await`, for example
-  `await asyncio.sleep(0, result=42)`
-
-### The UI
-
-Left column: scopes, watches, breakpoints. Right column: REPL and console. Both
-scale with the terminal width. It opens and closes with the session.
-
-Inside any panel: `<CR>` expands, `e` edits a value, `d` removes an entry, `r`
-sends the entry to the REPL, `o` opens, `t` toggles. The watches panel is a
-prompt buffer: press `i` and type an expression such as `total * 10`. The REPL
-takes expressions the same way.
-
-### Adapters and configurations
-
-- mason-nvim-dap ensures debugpy (python), delve (go) and js-debug-adapter
-  (node, typescript, react). scripts/install.sh installs all three up front: if
-  delve and js-debug-adapter are left for the first debug session, their
-  install (delve is a go build) slows debugpy past its initialize timeout and
-  that first python session fails
-- Python: Launch file, Django runserver, Pytest file, Uvicorn app (asks for the
-  ASGI app, default `main:app`, and runs without `--reload`). The adapter uses
-  mason's debugpy when installed, otherwise the python of the active venv
-- Go: Launch file, Launch package, Test package, Attach to process. delve gets a
-  20s initialize timeout because it compiles the program before answering, and
-  it is spawned in the file's directory so a monorepo root does not break the
-  build with "cannot find main module"
-- Node, typescript and react: Launch file, Attach to process, Attach to node
-  port 9229, Launch Chrome on dev server (asks for the URL, default
-  `http://localhost:5173`), Attach to Chrome port 9222. Launching a `.ts` file
-  needs no ts-node or tsx: node 22.18+ strips the types itself
-- "Attach to process" (go and node) first asks for part of the process name
-  and lists only the matches; the full list is every process on the machine.
-  For node it only works on a process started with `--inspect` (any port):
-  on a plain node the adapter disconnects with no error. delve attaches to any
-  go process you own
-- Python has no attach configuration: start the program from a launch config
-- The same js-debug-adapter serves node and chrome. React components only stop
-  on the chrome configs; the node ones cannot reach browser code
-- The chrome configs resolve `webRoot` to the nearest `package.json` above the
-  open file, so source maps still line up when nvim was opened at a monorepo
-  root instead of the frontend directory
-- Known upstream noise: terminating a python session while it sits on a
-  breakpoint makes debugpy SIGKILL the debuggee, and its adapter then exits 1,
-  so nvim-dap warns. Letting the program finish, or terminating it while it
-  runs, exits clean. delve and js-debug never do this
-
-## Sessions
-
-- Auto-restores sessions on startup (auto-session defaults)
-- NvimTree opens only if no session was restored
-
-## Formatting
-
-- `<leader>F` uses conform.nvim (no LSP fallback)
-- Formatters: Python `ruff_format`, Lua `stylua`, C `clang_format`,
-  JS/TS/JSON/CSS/HTML/YAML/Markdown `prettier` (reads `.prettierrc.json`)
-- stylua, ruff and prettier come from mason; `clang_format` needs a system
-  clang-format (mason has clangd only, and install.sh does not add it)
-- A configured formatter whose binary is missing warns once per filetype
-  ("Formatters unavailable for X file") and does nothing; run `:ConformInfo` if
-  `<leader>F` seems to do nothing
-
-## Performance
-
-- Startup ~50ms: telescope and treesitter load on first use, not at boot.
-  blink.cmp is the exception: `lua/lsp/init.lua` requires it so its plugin file
-  registers LSP capabilities before any server starts, so it loads on the first
-  buffer, not on InsertEnter
-- Unused providers disabled (python3, ruby, perl, node)
-- git-blame virtual text delayed 1s so it stays off the cursor path
-- No lazyredraw (left at its default off; it causes stutter)
-
-## Tests
-
-```bash
-./tests/run.sh       # luacheck, then 64 headless feature checks; nonzero on failure
-./tests/e2e.sh       # real nvim TUI in tmux: real keystrokes, rendered screen,
-                     # one full debug session; requires tmux
-./tests/e2e-deep.sh  # the deep one: nearly every keymap and every debug feature
-                     # across python, django, go, typescript and react in a browser
-./tests/e2e-deep.sh lsp dap-python   # only those areas
-./tests/deep/lsp.sh  # one area alone, with its full PASS/FAIL list
-```
-
-Areas: `ui` (statusline, motions, windows, tabs, explorer, buffers, save and
-quit), `search` (telescope), `lsp` (python and typescript LSP keymaps,
-diagnostics, formatting), `langs` (every other language server attaches, and
-prettier/stylua format), `completion` (blink.cmp in insert mode and on the
-command line), `session` (save on quit, restore on start, no explorer over a
-restored session), `tools` (git, markdown, http client, database UI),
-`dap-python`, `dap-go` and `dap-js`. Each one boots its own nvim, so a failure in one area
-cannot leave state behind for the next, and each ends with the same health
-checks (no errors in `:messages`, no hit-enter prompts, a clean quit).
-
-`e2e-deep.sh` drives a realistic monorepo (django backend, react/typescript
-frontend, go service, one git history, an `.http` file and a sqlite db) that
-`tests/fixtures/monorepo.sh` builds under `~/.cache/nvim-e2e-deep`. Only the
-first run pays for `npm install` and the backend venv. It starts real servers
-and opens a real Chrome window while it runs, and takes several minutes.
-
-What a script cannot assert (colours, glyphs, panel proportions, the rendered
-markdown preview) is a short manual pass in `tests/MANUAL.md`.
+![a python debug run: conditional breakpoint, logpoint, step into, out and over](docs/demos/06-debug-python.gif)
 
 ## Install
-
-From scratch on a new machine (macOS or Ubuntu/Debian):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/iklobato/iklobato-nvim-config-python/main/scripts/install.sh | bash
 ```
 
-Or from a local checkout:
+Works on macOS and Ubuntu/Debian. Anything it replaces (`~/.config/nvim`,
+`~/.zshrc`, lazygit config) is moved to a `.bak_<date>` copy first. Then set
+your terminal font to **MesloLGS Nerd Font** so the icons show.
+
+<details>
+<summary>From a local checkout, flags, and what it installs</summary>
 
 ```bash
 git clone https://github.com/iklobato/iklobato-nvim-config-python.git ~/.config/nvim
@@ -417,10 +32,7 @@ git clone https://github.com/iklobato/iklobato-nvim-config-python.git ~/.config/
 ```
 
 Pass `--no-dotfiles` to install Neovim only and leave `~/.zshrc` and lazygit
-untouched. Anything it replaces (`~/.config/nvim`, `~/.zshrc`, lazygit config)
-is moved to a timestamped `.bak_<date>` first.
-
-What it sets up:
+untouched.
 
 - **Dependencies**: Neovim 0.12+, git, Node 22+, ripgrep, python3, git-delta
   (lazygit pager), Meslo LG Nerd Font
@@ -437,9 +49,7 @@ What it sets up:
 `system/Brewfile` is *not* installed by the script: it's a full machine dump.
 Use `./scripts/brew-import.sh` if you want it.
 
-After install, set your terminal font to "MesloLGS Nerd Font" so icons render.
-
-## Requirements
+**Requirements**
 
 - macOS or Ubuntu/Debian (other systems: install deps manually, then run the script)
 - Neovim 0.12+ (nvim-treesitter main branch), tree-sitter CLI 0.26.1+, a C compiler
@@ -449,3 +59,313 @@ After install, set your terminal font to "MesloLGS Nerd Font" so icons render.
 - Go (only to debug Go: mason builds delve with the local toolchain)
 - tmux (for tests/e2e.sh and tests/e2e-deep.sh; e2e-deep also needs npm, curl,
   go and a Chrome for its react phase)
+
+</details>
+
+## Leader map
+
+Leader is <kbd>Space</kbd>. Press <kbd>Space</kbd>, the group letter, then the action:
+<kbd>Space</kbd> <kbd>t</kbd> <kbd>n</kbd> is the next tab.
+
+<table>
+<tr>
+<td width="33%" valign="top">
+
+<kbd>t</kbd> <b>tabs</b><br>
+<kbd>n</kbd> next · <kbd>p</kbd> previous<br>
+<kbd>o</kbd> new · <kbd>d</kbd> close
+
+</td>
+<td width="33%" valign="top">
+
+<kbd>s</kbd> <b>splits</b><br>
+<kbd>v</kbd> vertical · <kbd>h</kbd> horizontal<br>
+<kbd>m</kbd> maximize · <kbd>e</kbd> equalize
+
+</td>
+<td width="33%" valign="top">
+
+<kbd>e</kbd> <b>explorer</b><br>
+<kbd>e</kbd> on / off<br>
+<kbd>f</kbd> show this file
+
+</td>
+</tr>
+<tr>
+<td width="33%" valign="top">
+
+<kbd>f</kbd> <b>find</b><br>
+<kbd>f</kbd> files · <kbd>g</kbd> grep<br>
+<kbd>o</kbd> symbols · <kbd>b</kbd> buffers
+
+</td>
+<td width="33%" valign="top">
+
+<kbd>g</kbd> <b>go to</b><br>
+<kbd>d</kbd> definition · <kbd>r</kbd> references<br>
+<kbd>n</kbd> next problem · <kbd>p</kbd> previous<br>
+<kbd>f</kbd> show problem · <kbd>b</kbd> git blame
+
+</td>
+<td width="33%" valign="top">
+
+<b>save and quit</b><br>
+<kbd>w</kbd><kbd>w</kbd> save<br>
+<kbd>w</kbd><kbd>q</kbd> save and quit<br>
+<kbd>q</kbd><kbd>q</kbd> quit, no save
+
+</td>
+</tr>
+<tr>
+<td width="33%" valign="top">
+
+<kbd>b</kbd> <b>breakpoints</b><br>
+<kbd>b</kbd> toggle · <kbd>c</kbd> condition<br>
+<kbd>l</kbd> logpoint · <kbd>a</kbd> list<br>
+<kbd>r</kbd> clear all
+
+</td>
+<td width="33%" valign="top">
+
+<kbd>d</kbd> <b>debug</b><br>
+<kbd>c</kbd> start / continue<br>
+<kbd>j</kbd> over · <kbd>k</kbd> into · <kbd>o</kbd> out<br>
+<kbd>t</kbd> stop · <kbd>u</kbd> UI · <kbd>f</kbd> this test<br>
+<kbd>b</kbd> database UI
+
+</td>
+<td width="33%" valign="top">
+
+<b>single keys</b><br>
+<kbd>F</kbd> format<br>
+<kbd>S</kbd> replace word<br>
+<kbd>r</kbd><kbd>r</kbd> run HTTP request<br>
+<kbd>m</kbd><kbd>p</kbd> markdown preview
+
+</td>
+</tr>
+</table>
+
+## Tour
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+**Explorer and tabs**
+
+![file explorer and the tabs on the top bar](docs/demos/01-explorer-tabs.gif)
+
+`<leader>ee` tree · `<leader>tn` `<leader>tp` next / previous tab
+
+</td>
+<td width="50%" valign="top">
+
+**Splits**
+
+![splits: vertical, horizontal, maximize, equalize](docs/demos/02-splits.gif)
+
+`<leader>sv` `<leader>sh` split · `<leader>sm` maximize · `<leader>se` equalize
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+**Search**
+
+![telescope: files, grep, symbols, buffers](docs/demos/03-search.gif)
+
+`<leader>ff` files · `<leader>fg` grep · `<leader>fo` symbols
+
+</td>
+<td width="50%" valign="top">
+
+**LSP**
+
+![LSP: hover, definition in a split, references, rename](docs/demos/04-lsp.gif)
+
+`K` hover · `<leader>gd` definition · `<leader>gr` references · `<leader>rn` rename
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+**Diagnostics and editing**
+
+![diagnostics, format and replace the word under the cursor](docs/demos/05-diagnostics-edit.gif)
+
+`]d` next problem · `<leader>F` format · `<leader>S` replace word
+
+</td>
+<td width="50%" valign="top">
+
+**Debug a pytest test**
+
+![debug the pytest test under the cursor, then the test picker](docs/demos/07-debug-pytest.gif)
+
+`<leader>bb` breakpoint · `<leader>df` debug this test · `<leader>dp` pick a test
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+**HTTP client**
+
+![HTTP request under the cursor with kulala](docs/demos/08-http-client.gif)
+
+`<leader>rr` run the request under the cursor (`.http` files)
+
+</td>
+<td width="50%" valign="top">
+
+**Database UI**
+
+![database UI on a SQLite file, then a query](docs/demos/09-database.gif)
+
+`<leader>db` open · `<leader>S` run the query in its buffer
+
+</td>
+</tr>
+</table>
+
+## All keys
+
+### Move
+
+| Key | Does |
+|---|---|
+| `H` / `L` | line start / line end |
+| `W` / `B` | word **back** / word **forward** (swapped on purpose) |
+| `<leader>j` / `<leader>k` | down / up one screen line in a wrapped line |
+
+### Files, windows, tabs
+
+| Key | Does |
+|---|---|
+| `<leader>ww` / `<leader>wq` / `<leader>qq` | save / save and quit / quit without saving |
+| `<leader>ee` / `<leader>ef` | explorer on/off / show the current file in it |
+| `<leader>sv` / `<leader>sh` | split vertical / horizontal |
+| `<leader>sm` / `<leader>se` | maximize split (again to restore) / equalize splits in every tab |
+| `<leader>tn` / `<leader>tp` | next / previous tab |
+| `<leader>to` / `<leader>td` | new empty tab / close tab |
+
+### Search
+
+| Key | Does |
+|---|---|
+| `<leader>ff` | find files, gitignored ones too |
+| `<leader>fg` | grep the project as you type |
+| `<leader>fb` / `<leader>fo` | open buffers / symbols of this file |
+
+### Code
+
+| Key | Does |
+|---|---|
+| `K` / `gd` / `gr` / `gi` | hover / definition / references / implementations |
+| `<leader>gd` / `<leader>gr` | definition in a vertical split / references in telescope |
+| `<leader>rn` / `<leader>ca` | rename / code action |
+| `]d` / `[d` (or `<leader>gn` / `<leader>gp`) | next / previous problem, `3]d` jumps three |
+| `<leader>gf` / `<leader>E` | show the problem / same, focused so you can copy it |
+| `<leader>F` | format the file, or the selection in visual mode |
+| `<leader>S` | replace the word (or selection) everywhere in the file |
+| `af` `if` / `ac` `ic` | function / class text objects: `daf` deletes a function |
+| `an` / `in` (visual) | grow / shrink the selection by syntax node |
+
+### Tools
+
+| Key | Does |
+|---|---|
+| `<leader>gb` | inline git blame on/off |
+| `<leader>mp` / `<leader>mP` | markdown preview start / stop |
+| `<leader>rr` | run the HTTP request under the cursor |
+| `<leader>db` | database UI on/off |
+
+<details>
+<summary>Notes on some keys</summary>
+
+- **Tabs** are the buffers bufferline draws on top. Tab pages use the native
+  `gt` / `gT`. Not on `<Tab>`: in a terminal that is the same byte as `<C-i>`,
+  and it would kill jumplist-forward.
+- **`W` / `B`** are swapped in normal mode only; operators and visual mode keep
+  the builtins.
+- **`gd` `gr` `gi` `K` `<leader>rn` `<leader>ca`** are buffer-local: they appear
+  once a language server attaches.
+- **`<leader>gd`** splits only after a result comes back, so a miss leaves no
+  empty window.
+- **`<leader>F`** uses conform.nvim with no LSP fallback. If it seems to do
+  nothing, run `:ConformInfo`.
+- **`<leader>S`** fills `:%s/\<word\>/word/gI` with the old word as the
+  replacement and the cursor after it: clear it with `<C-w>`, type the new
+  text, press Enter.
+- **`<leader>db`**: inside the database UI, `<leader>S` in a query buffer runs
+  that query.
+- **`<leader>dl`** re-expands `${file}`, so it debugs the buffer you are on,
+  not the one the last run used.
+- **`<leader>be`**: uncaught only (default), user unhandled, or raised. The
+  choice is kept for the next sessions.
+- Every map has a `desc`, so `:Telescope keymaps` lists them all.
+
+</details>
+
+## Debugging
+
+Works in python, go, javascript, typescript and react. Any other filetype has
+no configuration, and `<leader>dc` says so instead of starting.
+
+| Breakpoints | | Session | |
+|---|---|---|---|
+| `<leader>bb` | toggle on this line | `<leader>dc` | start (config menu) / continue |
+| `<leader>bc` | stop only when a condition holds | `<leader>dj` | step over |
+| `<leader>bl` | logpoint: print, do not stop | `<leader>dk` / `<leader>do` | step into / step out |
+| `<leader>ba` | list them all (quickfix) | `<leader>dl` | run the last config again |
+| `<leader>br` | delete them all | `<leader>dt` / `<leader>dd` | terminate / disconnect |
+| | | `<leader>du` | show / hide the UI |
+
+Python only: `<leader>df` debugs the test under the cursor (`Class::method`
+included), `<leader>dp` picks a test from the file, `<leader>be` picks when
+exceptions stop the session.
+
+**A full run** (the GIF at the top), on a file with a `double()` helper called
+in a loop:
+
+1. `<leader>bc` on the loop line, answer `i == 3`
+2. `<leader>bl` on the first line of `double`, answer `double {value}`
+3. `<leader>dc`, pick `1` (Launch file): it stops on the loop only when `i` is 3
+4. read `i` and `total` in the Locals panel on the left
+5. `<leader>dk` steps into `double`, `<leader>do` comes back, `<leader>dj` moves
+   one line
+6. `<leader>dc` runs to the end; the logpoint lines are in the REPL on the right
+7. `<leader>dt` ends it, `<leader>dl` runs the same config again without asking
+
+<details>
+<summary>Inside the debug UI</summary>
+
+Left column: scopes, watches, breakpoints. Right column: REPL and console. Both
+scale with the terminal width, and the UI opens and closes with the session.
+
+In any panel: `<CR>` expands, `e` edits a value, `d` removes an entry, `r`
+sends the entry to the REPL, `o` opens, `t` toggles. The watches panel is a
+prompt buffer: press `i` and type an expression such as `total * 10`. The REPL
+takes expressions the same way.
+
+Commands, once the plugin has loaded: `:DapEval` (evaluate expressions in a
+scratch window), `:DapToggleRepl`, `:DapPause`, `:DapRestartFrame`,
+`:DapShowLog`.
+
+</details>
+
+Every launch config per language, async python and the known quirks are in
+[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#debugging-in-depth).
+
+## Good to know
+
+- **Theme**: Terminal Noir, the same palette as the iTerm2 profile.
+- **Sessions**: the last session comes back on startup; the file explorer opens
+  only when no session was restored.
+- **Startup**: about 50 ms, most plugins load on first use.
+- **Under the hood**: folder layout, plugins, LSP and treesitter setup,
+  formatters, tests and how the GIFs are recorded are in
+  [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
