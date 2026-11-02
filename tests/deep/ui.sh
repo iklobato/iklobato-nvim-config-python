@@ -69,15 +69,6 @@ wait_lexpr "keymap <leader>sm restores the layout" 'vim.api.nvim_win_get_height(
 keys Escape ":only" Enter
 wait_lexpr "layout back to a single window" '#vim.api.nvim_tabpage_list_wins(0) == 1 and 1 or 0'
 
-keys Space t o
-wait_lexpr "keymap <leader>to opens a tab" 'vim.fn.tabpagenr("$") == 2 and 1 or 0'
-keys Space t p
-wait_lexpr "keymap <leader>tp goes to the previous tab" 'vim.fn.tabpagenr() == 1 and 1 or 0'
-keys Space t n
-wait_lexpr "keymap <leader>tn goes to the next tab" 'vim.fn.tabpagenr() == 2 and 1 or 0'
-keys Escape ":tabclose" Enter
-wait_lexpr "back to one tab" 'vim.fn.tabpagenr("$") == 1 and 1 or 0'
-
 keys Space e e
 wait_lexpr "keymap <leader>ee opens nvim-tree" "$(win_with_ft NvimTree)"
 keys Space e e
@@ -91,12 +82,14 @@ keys Space e e
 keys Escape ":silent! %bd!" Enter
 open_file backend/core/services.py
 open_file notes.md
-keys Space b p
-wait_lexpr "keymap <leader>bp leaves the current buffer" 'vim.fn.expand("%:t") ~= "notes.md" and 1 or 0'
-keys Space b n
-wait_lexpr "keymap <leader>bn goes to the next buffer" 'vim.fn.expand("%:t") == "notes.md" and 1 or 0'
-keys Space b d
-wait_lexpr "keymap <leader>bd closes the buffer" 'vim.fn.expand("%:t") ~= "notes.md" and 1 or 0'
+keys Space t p
+wait_lexpr "keymap <leader>tp leaves the current tab" 'vim.fn.expand("%:t") ~= "notes.md" and 1 or 0'
+keys Space t n
+wait_lexpr "keymap <leader>tn goes to the next tab" 'vim.fn.expand("%:t") == "notes.md" and 1 or 0'
+keys Space t d
+wait_lexpr "keymap <leader>td closes the tab" 'vim.fn.expand("%:t") ~= "notes.md" and 1 or 0'
+keys Space t o
+wait_lexpr "keymap <leader>to opens an empty tab" 'vim.fn.expand("%") == "" and vim.bo.buflisted and 1 or 0'
 
 open_file backend/core/services.py
 keys G o "# touched by the deep suite" Escape
@@ -107,7 +100,7 @@ keys u
 keys Space w w
 
 open_file notes.md
-keys Space t o
+keys Escape ":tabnew" Enter
 open_file backend/demo.py
 keys G o "trailing" Escape
 keys Space w q
@@ -115,7 +108,7 @@ wait_lexpr "keymap <leader>wq saves and closes the window" 'vim.fn.tabpagenr("$"
 open_file backend/demo.py
 keys u
 keys Escape ":w" Enter
-keys Space t o
+keys Escape ":tabnew" Enter
 keys G o "unsaved" Escape
 keys Space q q
 wait_lexpr "keymap <leader>qq quits without saving" 'vim.fn.tabpagenr("$") == 1 and 1 or 0' 15
