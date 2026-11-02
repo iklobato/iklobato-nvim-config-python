@@ -164,8 +164,7 @@ them with their descriptions. Debug keymaps have their own section further down.
 | `<leader>sv` / `<leader>sh` | split vertical / horizontal | |
 | `<leader>se` | equalize splits, in every tab | |
 | `<leader>sm` | maximize the split, press again to restore | vim-maximizer |
-| `<leader>to` / `<leader>tn` / `<leader>tp` | new / next / previous tab | |
-| `<leader>bn` / `<leader>bp` / `<leader>bd` | next / previous / close buffer | the tabs bufferline draws on top. Not on `<Tab>`: in a terminal that is the same byte as `<C-i>`, and it would kill jumplist-forward |
+| `<leader>to` / `<leader>tn` / `<leader>tp` / `<leader>td` | new / next / previous / close tab | the tabs bufferline draws on top (buffers). Tab pages use the native `gt` / `gT`. Not on `<Tab>`: in a terminal that is the same byte as `<C-i>`, and it would kill jumplist-forward |
 
 ### Search
 
