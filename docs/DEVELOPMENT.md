@@ -262,5 +262,10 @@ vhs docs/demos/04-lsp.tape                  # run from the repo root
   reads that as `colorspace:r:g`, and the whole theme turns yellow.
 - `09-database.tape` points `db_ui_save_location` at an empty folder so the
   database connections saved on your machine never end up in the GIF.
+- `10-request-breakpoint.tape` starts Django on port 8000 under the debugger and
+  stops it at the end; `11-fix-a-bug.tape` plants a bug in
+  `backend/core/services.py` and restores the file with `git checkout` at the
+  end. After a render that stopped half way, run
+  `pkill -f "manage.py runserver"` and `git -C /tmp/demo checkout -- backend`.
 - Check a new GIF by its frames before committing it:
   `ffmpeg -i docs/demos/04-lsp.gif -vf fps=1/3 /tmp/frame-%02d.png`

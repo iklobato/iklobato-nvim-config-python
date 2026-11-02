@@ -8,7 +8,7 @@ and a database UI. Debugging also covers Go, Node, TypeScript and React.
 ![Debug](https://img.shields.io/badge/debug-python%20%7C%20go%20%7C%20node%20%7C%20react-F5A623)
 
 **[Install](#install)** · **[Leader map](#leader-map)** · **[Tour](#tour)** ·
-**[All keys](#all-keys)** · **[Debugging](#debugging)** ·
+**[Workflows](#workflows)** · **[All keys](#all-keys)** · **[Debugging](#debugging)** ·
 **[Development](docs/DEVELOPMENT.md)**
 
 ![a python debug run: conditional breakpoint, logpoint, step into, out and over](docs/demos/06-debug-python.gif)
@@ -226,6 +226,57 @@ Leader is <kbd>Space</kbd>. Press <kbd>Space</kbd>, the group letter, then the a
 ![database UI on a SQLite file, then a query](docs/demos/09-database.gif)
 
 `<leader>db` open · `<leader>S` run the query in its buffer
+
+</td>
+</tr>
+</table>
+
+## Workflows
+
+Whole tasks, start to finish.
+
+**Debug a live API request.** Breakpoint in the Django view, start the server
+under the debugger, send the request from `api.http`: it stops in the view with
+the values on the left, and the response shows up after `<leader>dc`.
+
+![an HTTP request stops on a breakpoint in the Django view, then the response comes back](docs/demos/10-request-breakpoint.gif)
+
+**Fix a failing test.** Debug the test, read the wrong value in Locals, jump to
+the bug with `gd`, fix it, and `<leader>dl` runs the same test again.
+
+![a failing test, the wrong value in the debugger, the fix, and the test passing](docs/demos/11-fix-a-bug.gif)
+
+**Write code.**
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+**Completion**
+
+![completion from the language server while typing](docs/demos/12-completion.gif)
+
+pops up as you type · `<C-y>` accepts
+
+</td>
+<td width="50%" valign="top">
+
+**Edit by syntax**
+
+![grow the selection by syntax node, delete a function, automatic f-string](docs/demos/13-syntax-edit.gif)
+
+`v an an` grows · `daf` deletes a function · `{` makes an f-string
+
+</td>
+</tr>
+<tr>
+<td colspan="2" align="center">
+
+**Git in the editor**
+
+<img src="docs/demos/14-git.gif" alt="inline blame and the change marks in the margin" width="50%">
+
+blame after the line · marks for added, changed and deleted lines · `<leader>gb` blame on/off
 
 </td>
 </tr>
