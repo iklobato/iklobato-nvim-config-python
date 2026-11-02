@@ -166,6 +166,10 @@ them with their descriptions. Debug keymaps have their own section further down.
 | `<leader>sm` | maximize the split, press again to restore | vim-maximizer |
 | `<leader>to` / `<leader>tn` / `<leader>tp` / `<leader>td` | new / next / previous / close tab | the tabs bufferline draws on top (buffers). Tab pages use the native `gt` / `gT`. Not on `<Tab>`: in a terminal that is the same byte as `<C-i>`, and it would kill jumplist-forward |
 
+![file explorer and the tabs on the top bar](docs/demos/01-explorer-tabs.gif)
+
+![splits: vertical, horizontal, maximize, equalize](docs/demos/02-splits.gif)
+
 ### Search
 
 | Key | Does | Note |
@@ -175,6 +179,8 @@ them with their descriptions. Debug keymaps have their own section further down.
 | `<leader>fb` | pick an open buffer | |
 | `<leader>fo` | symbols of the current file | name column width follows the window width |
 
+![telescope: files, grep, symbols, buffers](docs/demos/03-search.gif)
+
 ### LSP
 
 | Key | Does | Note |
@@ -183,6 +189,8 @@ them with their descriptions. Debug keymaps have their own section further down.
 | `<leader>rn` / `<leader>ca` | rename / code action | buffer-local |
 | `<leader>gd` | definition in a vertical split | splits only after a result comes back, so a miss leaves no empty window |
 | `<leader>gr` | references in telescope | |
+
+![LSP: hover, definition in a split, references, rename](docs/demos/04-lsp.gif)
 
 ### Diagnostics
 
@@ -201,6 +209,8 @@ them with their descriptions. Debug keymaps have their own section further down.
 | `<leader>S` | replace the word under the cursor everywhere in the file | fills `:%s/\<word\>/word/gI` with the old word prefilled as the replacement and the cursor after it: clear it with `<C-w>`, type the new text, press Enter |
 | `<leader>S` (visual) | same, using the selection | |
 
+![diagnostics, format and replace the word under the cursor](docs/demos/05-diagnostics-edit.gif)
+
 ### Git and tools
 
 | Key | Does | Note |
@@ -209,6 +219,10 @@ them with their descriptions. Debug keymaps have their own section further down.
 | `<leader>mp` / `<leader>mP` | markdown preview start / stop | |
 | `<leader>rr` | run the HTTP request under the cursor | kulala, in `.http` files |
 | `<leader>db` | database UI on/off | dadbod-ui. Queries run with its own buffer-local `<leader>S` |
+
+![HTTP request under the cursor with kulala](docs/demos/08-http-client.gif)
+
+![database UI on a SQLite file, then a query](docs/demos/09-database.gif)
 
 ## Debugging
 
@@ -246,6 +260,8 @@ Python only:
 | `<leader>dp` | picker with every test in the file | plus a "Manual" entry to type any pytest target |
 | `<leader>be` | pick when python exceptions stop the session | uncaught only (default), user unhandled, or raised. Kept for the next sessions too |
 
+![debug the pytest test under the cursor, then the test picker](docs/demos/07-debug-pytest.gif)
+
 Commands, once the plugin has loaded: `:DapEval` (evaluate expressions in a
 scratch window), `:DapToggleRepl`, `:DapPause`, `:DapRestartFrame`,
 `:DapShowLog`.
@@ -264,6 +280,8 @@ With a file that has a `double()` helper called inside a loop:
    one line
 7. `<leader>dc` runs to the end; the logpoint lines are waiting in the REPL
 8. `<leader>dt` ends it, `<leader>dl` runs the same config again without asking
+
+![python debug run: conditional breakpoint, logpoint, step into, out and over](docs/demos/06-debug-python.gif)
 
 ### Async python
 
