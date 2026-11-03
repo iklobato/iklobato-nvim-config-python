@@ -31,7 +31,14 @@ return {
   {
     "lewis6991/gitsigns.nvim",
     event = { "BufReadPre", "BufNewFile" },
-    opts = {},
+    -- `nvim .` reads no file, so <leader>gb needs the command to load it
+    cmd = "Gitsigns",
+    -- inline blame lives here (it replaced git-blame.nvim): one plugin, no extra git process
+    opts = {
+      current_line_blame = true,
+      current_line_blame_opts = { delay = 1000 },
+      current_line_blame_formatter = "<summary> • <author_time:%R> • <author>",
+    },
   },
   {
     "nvim-tree/nvim-tree.lua",

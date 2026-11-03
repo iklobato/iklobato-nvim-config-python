@@ -5,7 +5,8 @@ vim.lsp.config("pyright", {
         typeCheckingMode = "basic",
         autoSearchPaths = true,
         useLibraryCodeForTypes = true,
-        diagnosticMode = "workspace",
+        -- "workspace" type-checks the whole repo in the background: heavy in a monorepo
+        diagnosticMode = "openFilesOnly",
       },
     },
   },

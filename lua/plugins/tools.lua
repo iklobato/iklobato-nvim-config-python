@@ -1,39 +1,10 @@
 return {
   {
-    "Exafunction/windsurf.nvim",
-    dependencies = { "nvim-lua/plenary.nvim" },
-    event = "InsertEnter",
-    config = function()
-      require("codeium").setup({
-        enable_cmp_source = false,
-        virtual_text = { enabled = true },
-      })
-    end,
-  },
-  {
-    "f-person/git-blame.nvim",
-    event = "BufRead",
-    -- `nvim .` never fires BufRead, so <leader>gb needs cmd to load the plugin
-    cmd = { "GitBlameToggle", "GitBlameEnable", "GitBlameDisable" },
-    -- init, not config: plugin/gitblame.lua snapshots vim.g.gitblame_* when sourced
-    init = function()
-      vim.g.gitblame_enabled = true
-      vim.g.gitblame_delay = 1000
-      vim.g.gitblame_message_template = "<summary> • <date> • <author>"
-      vim.g.gitblame_date_format = "%r"
-    end,
-  },
-  {
     "rmagatti/auto-session",
     lazy = false,
     config = function()
       require("config.session").setup()
     end,
-  },
-  {
-    "szw/vim-maximizer",
-    lazy = true,
-    cmd = "MaximizerToggle",
   },
   {
     "mistweaverco/kulala.nvim",

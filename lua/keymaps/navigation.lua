@@ -32,7 +32,17 @@ map("n", "<leader>se", function()
   end
   vim.api.nvim_set_current_tabpage(cur_tab)
 end, { desc = "Equalize splits" })
-map("n", "<leader>sm", "<cmd>MaximizerToggle<CR>", { desc = "Maximize split" })
+-- native toggle (replaced vim-maximizer): winrestcmd() holds the layout per tab page
+map("n", "<leader>sm", function()
+  local restore = vim.t.maximize_restore
+  if restore then
+    vim.t.maximize_restore = nil
+    vim.cmd(restore)
+    return
+  end
+  vim.t.maximize_restore = vim.fn.winrestcmd()
+  vim.cmd("wincmd _ | wincmd |")
+end, { desc = "Maximize split" })
 -- "tabs" are the buffers bufferline draws on top; tab pages keep the native gt/gT.
 -- Not on <Tab>: in a terminal it is <C-i>, so it would kill jumplist-forward.
 map("n", "<leader>to", "<cmd>enew<CR>", { desc = "New tab" })

@@ -246,6 +246,12 @@ the bug with `gd`, fix it, and `<leader>dl` runs the same test again.
 
 ![a failing test, the wrong value in the debugger, the fix, and the test passing](docs/demos/11-fix-a-bug.gif)
 
+**Catch an error lost in an asyncio task.** A task nobody awaits raises, and
+Python only logs it, so a normal debug run never stops. `<leader>be`, pick `2`,
+then `<leader>dc`: it stops on the `raise` with the task's values in Locals.
+
+![an error raised inside an asyncio task stops the debugger after <leader>be](docs/demos/21-async-error.gif)
+
 **Write code.**
 
 <table>
@@ -414,8 +420,8 @@ Every launch config per language, async python and the known quirks are in
 ## Good to know
 
 - **Theme**: Terminal Noir, the same palette as the iTerm2 profile.
-- **Sessions**: the last session comes back on startup; the file explorer opens
-  only when no session was restored.
+- **Sessions**: the last session comes back on startup. `nvim .` always opens the
+  file explorer next to it; a plain `nvim` opens it only when nothing was restored.
 - **Startup**: about 50 ms, most plugins load on first use.
 - **Under the hood**: folder layout, plugins, LSP and treesitter setup,
   formatters, tests and how the GIFs are recorded are in

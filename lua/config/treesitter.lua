@@ -27,13 +27,7 @@ local ENSURE_INSTALLED = {
 -- read by scripts/install.sh
 M.ENSURE_INSTALLED = ENSURE_INSTALLED
 
-local MAX_HIGHLIGHT_FILESIZE = 1024 * 1024
 local NO_TS_INDENT = { python = true }
-
-local function too_big(buf)
-  local ok, stats = pcall(vim.uv.fs_stat, vim.api.nvim_buf_get_name(buf))
-  return ok and stats and stats.size > MAX_HIGHLIGHT_FILESIZE
-end
 
 local function attach(buf, lang)
   if not vim.api.nvim_buf_is_valid(buf) or not pcall(vim.treesitter.start, buf, lang) then
@@ -47,7 +41,8 @@ end
 local function on_filetype(args)
   local ts = require("nvim-treesitter")
   local lang = vim.treesitter.language.get_lang(args.match)
-  if not lang or too_big(args.buf) then
+  -- a >1MB file has filetype "bigfile" (lua/autocmds/filetypes.lua): no lang, no parser
+  if not lang then
     return
   end
   if vim.list_contains(ts.get_installed(), lang) then

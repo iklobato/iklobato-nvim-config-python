@@ -8,15 +8,20 @@ vim.api.nvim_create_autocmd("VimEnter", {
       local bufname = vim.fn.bufname()
       local no_file = bufname == "" or bufname == nil
       local tab_count = #vim.api.nvim_list_tabpages()
-      -- `nvim .` both restores a session and passes a dir; skip the tree if restored
-      local should_open = (directory or no_file)
-        and tab_count <= 1
-        and not vim.g.auto_session_restored
-      if should_open then
-        local ok, api = pcall(require, "nvim-tree.api")
-        if ok then
-          api.tree.open()
-        end
+      local restored = vim.g.auto_session_restored
+      -- `nvim .` always gets the tree; a plain `nvim` only when nothing was restored
+      local should_open = directory or (no_file and tab_count <= 1 and not restored)
+      if not should_open then
+        return
+      end
+      local ok, api = pcall(require, "nvim-tree.api")
+      if not ok then
+        return
+      end
+      api.tree.open()
+      -- after a restore the cursor goes back to the file; update_focused_file reveals it
+      if restored then
+        vim.cmd.wincmd("p")
       end
     end, 100)
   end,

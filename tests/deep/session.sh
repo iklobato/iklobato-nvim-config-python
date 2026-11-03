@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deep e2e, session: auto-session save and restore; explorer only when nothing restored.
+# Deep e2e, session: auto-session save and restore; `nvim .` always shows the explorer.
 set -uo pipefail
 
 TESTS="$(cd "$(dirname "$0")/.." && pwd)"
@@ -52,8 +52,19 @@ quit_nvim "quitting the restored session"
 
 deep_boot "."
 wait_lexpr "nvim . restores the session too" 'vim.g.auto_session_restored == true and 1 or 0' 20
+wait_lexpr "nvim . opens the explorer next to the restored buffers" "$(win_with_ft NvimTree)" 15
+wait_lexpr "the cursor stays in the restored file, not the explorer" \
+  '(vim.bo.buftype == "" and vim.api.nvim_buf_get_name(0) ~= "") and 1 or 0'
+wait_lexpr "the explorer highlights the open file" \
+  '(function() local file = vim.fn.expand("%:t") for _, w in ipairs(vim.api.nvim_list_wins()) do local b = vim.api.nvim_win_get_buf(w) if vim.bo[b].filetype == "NvimTree" then local row = vim.api.nvim_win_get_cursor(w)[1] local line = vim.api.nvim_buf_get_lines(b, row - 1, row, false)[1] or "" return line:find(file, 1, true) and 1 or 0 end end return 0 end)()'
+quit_nvim "quitting the nvim . session"
+
+session_reset
+deep_boot "."
+wait_lexpr "nvim . with no session opens the explorer" "$(win_with_ft NvimTree)" 15
+# nvim-tree may open its own tree for the "." buffer: the explorer must stay open after both
 sleep 1
-wait_lexpr "nvim . opens no explorer over the restored buffers" "(function() return $(win_with_ft NvimTree) == 1 and 0 or 1 end)()"
+wait_lexpr "the explorer is still open a second later" "$(win_with_ft NvimTree)"
 
 deep_finish
 status=$?

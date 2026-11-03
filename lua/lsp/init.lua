@@ -1,4 +1,4 @@
--- Order matters: every vim.lsp.config call must run before mason-lspconfig enables.
+-- Order matters: every vim.lsp.config call must run before vim.lsp.enable below.
 
 -- blink.cmp sets vim.lsp.config('*').capabilities on load; not a leftover.
 require("blink.cmp")
@@ -28,30 +28,34 @@ vim.api.nvim_create_autocmd("LspAttach", {
   end,
 })
 
--- forces mason's setup before mason-lspconfig, which warns on the wrong order
-require("mason")
-require("mason-lspconfig").setup({
-  ensure_installed = { "lua_ls", "ts_ls", "pyright", "ruff" },
-  -- the default (true) starts EVERY server installed in mason
-  automatic_enable = {
-    "pyright",
-    "ruff",
-    "lua_ls",
-    "ts_ls",
-    "terraformls",
-    "tflint",
-    "html",
-    "cssls",
-    "tailwindcss",
-    "bashls",
-    "dockerls",
-    "jsonls",
-    "yamlls",
-    "eslint",
-    "marksman",
-    "clangd",
-  },
-})
+-- Native enable instead of mason-lspconfig: that plugin cost ~35ms per first buffer.
+-- Mason itself loads only on :Mason; its bin dir is put on PATH in init.lua.
+local SERVERS = {
+  "pyright",
+  "ruff",
+  "lua_ls",
+  "ts_ls",
+  "terraformls",
+  "tflint",
+  "html",
+  "cssls",
+  "tailwindcss",
+  "bashls",
+  "dockerls",
+  "jsonls",
+  "yamlls",
+  "eslint",
+  "marksman",
+  "clangd",
+}
+
+-- install.sh installs only some of these; an absent binary would error on every match
+local function installed(name)
+  local cmd = vim.lsp.config[name] and vim.lsp.config[name].cmd
+  return type(cmd) ~= "table" or vim.fn.executable(cmd[1]) == 1
+end
+
+vim.lsp.enable(vim.tbl_filter(installed, SERVERS))
 
 vim.diagnostic.config({
   virtual_text = false,
@@ -59,3 +63,6 @@ vim.diagnostic.config({
   underline = true,
   update_in_insert = false,
 })
+
+-- read by tests/features.lua
+return { SERVERS = SERVERS }

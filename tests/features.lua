@@ -122,6 +122,26 @@ local checks = {
     end,
   },
 
+  -- must also run before dap: dap pulls mason in on purpose
+  {
+    "perf: opening a file starts LSP without loading mason",
+    function()
+      edit("perf.py", { "x = 1" })
+      vim.wait(2000, function()
+        return package.loaded["lsp"] ~= nil
+      end)
+      expect(package.loaded["lsp"] ~= nil, "lua/lsp never loaded on BufReadPost")
+      expect(package.loaded["mason"] == nil, "mason loaded at file open, it should wait for :Mason")
+      expect(vim.lsp.is_enabled("pyright"), "pyright not enabled")
+    end,
+  },
+  {
+    "perf: mason binaries reachable on PATH without mason loaded",
+    function()
+      expect(vim.fn.executable("pyright-langserver") == 1, "mason/bin is not on PATH")
+    end,
+  },
+
   {
     "ui: terminal-noir colorscheme",
     function()
@@ -168,7 +188,25 @@ local checks = {
   { "keymap: debug ui <leader>du", keymap_exists(" du") },
 
   { "dadbod-ui stub command", command_exists("DBUI") },
-  { "maximizer stub command", command_exists("MaximizerToggle") },
+  {
+    "keymap: <leader>sm maximizes the split, then restores it",
+    function()
+      vim.cmd("only")
+      vim.cmd("vsplit")
+      local win = vim.api.nvim_get_current_win()
+      local before = vim.api.nvim_win_get_width(win)
+      local function press()
+        vim.api.nvim_feedkeys(vim.keycode("<Space>sm"), "mx", false)
+      end
+      press()
+      local maximized = vim.api.nvim_win_get_width(win)
+      press()
+      local restored = vim.api.nvim_win_get_width(win)
+      vim.cmd("only")
+      expect(maximized > before, ("width %d -> %d, not maximized"):format(before, maximized))
+      expect(restored == before, ("width %d after restore, want %d"):format(restored, before))
+    end,
+  },
   { "mason command", command_exists("Mason") },
   { "session: auto-session", loads("auto-session") },
 
@@ -190,20 +228,47 @@ local checks = {
   },
 
   {
-    "git-blame: loaded with 1000ms delay",
+    "git blame: gitsigns inline blame on, 1000ms delay",
     function()
-      expect(vim.g.gitblame_delay == 1000, "gitblame_delay=" .. tostring(vim.g.gitblame_delay))
+      local config = require("gitsigns.config").config
+      expect(config.current_line_blame == true, "current_line_blame is off")
+      local delay = config.current_line_blame_opts.delay
+      expect(delay == 1000, "blame delay=" .. tostring(delay))
     end,
   },
 
   {
-    "windsurf: loads on insert",
+    "bigfile: a >1MB file skips treesitter, LSP and indent guides",
     function()
-      vim.api.nvim_exec_autocmds("InsertEnter", {})
-      vim.wait(2000, function()
-        return vim.fn.exists(":Codeium") == 2
+      local line = string.rep("x = 1  # padding", 4)
+      local lines = {}
+      for i = 1, 20000 do
+        lines[i] = line
+      end
+      -- indented lines, so ibl would draw guides if it attached
+      lines[2] = "def f():"
+      lines[3] = "    return 1"
+      edit("big.py", lines)
+      local buf = vim.api.nvim_get_current_buf()
+      expect(vim.bo[buf].filetype == "bigfile", "filetype=" .. vim.bo[buf].filetype)
+      -- pyright attaches in ~1-2s on a small file; give it 5s to (wrongly) attach
+      vim.wait(5000, function()
+        return false
       end)
-      expect(vim.fn.exists(":Codeium") == 2, ":Codeium not defined")
+      expect(vim.bo[buf].syntax == "python", "regex syntax=" .. vim.bo[buf].syntax)
+      expect(vim.treesitter.highlighter.active[buf] == nil, "treesitter highlights the big file")
+      local guides = vim.api.nvim_buf_get_extmarks(
+        buf,
+        vim.api.nvim_create_namespace("indent_blankline"),
+        0,
+        -1,
+        {}
+      )
+      expect(#guides == 0, #guides .. " indent guides drawn on the big file")
+      local names = vim.tbl_map(function(c)
+        return c.name
+      end, vim.lsp.get_clients({ bufnr = buf }))
+      expect(#names == 0, "LSP still attached to the big file: " .. table.concat(names, ", "))
     end,
   },
 
@@ -374,7 +439,7 @@ local checks = {
       local got = vim.json.decode(vim.fn.readfile(result)[1])
       expect(got.pyright ~= nil, "pyright did not attach on a late open")
       local mode = vim.tbl_get(got, "pyright", "settings", "python", "analysis", "diagnosticMode")
-      expect(mode == "workspace", "pyright diagnosticMode=" .. tostring(mode))
+      expect(mode == "openFilesOnly", "pyright diagnosticMode=" .. tostring(mode))
       expect(got.ruff ~= nil, "ruff did not attach on a late open")
       local len = vim.tbl_get(got, "ruff", "init_options", "settings", "lineLength")
       expect(len == 88, "ruff lineLength=" .. tostring(len))
@@ -393,8 +458,8 @@ local checks = {
           end
         end
       end
-      local allowlist = require("mason-lspconfig.settings").current.automatic_enable
-      expect(type(allowlist) == "table", "automatic_enable is not an allowlist")
+      local allowlist = require("lsp").SERVERS
+      expect(type(allowlist) == "table", "lua/lsp SERVERS is not an allowlist")
       -- containment, not equality: only allowlisted AND installed servers get enabled
       local allowed = {}
       for _, name in ipairs(allowlist) do
@@ -410,6 +475,102 @@ local checks = {
         #outside == 0,
         "servers enabled outside the allowlist: " .. table.concat(outside, ", ")
       )
+    end,
+  },
+  -- a fresh nvim records every vim.keymap.set the config itself makes, then each one
+  -- must be named by a behaviour check in the tmux suites (deep/*.sh, e2e.sh)
+  {
+    "coverage: every keymap the config defines has a behaviour test",
+    function()
+      local root = vim.fn.getcwd()
+      local result = scratch .. "/maps.json"
+      local pre = scratch .. "/maps_pre.lua"
+      local post = scratch .. "/maps_post.lua"
+      vim.fn.writefile({
+        "local set, maps = vim.keymap.set, {}",
+        "_G.__recorded_maps = maps",
+        "vim.keymap.set = function(mode, lhs, rhs, opts)",
+        "  local src = debug.getinfo(2, 'S').source",
+        ("  if src:find(%q, 1, true) then"):format(root .. "/lua/"),
+        "    for _, m in ipairs(type(mode) == 'table' and mode or { mode }) do",
+        "      maps[m .. ' ' .. lhs] = src:gsub('^@.*/lua/', 'lua/')",
+        "    end",
+        "  end",
+        "  return set(mode, lhs, rhs, opts)",
+        "end",
+      }, pre)
+      vim.fn.writefile({
+        "vim.defer_fn(function()",
+        -- LspAttach maps only exist once a server attaches; fire the config's handler
+        "  require('lsp')",
+        "  vim.api.nvim_exec_autocmds('LspAttach', { group = 'UserLspAttach', buffer = 0,",
+        "    data = { client_id = 0 } })",
+        ("  vim.fn.writefile({ vim.json.encode(_G.__recorded_maps) }, %q)"):format(result),
+        "  vim.cmd('qa!')",
+        "end, 1500)",
+      }, post)
+      local target = scratch .. "/maps.py"
+      vim.fn.writefile({ "x = 1" }, target)
+      vim.fn.system({
+        "sh",
+        "-c",
+        ("cd %s && timeout 60 nvim --headless --cmd 'luafile %s' -c 'luafile %s' %s"):format(
+          scratch,
+          pre,
+          post,
+          target
+        ),
+      })
+      expect(vim.fn.filereadable(result) == 1, "keymap probe wrote nothing")
+      local maps = vim.json.decode(vim.fn.readfile(result)[1])
+      expect(vim.tbl_count(maps) >= 50, "probe saw only " .. vim.tbl_count(maps) .. " maps")
+
+      local names = {}
+      local files = vim.fn.glob(root .. "/tests/deep/*.sh", false, true)
+      table.insert(files, root .. "/tests/e2e.sh")
+      for _, file in ipairs(files) do
+        local text = table.concat(vim.fn.readfile(file), "\n")
+        for _, helper in ipairs({ "wait_lexpr", "wait_screen", "ok", "bad" }) do
+          for name in text:gmatch("%f[%w_]" .. helper .. ' "([^"]+)"') do
+            table.insert(names, " " .. name .. " ")
+          end
+        end
+      end
+
+      local function plain(s)
+        return (s:gsub("%p", "%%%0"))
+      end
+      -- operator-pending objects show up as "daf"; visual ones as "vaf"
+      local function covered(mode, lhs)
+        local textobject = not lhs:find("^<")
+        for _, name in ipairs(names) do
+          if mode == "o" and name:find("[ ][dcy]" .. plain(lhs) .. "[ ,]") then
+            return true
+          elseif mode == "x" and textobject and name:find("[ ]v" .. plain(lhs) .. "[ ,]") then
+            return true
+          elseif
+            mode == "x"
+            and not textobject
+            and name:find("[ ]" .. plain(lhs) .. "[ ,]")
+            and (name:find("visual") or name:find("selection"))
+          then
+            return true
+          elseif mode == "n" and name:find("[ ]" .. plain(lhs) .. "[ ,]") then
+            return true
+          end
+        end
+        return false
+      end
+
+      local missing = {}
+      for key, src in pairs(maps) do
+        local mode, lhs = key:match("^(%S+) (.+)$")
+        if not covered(mode, lhs) then
+          table.insert(missing, key .. " (" .. src .. ")")
+        end
+      end
+      table.sort(missing)
+      expect(#missing == 0, "keymaps with no behaviour test: " .. table.concat(missing, "; "))
     end,
   },
   {
@@ -503,20 +664,25 @@ local checks = {
   },
 }
 
-local failed = 0
+-- ONLY=<text> ./tests/run.sh runs just the checks whose name contains <text>
+local only = vim.env.ONLY
+local failed, ran = 0, 0
 local out = {}
 for _, c in ipairs(checks) do
   local name, fn = c[1], c[2]
-  local ok, err = pcall(fn)
-  if ok then
-    table.insert(out, "PASS  " .. name)
-  else
-    failed = failed + 1
-    table.insert(out, "FAIL  " .. name .. "  (" .. tostring(err) .. ")")
+  if not only or name:find(only, 1, true) then
+    ran = ran + 1
+    local ok, err = pcall(fn)
+    if ok then
+      table.insert(out, "PASS  " .. name)
+    else
+      failed = failed + 1
+      table.insert(out, "FAIL  " .. name .. "  (" .. tostring(err) .. ")")
+    end
   end
 end
 table.insert(out, "")
-table.insert(out, string.format("%d/%d checks passed", #checks - failed, #checks))
+table.insert(out, string.format("%d/%d checks passed", ran - failed, ran))
 
 io.stdout:write(table.concat(out, "\n") .. "\n")
 vim.fn.delete(scratch, "rf")

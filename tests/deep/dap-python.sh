@@ -124,6 +124,15 @@ keys Space d c
 wait_lexpr "the df pytest run finishes" "$(no_session)" 60
 keys Space b r
 
+# Django and Uvicorn configs serve on their default 8000; another listener there takes the
+# request and the breakpoint never hits, so name the holder instead of a bare timeout
+holder=$(lsof -nP -iTCP:8000 -sTCP:LISTEN 2>/dev/null | awk 'NR == 2 {print $1, $2}')
+if [ -z "$holder" ]; then
+  ok "port 8000 is free for the django and uvicorn runs"
+else
+  bad "port 8000 is free for the django and uvicorn runs" "held by $holder"
+fi
+
 # the Django config runs ${workspaceFolder}/manage.py, so cwd must be backend
 keys Escape ":cd backend" Enter
 open_file core/views.py

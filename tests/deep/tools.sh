@@ -9,19 +9,20 @@ source "$TESTS/tmux_lib.sh"
 deep_setup tools
 deep_boot backend/core/services.py
 
-BLAME_MARKS='#vim.api.nvim_buf_get_extmarks(0, vim.api.nvim_create_namespace("git-blame-virtual-text"), 0, -1, {})'
+BLAME_MARKS='#vim.api.nvim_buf_get_extmarks(0, vim.api.nvim_create_namespace("gitsigns_blame"), 0, -1, {})'
+BLAME_ON='require("gitsigns.config").config.current_line_blame'
 goto_line 2
-wait_lexpr "git-blame draws the inline blame text" "$BLAME_MARKS > 0 and 1 or 0" 15
+wait_lexpr "gitsigns draws the inline blame text" "$BLAME_MARKS > 0 and 1 or 0" 15
 keys Space g b
 blame_turned_off=""
 wait_lexpr "keymap <leader>gb turns inline git blame off" \
-  "(vim.g.gitblame_enabled == false and $BLAME_MARKS == 0) and 1 or 0" 10 && blame_turned_off=1
+  "($BLAME_ON == false and $BLAME_MARKS == 0) and 1 or 0" 10 && blame_turned_off=1
 keys Space g b
 goto_line 3
 # "back on" only means something after it went off, else it passes on its own
 if [ -n "$blame_turned_off" ]; then
   wait_lexpr "keymap <leader>gb turns it back on and the text returns" \
-    "(vim.g.gitblame_enabled == true and $BLAME_MARKS > 0) and 1 or 0" 15
+    "($BLAME_ON == true and $BLAME_MARKS > 0) and 1 or 0" 15
 else
   bad "keymap <leader>gb turns it back on and the text returns" "blame never turned off"
 fi
@@ -64,9 +65,12 @@ else
   bad "keymap <leader>mP stops the preview server" "url=$preview_url served=$preview_status down=${preview_down:-no}"
 fi
 
-(cd "$MONO/backend" && "$VIRTUAL_ENV/bin/python" manage.py runserver 8000 --noreload >/dev/null 2>&1) &
+# a free port, not 8000: anything else on 8000 (a docker app) answers the request instead
+port=$(python3 -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1])')
+printf 'GET http://127.0.0.1:%s/api/totals/\nAccept: application/json\n' "$port" >"$MONO/api.http"
+(cd "$MONO/backend" && "$VIRTUAL_ENV/bin/python" manage.py runserver "$port" --noreload >/dev/null 2>&1) &
 for _ in $(seq 1 30); do
-  curl -s -m 1 http://127.0.0.1:8000/api/totals/ | grep -q '"total"' && break
+  curl -s -m 1 "http://127.0.0.1:$port/api/totals/" | grep -q '"total"' && break
   sleep 1
 done
 open_file api.http
@@ -75,7 +79,7 @@ keys Space r r
 wait_screen "keymap <leader>rr runs the request and shows the response" "Status: 200" 30
 # stopping the server before kulala finishes raises a hit-enter prompt
 sleep 3
-stop_django
+stop_django "$port"
 keys Space d b
 wait_lexpr "keymap <leader>db opens the database UI" "$(win_with_ft dbui)" 15
 # a toggle sent before dadbod-ui fills its drawer is dropped
