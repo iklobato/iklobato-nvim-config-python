@@ -246,6 +246,12 @@ the bug with `gd`, fix it, and `<leader>dl` runs the same test again.
 
 ![a failing test, the wrong value in the debugger, the fix, and the test passing](docs/demos/11-fix-a-bug.gif)
 
+**Catch an error lost in an asyncio task.** A task nobody awaits raises, and
+Python only logs it, so a normal debug run never stops. `<leader>be`, pick `2`,
+then `<leader>dc`: it stops on the `raise` with the task's values in Locals.
+
+![an error raised inside an asyncio task stops the debugger after <leader>be](docs/demos/21-async-error.gif)
+
 **Write code.**
 
 <table>
