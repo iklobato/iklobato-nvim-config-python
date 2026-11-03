@@ -89,9 +89,10 @@ summary() {
 
 # pkill, not kill $! (subshell); grep the body: another *:8000 listener also answers
 stop_django() {
+  local port=${1:-8000}
   pkill -f "manage.py runserver" 2>/dev/null
   for _ in $(seq 1 20); do
-    curl -s -m 1 http://127.0.0.1:8000/api/totals/ | grep -q '"total"' || return 0
+    curl -s -m 1 "http://127.0.0.1:$port/api/totals/" | grep -q '"total"' || return 0
     sleep 1
   done
   return 0

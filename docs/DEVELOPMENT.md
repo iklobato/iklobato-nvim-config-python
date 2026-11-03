@@ -91,9 +91,9 @@ Ignoring this is how the `*.dbout` autocmd ended up registered twice.
 
 - akinsho/bufferline.nvim (editor tabs)
 - nvim-lualine/lualine.nvim (statusline)
-- lewis6991/gitsigns.nvim (gutter change stripes)
+- lewis6991/gitsigns.nvim (gutter change stripes, inline blame with a 1s delay)
 - lazy.nvim
-- nvim-lspconfig, mason.nvim, mason-lspconfig.nvim
+- nvim-lspconfig, mason.nvim (loads only on `:Mason*`)
 - blink.cmp (completion, loads on the first buffer; see Performance)
 - telescope.nvim (plenary.nvim, loads on demand)
 - nvim-treesitter
@@ -109,18 +109,19 @@ Ignoring this is how the `*.dbout` autocmd ended up registered twice.
 - vim-dadbod + vim-dadbod-ui (SQL client, column/table completion via
   vim-dadbod-completion wired into blink.cmp in sql/mysql/plsql buffers)
 - markdown-preview.nvim (clock-derived port in 8080-9079)
-- Exafunction/windsurf.nvim (Codeium free tier, ghost text only, no cmp source)
-- vim-maximizer
-- f-person/git-blame.nvim (inline blame, 1s delay off the cursor path)
 
 ## LSP
 
-- Servers ensured: pyright, ruff (native `ruff server`), lua_ls, ts_ls
-- mason-lspconfig v2 auto-enables every installed server, so `automatic_enable`
-  in `lua/lsp/init.lua` is an explicit allowlist. Add a server there to use it.
-- `lua/lsp/servers/*.lua` must be required *before* `mason-lspconfig.setup()`:
-  `vim.lsp.enable()` starts clients immediately, and a `vim.lsp.config()` call
-  after that is ignored for the running client
+- `SERVERS` in `lua/lsp/init.lua` is the allowlist, enabled with the native
+  `vim.lsp.enable()`. A server whose binary is not on PATH is skipped, so an
+  allowlisted server you have not installed stays quiet. Add one there to use it.
+- No mason-lspconfig: mason loads only on `:Mason*`, and `init.lua` puts
+  `mason/bin` on PATH itself. install.sh installs pyright, ruff, lua_ls, ts_ls
+- pyright `diagnosticMode = "openFilesOnly"`: "workspace" type-checks the whole
+  repo in the background, which is heavy in a monorepo
+- `lua/lsp/servers/*.lua` must be required *before* `vim.lsp.enable()`:
+  it starts clients immediately, and a `vim.lsp.config()` call after that is
+  ignored for the running client
 - Loads deferred on the first buffer, then re-fires `nvim.lsp.enable` so the
   file opened from the command line also attaches
 - Buffer-local LSP keymaps via `LspAttach`: `gd`, `gr`, `gi`, `K`,
@@ -143,7 +144,8 @@ Ignoring this is how the `*.dbout` autocmd ended up registered twice.
 
 ## Formatting
 
-- `<leader>F` uses conform.nvim (no LSP fallback)
+- `<leader>F` uses conform.nvim (no LSP fallback), with a 3s timeout: the 1s
+  default timed prettier out, one run took 0.81-1.03s on a loaded machine
 - Formatters: Python `ruff_format`, Lua `stylua`, C `clang_format`,
   JS/TS/JSON/CSS/HTML/YAML/Markdown `prettier` (reads `.prettierrc.json`)
 - stylua, ruff and prettier come from mason; `clang_format` needs a system
@@ -154,12 +156,19 @@ Ignoring this is how the `*.dbout` autocmd ended up registered twice.
 
 ## Performance
 
-- Startup ~50ms: telescope and treesitter load on first use, not at boot.
+- Startup, measured headless (`nvim --headless --startuptime`), median of 12
+  runs on a loaded machine: ~100ms empty, ~380ms opening a .py file (was ~490ms
+  with mason-lspconfig). Telescope, dap, dadbod load on first use.
   blink.cmp is the exception: `lua/lsp/init.lua` requires it so its plugin file
   registers LSP capabilities before any server starts, so it loads on the first
   buffer, not on InsertEnter
-- Unused providers disabled (python3, ruby, perl, node)
-- git-blame virtual text delayed 1s so it stays off the cursor path
+- Measure headless: under a pty that does not answer, nvim 0.12 waits up to
+  100ms for the terminal's background color and skews the number
+- Unused providers disabled (python3, ruby, perl, node). With python3 on, the
+  python ftplugin probes the provider and opening a .py file takes seconds
+- Files over 1MB get filetype `bigfile` (`lua/autocmds/filetypes.lua`): no LSP,
+  treesitter or indent guides attach; the real filetype's regex syntax stays on
+- git blame virtual text delayed 1s so it stays off the cursor path
 - No lazyredraw (left at its default off; it causes stutter)
 
 ## Debugging in depth
@@ -201,9 +210,10 @@ Ignoring this is how the `*.dbout` autocmd ended up registered twice.
   needs no ts-node or tsx: node 22.18+ strips the types itself
 - "Attach to process" (go and node) first asks for part of the process name
   and lists only the matches; the full list is every process on the machine.
-  For node it only works on a process started with `--inspect` (any port):
-  on a plain node the adapter disconnects with no error. delve attaches to any
-  go process you own
+  For node, js-debug's standalone server does not look up a pid's inspector (the
+  VS Code extension does), so `lua/config/dap.lua` reads the port from the
+  process's `--inspect` flag (any port); a plain node gets SIGUSR1, which opens
+  its inspector on 127.0.0.1:9229. delve attaches to any go process you own
 - Python has no attach configuration: start the program from a launch config
 - The same js-debug-adapter serves node and chrome. React components only stop
   on the chrome configs; the node ones cannot reach browser code
@@ -218,7 +228,8 @@ Ignoring this is how the `*.dbout` autocmd ended up registered twice.
 ## Tests
 
 ```bash
-./tests/run.sh       # luacheck, then 64 headless feature checks; nonzero on failure
+./tests/run.sh       # luacheck, then 67 headless feature checks; nonzero on failure
+ONLY=coverage ./tests/run.sh   # only the checks whose name contains "coverage"
 ./tests/e2e.sh       # real nvim TUI in tmux: real keystrokes, rendered screen,
                      # one full debug session; requires tmux
 ./tests/e2e-deep.sh  # the deep one: nearly every keymap and every debug feature
@@ -231,8 +242,8 @@ Areas: `ui` (statusline, motions, windows, tabs, explorer, buffers, save and
 quit), `search` (telescope), `lsp` (python and typescript LSP keymaps,
 diagnostics, formatting), `langs` (every other language server attaches, and
 prettier/stylua format), `completion` (blink.cmp in insert mode and on the
-command line), `session` (save on quit, restore on start, no explorer over a
-restored session), `tools` (git, markdown, http client, database UI),
+command line), `session` (save on quit, restore on start, `nvim .` always shows the explorer,
+plain `nvim` none over a restored session), `tools` (git, markdown, http client, database UI),
 `dap-python`, `dap-go` and `dap-js`. Each one boots its own nvim, so a failure in one area
 cannot leave state behind for the next, and each ends with the same health
 checks (no errors in `:messages`, no hit-enter prompts, a clean quit).
@@ -242,6 +253,16 @@ frontend, go service, one git history, an `.http` file and a sqlite db) that
 `tests/fixtures/monorepo.sh` builds under `~/.cache/nvim-e2e-deep`. Only the
 first run pays for `npm install` and the backend venv. It starts real servers
 and opens a real Chrome window while it runs, and takes several minutes.
+
+`run.sh` also checks coverage: a fresh nvim records every `vim.keymap.set` the
+config makes, and each one must be named by a behaviour check in `deep/*.sh` or
+`e2e.sh` (`keymap <leader>xx ...`, `daf`/`vaf` for text objects, "visual" or
+"selection" for visual maps). A new keymap without a test fails the suite.
+
+Ports: `dap-python` needs 8000 free (the Django and Uvicorn configs serve there)
+and `dap-js` needs 9222 free (the Chrome attach config). Another listener on
+either fails a named check (`port 8000 is free ...`, `port 9222 is free ...`)
+with the process that holds it.
 
 What a script cannot assert (colours, glyphs, panel proportions, the rendered
 markdown preview) is a short manual pass in `tests/MANUAL.md`.

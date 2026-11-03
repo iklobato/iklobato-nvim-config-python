@@ -107,6 +107,14 @@ keys Space d t
 wait_lexpr "the react session terminates" "$(no_session)" 25
 keys Space b r
 
+# the attach config is fixed on 9222; if another browser holds it, js-debug attaches to
+# that browser's tabs and the breakpoint never hits, so name the holder
+holder=$(lsof -nP -iTCP:9222 -sTCP:LISTEN 2>/dev/null | awk 'NR == 2 {print $1, $2}')
+if [ -z "$holder" ]; then
+  ok "port 9222 is free for the chrome attach"
+else
+  bad "port 9222 is free for the chrome attach" "held by $holder"
+fi
 chrome="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 profile="$(mktemp -d)/nvim-deep-chrome"
 "$chrome" --headless=new --remote-debugging-port=9222 --user-data-dir="$profile" \

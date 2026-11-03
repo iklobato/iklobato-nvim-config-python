@@ -44,6 +44,43 @@ wait_lexpr "dac deletes the whole class" '(function() for _, l in ipairs(vim.api
 keys u
 wait_lexpr "undo brings the test file back" 'vim.bo.modified == false and 1 or 0' 10
 
+# visual mode: the same objects select instead of delete
+selected_lines() {
+  echo "(function() local a, b = vim.fn.line(\"v\"), vim.fn.line(\".\") return (vim.fn.mode() == \"v\" or vim.fn.mode() == \"V\") and math.min(a, b) == $1 and math.max(a, b) == $2 and 1 or 0 end)()"
+}
+goto_line 16
+keys v i c
+wait_lexpr "vic selects the class body" "$(selected_lines 15 17)" 10
+keys Escape
+goto_line 16
+keys v a c
+wait_lexpr "vac selects the whole class" "$(selected_lines 14 17)" 10
+keys Escape
+open_file backend/core/services.py
+goto_line 2
+keys v i f
+wait_lexpr "vif selects the function body" "$(selected_lines 2 3)" 10
+keys Escape
+goto_line 2
+keys v a f
+wait_lexpr "vaf selects the whole function" "$(selected_lines 1 3)" 10
+keys Escape
+
+# an / in: nvim 0.12's own incremental selection, promised in the README
+selected_text() {
+  # printf, not echo: the \n must reach lua as the two characters, not a newline
+  printf '%s\n' "(function() return table.concat(vim.fn.getregion(vim.fn.getpos(\"v\"), vim.fn.getpos(\".\"), { type = vim.fn.mode() }), \"\\n\") == \"$1\" and 1 or 0 end)()"
+}
+goto_line 9
+keys 0 f d
+keys v a n
+wait_lexpr "visual an selects the node under the cursor" "$(selected_text double)" 10
+keys a n
+wait_lexpr "visual an again grows to the parent node" "$(selected_text 'double(number)')" 10
+keys i n
+wait_lexpr "visual in shrinks back to the child node" "$(selected_text double)" 10
+keys Escape
+
 # toml: has a parser (else the nil check is vacuous) and no LSP to chew on 1 MB
 big="$MONO/langs/big_generated.toml"
 python3 -c 'import sys; open(sys.argv[1], "w").write("".join(f"key{i} = {i}\n" for i in range(80000)))' "$big"
