@@ -38,6 +38,7 @@ return {
           "help",
           "lazy",
           "mason",
+          "bigfile",
         },
       },
     },

@@ -21,6 +21,9 @@ vim.g.loaded_perl_provider = 0
 vim.g.loaded_node_provider = 0
 vim.g.loaded_python3_provider = 0
 
+-- what mason's setup() would do, without loading mason on every start
+vim.env.PATH = vim.fn.stdpath("data") .. "/mason/bin:" .. vim.env.PATH
+
 vim.g.mapleader = " "
 
 vim.g.loaded_netrw = 1
