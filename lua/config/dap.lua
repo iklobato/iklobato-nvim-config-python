@@ -187,12 +187,42 @@ function M.setup()
     },
   }
 
+  -- js-debug's standalone server does not look up a pid's inspector (the VS Code extension
+  -- does), so it dialed localhost:9229 and timed out. Read the port from the --inspect flag;
+  -- a node without one gets SIGUSR1, which opens its inspector on 127.0.0.1:9229.
+  local function inspector_of(pid)
+    local ps = vim.system({ "ps", "-o", "command=", "-p", tostring(pid) }, { text = true })
+    local cmdline = ps:wait().stdout or ""
+    if not cmdline:find("%-%-inspect") then
+      vim.uv.kill(pid, "sigusr1")
+      return JS_DEBUG_HOST, NODE_INSPECT_PORT
+    end
+    local value = cmdline:match("%-%-inspect%-port=(%S+)")
+      or cmdline:match("%-%-inspect[%-%w]*=(%S+)")
+      or ""
+    local host, port = value:match("^(.*):(%d+)$")
+    port = port or value:match("^(%d+)$")
+    host = host and host:gsub("^%[(.*)%]$", "%1")
+    return (host and host ~= "") and host or JS_DEBUG_HOST, tonumber(port) or NODE_INSPECT_PORT
+  end
+
+  local function enrich_node_pid_attach(config, on_config)
+    if config.type ~= "pwa-node" or config.request ~= "attach" or not config.processId then
+      on_config(config)
+      return
+    end
+    local enriched = vim.deepcopy(config)
+    enriched.address, enriched.port = inspector_of(tonumber(config.processId))
+    on_config(enriched)
+  end
+
   local function js_debug_adapter(cb)
     local path = mason_path("js-debug-adapter")
     if not path then
       return
     end
     cb({
+      enrich_config = enrich_node_pid_attach,
       type = "server",
       host = JS_DEBUG_HOST,
       port = "${port}",
