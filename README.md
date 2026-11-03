@@ -414,8 +414,8 @@ Every launch config per language, async python and the known quirks are in
 ## Good to know
 
 - **Theme**: Terminal Noir, the same palette as the iTerm2 profile.
-- **Sessions**: the last session comes back on startup; the file explorer opens
-  only when no session was restored.
+- **Sessions**: the last session comes back on startup. `nvim .` always opens the
+  file explorer next to it; a plain `nvim` opens it only when nothing was restored.
 - **Startup**: about 50 ms, most plugins load on first use.
 - **Under the hood**: folder layout, plugins, LSP and treesitter setup,
   formatters, tests and how the GIFs are recorded are in
