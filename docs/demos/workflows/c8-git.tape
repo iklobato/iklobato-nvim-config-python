@@ -12,7 +12,7 @@ Sleep 3s
 Show
 Sleep 1.5s
 
-# inline blame on
+# inline blame is on by default (current_line_blame); hide it
 Type " gb"
 Sleep 3.8s
 
@@ -29,7 +29,7 @@ Type@150ms "extra = 1"
 Escape
 Sleep 3.8s
 
-# blame off
+# show the blame again
 Type " gb"
 Sleep 3s
 

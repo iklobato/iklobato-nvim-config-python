@@ -7,11 +7,15 @@ and a database UI. Debugging also covers Go, Node, TypeScript and React.
 ![macOS and Linux](https://img.shields.io/badge/macOS%20%7C%20Linux-supported-555)
 ![Debug](https://img.shields.io/badge/debug-python%20%7C%20go%20%7C%20node%20%7C%20react-F5A623)
 
-**[Install](#install)** · **[Leader map](#leader-map)** · **[Tour](#tour)** ·
-**[Workflows](#workflows)** · **[All keys](#all-keys)** · **[Debugging](#debugging)** ·
+**[Install](#install)** · **[Leader map](#leader-map)** · **[Demos](#demos)** ·
+**[All keys](#all-keys)** · **[Debugging](#debugging)** ·
 **[Development](docs/DEVELOPMENT.md)**
 
 ![a python debug run: conditional breakpoint, logpoint, step into, out and over](docs/demos/workflows/c5-debug-python.gif)
+
+*A Python debug session: a breakpoint that only stops when `number == 3`, a
+logpoint that prints without stopping, then step into, out and over. The orange
+box shows each key as it is pressed. Seven more videos in [Demos](#demos).*
 
 ## Install
 
@@ -148,47 +152,137 @@ Leader is <kbd>Space</kbd>. Press <kbd>Space</kbd>, the group letter, then the a
 
 ## Demos
 
-Eight flows, start to finish. The keys are shown live at the bottom of each one.
+Eight real tasks, start to finish, on a small Django + React + Go project.
+`<leader>` is Space. The orange box at the bottom of each video shows every key
+the moment it is pressed.
 
-**1. Open a project.** Install the deps and run it in the shell, then `nvim .`
-opens the tree; splits, tabs and the buffer list.
+### 1. Open a project
 
-![install deps and first run, then the tree, splits, tabs and buffers](docs/demos/workflows/c1-open-and-orient.gif)
+Install the dependencies, run the app once, then open the project in Neovim.
 
-**2. Navigate the code.** Find files and grep, go to a definition and its
-references, list the symbols, and rename.
+![install deps and first run, then the file tree, splits and the buffer list](docs/demos/workflows/c1-open-and-orient.gif)
+
+In the video:
+
+1. In the shell: turn on the virtualenv, run `pip install -r requirements.txt`,
+   then `python demo.py` prints `total 20`.
+2. `nvim .` opens the project with the file tree on the left.
+3. `:e` opens `services.py`, and the language server starts on it.
+4. `<leader>sv` splits the window side by side, `<leader>sh` splits it top and
+   bottom, `<leader>se` makes them all the same size, and `:only` goes back to one.
+5. `<leader>ee` opens the file tree, and closes it again.
+6. `<leader>fb` lists the files that are open.
+
+### 2. Navigate the code
+
+Find a file, search the whole project, and move around the code with the
+language server.
 
 ![find, grep, go to definition and references, list symbols, rename](docs/demos/workflows/c2-navigate.gif)
 
-**3. Write code.** Completion from the language server, grow the selection by
-syntax node, and delete a function with a text object.
+In the video:
 
-![completion, grow the selection by node, delete a function](docs/demos/workflows/c3-write-code.gif)
+1. `<leader>ff` finds files: typing `views` opens `views.py`.
+2. `<leader>fg` searches the text of every file for `summarize`.
+3. `gd` on `double(...)` jumps to where `double` is defined.
+4. `<leader>gr` lists every place that uses it, with a preview on the right.
+5. `<leader>fo` lists the functions in the file.
+6. `<leader>rn` renames `double` to `scale`, and every use in the file changes too.
 
-**4. Diagnose and clean up.** Ruff flags the unused imports, code actions remove
-them, rename the function, then format.
+### 3. Write code
 
-![jump a diagnostic, code actions remove the unused imports, rename, format](docs/demos/workflows/c4-diagnose-and-clean.gif)
+Completion, selecting code by its structure, and deleting a whole function.
 
-**5. Debug Python in depth.** A conditional breakpoint, a logpoint, the breakpoint
-list, launch, then step into, out and over with the scopes and REPL on screen.
+![completion with docs, grow the selection by syntax, delete a function](docs/demos/workflows/c3-write-code.gif)
 
-![conditional breakpoint, logpoint, breakpoint list, launch, step into out over](docs/demos/workflows/c5-debug-python.gif)
+In the video:
 
-**6. Debug live.** An HTTP request stops on a breakpoint in the Django view and
-the response comes back, then an error lost in an asyncio task stops the debugger.
+1. Typing `x = doub` opens the completion menu, with the docs of the selected
+   item next to it. `<C-y>` accepts it.
+2. `v`, then `an` twice, grows the selection one piece of syntax at a time.
+3. `daf` deletes the whole `summarize` function, and `u` brings it back.
 
-![a request stops in the Django view, then an asyncio task error stops the debugger](docs/demos/workflows/c6-debug-live-async.gif)
+### 4. Find problems and clean up
 
-**7. Work with data.** Fire the request at the running API and read the JSON, then
-open the database, browse the table, and run a query.
+`legacy.py` imports two modules it never uses, and ruff flags both.
 
-![run the HTTP request, read the JSON, then browse the database and run a query](docs/demos/workflows/c7-data-db-http.gif)
+![jump to a problem, code actions remove the unused imports, rename, format](docs/demos/workflows/c4-diagnose-and-clean.gif)
 
-**8. Git in the editor.** Inline blame, the change marks in the gutter, and the
-blame toggle.
+In the video:
 
-![inline blame, the change marks, and the blame toggle](docs/demos/workflows/c8-git.gif)
+1. `]d` jumps to the first problem and shows its message.
+2. `<leader>ca` lists the fixes ruff offers, and `1` removes the unused import.
+3. `]d` and `<leader>ca` again remove the second one.
+4. `<leader>rn` renames `legacy_total` to `running_total`.
+5. `<leader>F` formats the file.
+
+### 5. Debug Python, step by step
+
+Stop the program at the right moment and watch the values change.
+
+![conditional breakpoint, logpoint, breakpoint list, then step into, out and over](docs/demos/workflows/c5-debug-python.gif)
+
+In the video:
+
+1. `<leader>bc` adds a breakpoint that only stops when `number == 3`.
+2. `<leader>bl` adds a logpoint: it prints `doubled` each time that line runs,
+   without stopping.
+3. `<leader>ba` lists both breakpoints.
+4. `<leader>dc` starts `demo.py` (`1` picks "Launch file"). It stops when
+   `number` is 3: the variables show on the left and the logpoint output on the
+   right.
+5. `<leader>dk` steps into `double()`, `<leader>do` steps back out, and
+   `<leader>dj` runs the next line.
+6. `<leader>dc` runs to the end, and `<leader>dt` stops the debugger.
+
+### 6. Debug a live request and an async bug
+
+Stop a running web server in the middle of a request, then catch an error that
+Python would only print.
+
+![a request stops in the Django view, then an error in an asyncio task stops the debugger](docs/demos/workflows/c6-debug-live-async.gif)
+
+In the video:
+
+1. `<leader>bb` puts a breakpoint in the Django view behind `GET /api/totals/`.
+2. `<leader>dc` starts the Django server under the debugger (`2` picks
+   "Django runserver").
+3. `<leader>tn` moves to `api.http`, and `<leader>rr` sends the request. The
+   server stops on the breakpoint, with the request's values on the left.
+4. `<leader>dc` lets it go on, and the answer `"total": 120` shows on the right.
+5. In `async_demo.py` a background task fails, but nothing waits for it, so a
+   normal run only prints a warning. `<leader>be` and `2` make the debugger stop
+   on errors like this one.
+6. `<leader>dc` runs the file (`1`), and it stops on the `raise` inside the task.
+
+### 7. Work with data
+
+Call the API, then look at the database behind it. The Django server is already
+running in the background.
+
+![run the HTTP request and read the JSON, then browse the database and run a query](docs/demos/workflows/c7-data-db-http.gif)
+
+In the video:
+
+1. `<leader>rr` sends the request in `api.http`, and the JSON answer shows on the
+   right.
+2. `<leader>db` opens the database panel. Opening `totals`, then `List`, shows
+   the rows of the table.
+3. The query `select label, value from totals where value > 30;` runs with
+   `<leader>S`, and only the row with `40` comes back.
+
+### 8. Git in the editor
+
+See who changed a line and what you changed yourself, without leaving the file.
+
+![inline blame, the change marks in the margin, and the blame toggle](docs/demos/workflows/c8-git.gif)
+
+In the video:
+
+1. The author and date of the line under the cursor show at the end of it.
+   `<leader>gb` hides them.
+2. Changing a line marks it in the left margin, and a new line gets its own mark.
+3. `<leader>gb` shows the author and date again.
 
 ## All keys
 
