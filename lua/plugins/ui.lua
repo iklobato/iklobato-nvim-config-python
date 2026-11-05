@@ -21,6 +21,9 @@ return {
       options = {
         theme = "auto",
         globalstatus = true,
+        -- slant glyphs to match bufferline's "slant" separators
+        section_separators = { left = "", right = "" },
+        component_separators = { left = "", right = "" },
       },
       sections = {
         lualine_c = { { "filename", path = 2 } },
@@ -47,6 +50,11 @@ return {
     opts = {
       view = {
         width = math.max(30, math.floor(vim.o.columns * 0.2)),
+      },
+      renderer = {
+        group_empty = true,
+        highlight_git = true,
+        indent_markers = { enable = true },
       },
       actions = { open_file = { window_picker = { enable = false } } },
       -- not respect_buf_cwd: one stray `lcd` would reroot the tree elsewhere

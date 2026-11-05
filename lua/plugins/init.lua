@@ -20,8 +20,7 @@ require("lazy").setup(plugins, {
     rtp = {
       disabled_plugins = {
         "gzip",
-        "matchit",
-        "matchparen",
+        -- matchit (%) and matchparen (the glow the theme's MatchParen defines) stay enabled
         -- the runtime file is netrwPlugin.vim; "netrw" matches nothing
         "netrwPlugin",
         "tarPlugin",

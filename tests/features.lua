@@ -662,6 +662,46 @@ local checks = {
       expect(opts.respect_buf_cwd ~= true, "respect_buf_cwd is on, an lcd can hijack the root")
     end,
   },
+  {
+    "reload: clean buffer picks up an outside change with no prompt",
+    function()
+      edit("reload_clean.txt", { "old" })
+      vim.fn.writefile({ "changed on disk" }, scratch .. "/reload_clean.txt")
+      vim.cmd("checktime")
+      expect(vim.fn.getline(1) == "changed on disk", "buffer still has: " .. vim.fn.getline(1))
+    end,
+  },
+  {
+    "reload: unsaved text is backed up to a file and undo brings it back",
+    function()
+      edit("reload_dirty.txt", { "old" })
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, { "my unsaved text" })
+      vim.fn.writefile({ "changed on disk by someone" }, scratch .. "/reload_dirty.txt")
+      vim.cmd("checktime")
+
+      expect(
+        vim.fn.getline(1) == "changed on disk by someone",
+        "not reloaded: " .. vim.fn.getline(1)
+      )
+      local backups =
+        vim.fn.glob(vim.fn.stdpath("state") .. "/unsaved/*reload_dirty.txt.*", false, true)
+      expect(#backups == 1, "expected 1 backup, found " .. #backups)
+      local saved = vim.fn.readfile(backups[1])
+      vim.fn.delete(backups[1])
+      expect(saved[1] == "my unsaved text", "backup holds: " .. tostring(saved[1]))
+      vim.cmd("silent undo")
+      expect(vim.fn.getline(1) == "my unsaved text", "undo gave: " .. vim.fn.getline(1))
+    end,
+  },
+  {
+    "reload: file deleted on disk keeps the buffer",
+    function()
+      edit("reload_deleted.txt", { "keep me" })
+      vim.fn.delete(scratch .. "/reload_deleted.txt")
+      vim.cmd("checktime")
+      expect(vim.fn.getline(1) == "keep me", "buffer changed to: " .. vim.fn.getline(1))
+    end,
+  },
 }
 
 -- ONLY=<text> ./tests/run.sh runs just the checks whose name contains <text>

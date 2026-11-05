@@ -15,6 +15,12 @@ function M.setup()
       list = {
         max_items = 15,
       },
+      menu = { border = "rounded" },
+      documentation = {
+        auto_show = true,
+        auto_show_delay_ms = 200,
+        window = { border = "rounded" },
+      },
     },
     sources = {
       -- dadbod-completion only self-registers with nvim-cmp; blink needs this wiring

@@ -7,11 +7,15 @@ and a database UI. Debugging also covers Go, Node, TypeScript and React.
 ![macOS and Linux](https://img.shields.io/badge/macOS%20%7C%20Linux-supported-555)
 ![Debug](https://img.shields.io/badge/debug-python%20%7C%20go%20%7C%20node%20%7C%20react-F5A623)
 
-**[Install](#install)** · **[Leader map](#leader-map)** · **[Tour](#tour)** ·
-**[Workflows](#workflows)** · **[All keys](#all-keys)** · **[Debugging](#debugging)** ·
+**[Install](#install)** · **[Leader map](#leader-map)** · **[Demos](#demos)** ·
+**[All keys](#all-keys)** · **[Debugging](#debugging)** ·
 **[Development](docs/DEVELOPMENT.md)**
 
-![a python debug run: conditional breakpoint, logpoint, step into, out and over](docs/demos/06-debug-python.gif)
+![a python debug run: conditional breakpoint, logpoint, step into, out and over](docs/demos/workflows/c5-debug-python.gif)
+
+*A Python debug session: a breakpoint that only stops when `number == 3`, a
+logpoint that prints without stopping, then step into, out and over. The orange
+box shows each key as it is pressed. Seven more videos in [Demos](#demos).*
 
 ## Install
 
@@ -146,147 +150,139 @@ Leader is <kbd>Space</kbd>. Press <kbd>Space</kbd>, the group letter, then the a
 </tr>
 </table>
 
-## Tour
+## Demos
 
-<table>
-<tr>
-<td width="50%" valign="top">
+Eight real tasks, start to finish, on a small Django + React + Go project.
+`<leader>` is Space. The orange box at the bottom of each video shows every key
+the moment it is pressed.
 
-**Explorer and tabs**
+### 1. Open a project
 
-![file explorer and the tabs on the top bar](docs/demos/01-explorer-tabs.gif)
+Install the dependencies, run the app once, then open the project in Neovim.
 
-`<leader>ee` tree · `<leader>tn` `<leader>tp` next / previous tab
+![install deps and first run, then the file tree, splits and the buffer list](docs/demos/workflows/c1-open-and-orient.gif)
 
-</td>
-<td width="50%" valign="top">
+In the video:
 
-**Splits**
+1. In the shell: turn on the virtualenv, run `pip install -r requirements.txt`,
+   then `python demo.py` prints `total 20`.
+2. `nvim .` opens the project with the file tree on the left.
+3. `:e` opens `services.py`, and the language server starts on it.
+4. `<leader>sv` splits the window side by side, `<leader>sh` splits it top and
+   bottom, `<leader>se` makes them all the same size, and `:only` goes back to one.
+5. `<leader>ee` opens the file tree, and closes it again.
+6. `<leader>fb` lists the files that are open.
 
-![splits: vertical, horizontal, maximize, equalize](docs/demos/02-splits.gif)
+### 2. Navigate the code
 
-`<leader>sv` `<leader>sh` split · `<leader>sm` maximize · `<leader>se` equalize
+Find a file, search the whole project, and move around the code with the
+language server.
 
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
+![find, grep, go to definition and references, list symbols, rename](docs/demos/workflows/c2-navigate.gif)
 
-**Search**
+In the video:
 
-![telescope: files, grep, symbols, buffers](docs/demos/03-search.gif)
+1. `<leader>ff` finds files: typing `views` opens `views.py`.
+2. `<leader>fg` searches the text of every file for `summarize`.
+3. `gd` on `double(...)` jumps to where `double` is defined.
+4. `<leader>gr` lists every place that uses it, with a preview on the right.
+5. `<leader>fo` lists the functions in the file.
+6. `<leader>rn` renames `double` to `scale`, and every use in the file changes too.
 
-`<leader>ff` files · `<leader>fg` grep · `<leader>fo` symbols
+### 3. Write code
 
-</td>
-<td width="50%" valign="top">
+Completion, selecting code by its structure, and deleting a whole function.
 
-**LSP**
+![completion with docs, grow the selection by syntax, delete a function](docs/demos/workflows/c3-write-code.gif)
 
-![LSP: hover, definition in a split, references, rename](docs/demos/04-lsp.gif)
+In the video:
 
-`K` hover · `<leader>gd` definition · `<leader>gr` references · `<leader>rn` rename
+1. Typing `x = doub` opens the completion menu, with the docs of the selected
+   item next to it. `<C-y>` accepts it.
+2. `v`, then `an` twice, grows the selection one piece of syntax at a time.
+3. `daf` deletes the whole `summarize` function, and `u` brings it back.
 
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
+### 4. Find problems and clean up
 
-**Diagnostics and editing**
+`legacy.py` imports two modules it never uses, and ruff flags both.
 
-![diagnostics, format and replace the word under the cursor](docs/demos/05-diagnostics-edit.gif)
+![jump to a problem, code actions remove the unused imports, rename, format](docs/demos/workflows/c4-diagnose-and-clean.gif)
 
-`]d` next problem · `<leader>F` format · `<leader>S` replace word
+In the video:
 
-</td>
-<td width="50%" valign="top">
+1. `]d` jumps to the first problem and shows its message.
+2. `<leader>ca` lists the fixes ruff offers, and `1` removes the unused import.
+3. `]d` and `<leader>ca` again remove the second one.
+4. `<leader>rn` renames `legacy_total` to `running_total`.
+5. `<leader>F` formats the file.
 
-**Debug a pytest test**
+### 5. Debug Python, step by step
 
-![debug the pytest test under the cursor, then the test picker](docs/demos/07-debug-pytest.gif)
+Stop the program at the right moment and watch the values change.
 
-`<leader>bb` breakpoint · `<leader>df` debug this test · `<leader>dp` pick a test
+![conditional breakpoint, logpoint, breakpoint list, then step into, out and over](docs/demos/workflows/c5-debug-python.gif)
 
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
+In the video:
 
-**HTTP client**
+1. `<leader>bc` adds a breakpoint that only stops when `number == 3`.
+2. `<leader>bl` adds a logpoint: it prints `doubled` each time that line runs,
+   without stopping.
+3. `<leader>ba` lists both breakpoints.
+4. `<leader>dc` starts `demo.py` (`1` picks "Launch file"). It stops when
+   `number` is 3: the variables show on the left and the logpoint output on the
+   right.
+5. `<leader>dk` steps into `double()`, `<leader>do` steps back out, and
+   `<leader>dj` runs the next line.
+6. `<leader>dc` runs to the end, and `<leader>dt` stops the debugger.
 
-![HTTP request under the cursor with kulala](docs/demos/08-http-client.gif)
+### 6. Debug a live request and an async bug
 
-`<leader>rr` run the request under the cursor (`.http` files)
+Stop a running web server in the middle of a request, then catch an error that
+Python would only print.
 
-</td>
-<td width="50%" valign="top">
+![a request stops in the Django view, then an error in an asyncio task stops the debugger](docs/demos/workflows/c6-debug-live-async.gif)
 
-**Database UI**
+In the video:
 
-![database UI on a SQLite file, then a query](docs/demos/09-database.gif)
+1. `<leader>bb` puts a breakpoint in the Django view behind `GET /api/totals/`.
+2. `<leader>dc` starts the Django server under the debugger (`2` picks
+   "Django runserver").
+3. `<leader>tn` moves to `api.http`, and `<leader>rr` sends the request. The
+   server stops on the breakpoint, with the request's values on the left.
+4. `<leader>dc` lets it go on, and the answer `"total": 120` shows on the right.
+5. In `async_demo.py` a background task fails, but nothing waits for it, so a
+   normal run only prints a warning. `<leader>be` and `2` make the debugger stop
+   on errors like this one.
+6. `<leader>dc` runs the file (`1`), and it stops on the `raise` inside the task.
 
-`<leader>db` open · `<leader>S` run the query in its buffer
+### 7. Work with data
 
-</td>
-</tr>
-</table>
+Call the API, then look at the database behind it. The Django server is already
+running in the background.
 
-## Workflows
+![run the HTTP request and read the JSON, then browse the database and run a query](docs/demos/workflows/c7-data-db-http.gif)
 
-Whole tasks, start to finish.
+In the video:
 
-**Debug a live API request.** Breakpoint in the Django view, start the server
-under the debugger, send the request from `api.http`: it stops in the view with
-the values on the left, and the response shows up after `<leader>dc`.
+1. `<leader>rr` sends the request in `api.http`, and the JSON answer shows on the
+   right.
+2. `<leader>db` opens the database panel. Opening `totals`, then `List`, shows
+   the rows of the table.
+3. The query `select label, value from totals where value > 30;` runs with
+   `<leader>S`, and only the row with `40` comes back.
 
-![an HTTP request stops on a breakpoint in the Django view, then the response comes back](docs/demos/10-request-breakpoint.gif)
+### 8. Git in the editor
 
-**Fix a failing test.** Debug the test, read the wrong value in Locals, jump to
-the bug with `gd`, fix it, and `<leader>dl` runs the same test again.
+See who changed a line and what you changed yourself, without leaving the file.
 
-![a failing test, the wrong value in the debugger, the fix, and the test passing](docs/demos/11-fix-a-bug.gif)
+![inline blame, the change marks in the margin, and the blame toggle](docs/demos/workflows/c8-git.gif)
 
-**Catch an error lost in an asyncio task.** A task nobody awaits raises, and
-Python only logs it, so a normal debug run never stops. `<leader>be`, pick `2`,
-then `<leader>dc`: it stops on the `raise` with the task's values in Locals.
+In the video:
 
-![an error raised inside an asyncio task stops the debugger after <leader>be](docs/demos/21-async-error.gif)
-
-**Write code.**
-
-<table>
-<tr>
-<td width="50%" valign="top">
-
-**Completion**
-
-![completion from the language server while typing](docs/demos/12-completion.gif)
-
-pops up as you type · `<C-y>` accepts
-
-</td>
-<td width="50%" valign="top">
-
-**Edit by syntax**
-
-![grow the selection by syntax node, delete a function, automatic f-string](docs/demos/13-syntax-edit.gif)
-
-`v an an` grows · `daf` deletes a function · `{` makes an f-string
-
-</td>
-</tr>
-<tr>
-<td colspan="2" align="center">
-
-**Git in the editor**
-
-<img src="docs/demos/14-git.gif" alt="inline blame and the change marks in the margin" width="50%">
-
-blame after the line · marks for added, changed and deleted lines · `<leader>gb` blame on/off
-
-</td>
-</tr>
-</table>
+1. The author and date of the line under the cursor show at the end of it.
+   `<leader>gb` hides them.
+2. Changing a line marks it in the left margin, and a new line gets its own mark.
+3. `<leader>gb` shows the author and date again.
 
 ## All keys
 
