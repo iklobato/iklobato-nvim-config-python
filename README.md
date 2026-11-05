@@ -235,6 +235,12 @@ Leader is <kbd>Space</kbd>. Press <kbd>Space</kbd>, the group letter, then the a
 
 Whole tasks, start to finish.
 
+**Start a project.** Install the deps and run it in the shell, then `nvim .`
+opens the file tree, the language server attaches on the first file, `K` hovers,
+and completion pops up as you type.
+
+![open a project: install deps, first run, then the LSP attaches with hover and completion](docs/demos/workflows/30-start-project.gif)
+
 **Debug a live API request.** Breakpoint in the Django view, start the server
 under the debugger, send the request from `api.http`: it stops in the view with
 the values on the left, and the response shows up after `<leader>dc`.
@@ -251,6 +257,18 @@ Python only logs it, so a normal debug run never stops. `<leader>be`, pick `2`,
 then `<leader>dc`: it stops on the `raise` with the task's values in Locals.
 
 ![an error raised inside an asyncio task stops the debugger after <leader>be](docs/demos/21-async-error.gif)
+
+**Navigate a codebase.** `<leader>ff` finds files, `<leader>fg` greps, `gd` jumps
+to a definition and `<leader>gr` lists its references, `<leader>fo` lists the
+symbols, `<leader>rn` renames, and `]d` jumps to the next diagnostic.
+
+![find, grep, go to definition and references, list symbols, rename, jump a diagnostic](docs/demos/workflows/34-navigate-codebase.gif)
+
+**Full-stack check.** Fire the request at the running API with `<leader>rr`, read
+the JSON, then `<leader>db` opens the database and browses the table: both sides
+of the stack in one session.
+
+![run the HTTP request, see the JSON, then read the table in the database UI](docs/demos/workflows/35-fullstack-http-db.gif)
 
 **Write code.**
 
