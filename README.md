@@ -11,7 +11,7 @@ and a database UI. Debugging also covers Go, Node, TypeScript and React.
 **[Workflows](#workflows)** · **[All keys](#all-keys)** · **[Debugging](#debugging)** ·
 **[Development](docs/DEVELOPMENT.md)**
 
-![a python debug run: conditional breakpoint, logpoint, step into, out and over](docs/demos/06-debug-python.gif)
+![a python debug run: conditional breakpoint, logpoint, step into, out and over](docs/demos/workflows/c5-debug-python.gif)
 
 ## Install
 
@@ -146,165 +146,49 @@ Leader is <kbd>Space</kbd>. Press <kbd>Space</kbd>, the group letter, then the a
 </tr>
 </table>
 
-## Tour
+## Demos
 
-<table>
-<tr>
-<td width="50%" valign="top">
+Eight flows, start to finish. The keys are shown live at the bottom of each one.
 
-**Explorer and tabs**
+**1. Open a project.** Install the deps and run it in the shell, then `nvim .`
+opens the tree; splits, tabs and the buffer list.
 
-![file explorer and the tabs on the top bar](docs/demos/01-explorer-tabs.gif)
+![install deps and first run, then the tree, splits, tabs and buffers](docs/demos/workflows/c1-open-and-orient.gif)
 
-`<leader>ee` tree · `<leader>tn` `<leader>tp` next / previous tab
+**2. Navigate the code.** Find files and grep, go to a definition and its
+references, list the symbols, and rename.
 
-</td>
-<td width="50%" valign="top">
+![find, grep, go to definition and references, list symbols, rename](docs/demos/workflows/c2-navigate.gif)
 
-**Splits**
+**3. Write code.** Completion from the language server, grow the selection by
+syntax node, and delete a function with a text object.
 
-![splits: vertical, horizontal, maximize, equalize](docs/demos/02-splits.gif)
+![completion, grow the selection by node, delete a function](docs/demos/workflows/c3-write-code.gif)
 
-`<leader>sv` `<leader>sh` split · `<leader>sm` maximize · `<leader>se` equalize
+**4. Diagnose and clean up.** Ruff flags the unused imports, code actions remove
+them, rename the function, then format.
 
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
+![jump a diagnostic, code actions remove the unused imports, rename, format](docs/demos/workflows/c4-diagnose-and-clean.gif)
 
-**Search**
+**5. Debug Python in depth.** A conditional breakpoint, a logpoint, the breakpoint
+list, launch, then step into, out and over with the scopes and REPL on screen.
 
-![telescope: files, grep, symbols, buffers](docs/demos/03-search.gif)
+![conditional breakpoint, logpoint, breakpoint list, launch, step into out over](docs/demos/workflows/c5-debug-python.gif)
 
-`<leader>ff` files · `<leader>fg` grep · `<leader>fo` symbols
+**6. Debug live.** An HTTP request stops on a breakpoint in the Django view and
+the response comes back, then an error lost in an asyncio task stops the debugger.
 
-</td>
-<td width="50%" valign="top">
+![a request stops in the Django view, then an asyncio task error stops the debugger](docs/demos/workflows/c6-debug-live-async.gif)
 
-**LSP**
+**7. Work with data.** Fire the request at the running API and read the JSON, then
+open the database, browse the table, and run a query.
 
-![LSP: hover, definition in a split, references, rename](docs/demos/04-lsp.gif)
+![run the HTTP request, read the JSON, then browse the database and run a query](docs/demos/workflows/c7-data-db-http.gif)
 
-`K` hover · `<leader>gd` definition · `<leader>gr` references · `<leader>rn` rename
+**8. Git in the editor.** Inline blame, the change marks in the gutter, and the
+blame toggle.
 
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
-
-**Diagnostics and editing**
-
-![diagnostics, format and replace the word under the cursor](docs/demos/05-diagnostics-edit.gif)
-
-`]d` next problem · `<leader>F` format · `<leader>S` replace word
-
-</td>
-<td width="50%" valign="top">
-
-**Debug a pytest test**
-
-![debug the pytest test under the cursor, then the test picker](docs/demos/07-debug-pytest.gif)
-
-`<leader>bb` breakpoint · `<leader>df` debug this test · `<leader>dp` pick a test
-
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
-
-**HTTP client**
-
-![HTTP request under the cursor with kulala](docs/demos/08-http-client.gif)
-
-`<leader>rr` run the request under the cursor (`.http` files)
-
-</td>
-<td width="50%" valign="top">
-
-**Database UI**
-
-![database UI on a SQLite file, then a query](docs/demos/09-database.gif)
-
-`<leader>db` open · `<leader>S` run the query in its buffer
-
-</td>
-</tr>
-</table>
-
-## Workflows
-
-Whole tasks, start to finish.
-
-**Start a project.** Install the deps and run it in the shell, then `nvim .`
-opens the file tree, the language server attaches on the first file, `K` hovers,
-and completion pops up as you type.
-
-![open a project: install deps, first run, then the LSP attaches with hover and completion](docs/demos/workflows/30-start-project.gif)
-
-**Debug a live API request.** Breakpoint in the Django view, start the server
-under the debugger, send the request from `api.http`: it stops in the view with
-the values on the left, and the response shows up after `<leader>dc`.
-
-![an HTTP request stops on a breakpoint in the Django view, then the response comes back](docs/demos/10-request-breakpoint.gif)
-
-**Fix a failing test.** Debug the test, read the wrong value in Locals, jump to
-the bug with `gd`, fix it, and `<leader>dl` runs the same test again.
-
-![a failing test, the wrong value in the debugger, the fix, and the test passing](docs/demos/11-fix-a-bug.gif)
-
-**Catch an error lost in an asyncio task.** A task nobody awaits raises, and
-Python only logs it, so a normal debug run never stops. `<leader>be`, pick `2`,
-then `<leader>dc`: it stops on the `raise` with the task's values in Locals.
-
-![an error raised inside an asyncio task stops the debugger after <leader>be](docs/demos/21-async-error.gif)
-
-**Navigate a codebase.** `<leader>ff` finds files, `<leader>fg` greps, `gd` jumps
-to a definition and `<leader>gr` lists its references, `<leader>fo` lists the
-symbols, `<leader>rn` renames, and `]d` jumps to the next diagnostic.
-
-![find, grep, go to definition and references, list symbols, rename, jump a diagnostic](docs/demos/workflows/34-navigate-codebase.gif)
-
-**Full-stack check.** Fire the request at the running API with `<leader>rr`, read
-the JSON, then `<leader>db` opens the database and browses the table: both sides
-of the stack in one session.
-
-![run the HTTP request, see the JSON, then read the table in the database UI](docs/demos/workflows/35-fullstack-http-db.gif)
-
-**Write code.**
-
-<table>
-<tr>
-<td width="50%" valign="top">
-
-**Completion**
-
-![completion from the language server while typing](docs/demos/12-completion.gif)
-
-pops up as you type · `<C-y>` accepts
-
-</td>
-<td width="50%" valign="top">
-
-**Edit by syntax**
-
-![grow the selection by syntax node, delete a function, automatic f-string](docs/demos/13-syntax-edit.gif)
-
-`v an an` grows · `daf` deletes a function · `{` makes an f-string
-
-</td>
-</tr>
-<tr>
-<td colspan="2" align="center">
-
-**Git in the editor**
-
-<img src="docs/demos/14-git.gif" alt="inline blame and the change marks in the margin" width="50%">
-
-blame after the line · marks for added, changed and deleted lines · `<leader>gb` blame on/off
-
-</td>
-</tr>
-</table>
+![inline blame, the change marks, and the blame toggle](docs/demos/workflows/c8-git.gif)
 
 ## All keys
 

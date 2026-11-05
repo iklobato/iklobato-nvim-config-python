@@ -273,24 +273,29 @@ markdown preview) is a short manual pass in `tests/MANUAL.md`.
 
 ## Demo GIFs
 
-The README GIFs are recorded with [VHS](https://github.com/charmbracelet/vhs)
-from the tapes in `docs/demos/`, against the same demo monorepo the tests use:
+The README GIFs are the eight chapter tapes in `docs/demos/workflows/`, recorded
+with [VHS](https://github.com/charmbracelet/vhs) against the same demo monorepo
+the tests use:
 
 ```bash
 bash tests/fixtures/monorepo.sh /tmp/demo   # wiped on reboot, rebuild when missing
-vhs docs/demos/04-lsp.tape                  # run from the repo root
+for t in docs/demos/workflows/*.tape; do vhs "$t"; done   # run from the repo root
 ```
 
 - `settings.tape` holds the shared look (size, font, Terminal Noir colors).
+- `keycast.lua` is the live key overlay: each tape copies it to
+  `/tmp/.keycast-demo.lua` and loads it with `nvim -c 'luafile ...'`. It shows the
+  raw keys pressed in a bar pinned bottom-center, via `vim.on_key`. It is a
+  recording aid, not part of the config.
 - Each tape compiles `xterm-vhs.terminfo` and sets `TERM=xterm-vhs` first.
   Without it nvim sends truecolor as `38:2:r:g:b`, the xterm.js inside VHS
   reads that as `colorspace:r:g`, and the whole theme turns yellow.
-- `09-database.tape` points `db_ui_save_location` at an empty folder so the
-  database connections saved on your machine never end up in the GIF.
-- `10-request-breakpoint.tape` starts Django on port 8000 under the debugger and
-  stops it at the end; `11-fix-a-bug.tape` plants a bug in
-  `backend/core/services.py` and restores the file with `git checkout` at the
-  end. After a render that stopped half way, run
-  `pkill -f "manage.py runserver"` and `git -C /tmp/demo checkout -- backend`.
+- `c7-data-db-http.tape` starts Django on port 8000 in the background and points
+  `db_ui_save_location` at an empty folder so saved connections never end up in
+  the GIF. `c6-debug-live-async.tape` starts Django under the debugger. After a
+  render that stopped half way, run `pkill -f "manage.py runserver"`.
+- Go debug (delve) does not record under VHS: the headless env fails to launch
+  the build, though it works in a real terminal and in `tests/deep/dap-go.sh`.
+  That is why there is no Go GIF.
 - Check a new GIF by its frames before committing it:
-  `ffmpeg -i docs/demos/04-lsp.gif -vf fps=1/3 /tmp/frame-%02d.png`
+  `ffmpeg -i docs/demos/workflows/c2-navigate.gif -vf fps=1/3 /tmp/frame-%02d.png`
