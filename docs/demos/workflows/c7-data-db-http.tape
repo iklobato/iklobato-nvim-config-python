@@ -11,36 +11,36 @@ Type@1ms "until curl -s -m 1 http://127.0.0.1:8000/api/totals/ >/dev/null; do sl
 Wait@40s
 Type@1ms `nvim --cmd "let g:db_ui_save_location='/tmp/demo/.dbui'" -c 'luafile /tmp/.keycast-demo.lua' api.http` Enter
 Wait+Screen@20s /totals/
-Sleep 2s
+Sleep 3s
 Show
-Sleep 1s
+Sleep 1.5s
 
 # fire the request at the running API
 Type " rr"
 Wait+Screen@30s /"total": 120/
-Sleep 3.5s
+Sleep 5.2s
 
 # the database
 Type " db"
-Sleep 3s
+Sleep 4.5s
 Type "G"
-Sleep 300ms
+Sleep 450ms
 Enter
 Wait+Screen@15s /Tables/
-Sleep 500ms
+Sleep 750ms
 Type "/Tables"
 Enter
-Sleep 300ms
+Sleep 450ms
 Enter
 Wait+Screen@15s /totals/
-Sleep 1s
-Type "j"
-Enter
-Wait+Screen@15s /List/
 Sleep 1.5s
 Type "j"
 Enter
-Sleep 2.5s
+Wait+Screen@15s /List/
+Sleep 2.2s
+Type "j"
+Enter
+Sleep 3.8s
 
 # a query
 Hide
@@ -48,14 +48,14 @@ Type@1ms ":lua for _,w in ipairs(vim.api.nvim_list_wins()) do if vim.bo[vim.api.
 Type@1ms "ggdG"
 Type@1ms "i"
 Show
-Type@100ms "select label, value from totals where value > 30;"
+Type@150ms "select label, value from totals where value > 30;"
 Escape
-Sleep 800ms
+Sleep 1200ms
 Type " S"
-Sleep 4s
+Sleep 6s
 
 Hide
 Type@1ms ":qa!" Enter
-Sleep 2s
+Sleep 3s
 Type@1ms `pkill -f "manage.py runserver 8000" ; true` Enter
-Sleep 1s
+Sleep 1.5s

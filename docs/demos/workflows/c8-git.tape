@@ -8,31 +8,31 @@ Type@1ms "tic -x -o /tmp/demo/.terminfo docs/demos/xterm-vhs.terminfo && cp docs
 Type@1ms "cd /tmp/demo && git checkout -- . >/dev/null 2>&1; clear" Enter
 Type@1ms "nvim -c 'luafile /tmp/.keycast-demo.lua' backend/core/services.py" Enter
 Wait+Screen@30s /def summarize/
-Sleep 2s
+Sleep 3s
 Show
-Sleep 1s
+Sleep 1.5s
 
 # inline blame on
 Type " gb"
-Sleep 2.5s
+Sleep 3.8s
 
 # change a line: a hunk mark shows in the gutter
 Type@1ms ":2" Enter
 Type "A"
-Type@90ms "  # tweaked"
+Type@150ms "  # tweaked"
 Escape
-Sleep 2.5s
+Sleep 3.8s
 
 # add a line
 Type "o"
-Type@90ms "extra = 1"
+Type@150ms "extra = 1"
 Escape
-Sleep 2.5s
+Sleep 3.8s
 
 # blame off
 Type " gb"
-Sleep 2s
+Sleep 3s
 
 Hide
 Type@1ms ":qa!" Enter
-Sleep 1s
+Sleep 1.5s
