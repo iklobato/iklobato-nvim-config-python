@@ -84,7 +84,9 @@ return {
   {
     "saghen/blink.cmp",
     version = "*",
-    event = { "InsertEnter", "CmdlineEnter", "BufReadPost", "BufNewFile" },
+    -- lsp/init's require("blink.cmp") loads it on the first buffer anyway; these only cover
+    -- a scratch buffer with no LSP. Dropped BufReadPost/BufNewFile as redundant with that.
+    event = { "InsertEnter", "CmdlineEnter" },
     config = function()
       require("config.blink").setup()
     end,

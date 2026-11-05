@@ -57,9 +57,19 @@ end
 
 vim.lsp.enable(vim.tbl_filter(installed, SERVERS))
 
+local severity = vim.diagnostic.severity
 vim.diagnostic.config({
   virtual_text = false,
-  signs = true,
+  -- one diagnostic under the cursor line only; the rest of the file stays clean (0.11+)
+  virtual_lines = { current_line = true },
+  signs = {
+    text = {
+      [severity.ERROR] = "",
+      [severity.WARN] = "",
+      [severity.INFO] = "",
+      [severity.HINT] = "",
+    },
+  },
   underline = true,
   update_in_insert = false,
 })

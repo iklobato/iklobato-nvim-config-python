@@ -63,11 +63,14 @@ local function map_textobject(lhs, capture)
 end
 
 function M.setup()
-  require("nvim-treesitter").install(ENSURE_INSTALLED)
   vim.api.nvim_create_autocmd("FileType", {
     group = vim.api.nvim_create_augroup("config_treesitter", { clear = true }),
     callback = on_filetype,
   })
+  -- defer the bulk install off the startup path; on_filetype installs on demand meanwhile
+  vim.schedule(function()
+    require("nvim-treesitter").install(ENSURE_INSTALLED)
+  end)
 end
 
 function M.setup_textobjects()

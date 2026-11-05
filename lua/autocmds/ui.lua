@@ -16,3 +16,31 @@ vim.api.nvim_create_autocmd("BufReadPost", {
     end, 100)
   end,
 })
+
+-- flash the yanked text so a copy is visible
+vim.api.nvim_create_autocmd("TextYankPost", {
+  group = group,
+  callback = function()
+    vim.hl.on_yank({ higroup = "IncSearch", timeout = 150 })
+  end,
+})
+
+-- treesitter-context ships no bottom rule; underline the context edge.
+-- reapplied on ColorScheme so a theme reload keeps it.
+local function style_context()
+  vim.api.nvim_set_hl(0, "TreesitterContextBottom", { underline = true })
+  vim.api.nvim_set_hl(0, "TreesitterContextLineNumberBottom", { underline = true })
+end
+vim.api.nvim_create_autocmd("ColorScheme", { group = group, callback = style_context })
+style_context()
+
+-- a thin breadcrumb at the top of normal windows: filename + modified flag.
+-- empty on nvim-tree/telescope/dapui (non-empty buftype) so they stay clean.
+local function winbar()
+  if vim.bo.buftype ~= "" then
+    return ""
+  end
+  return "%#WinBar# %f%m "
+end
+_G.user_winbar = winbar
+vim.o.winbar = "%{%v:lua.user_winbar()%}"
