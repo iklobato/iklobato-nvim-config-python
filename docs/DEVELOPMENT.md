@@ -244,9 +244,13 @@ diagnostics, formatting), `langs` (every other language server attaches, and
 prettier/stylua format), `completion` (blink.cmp in insert mode and on the
 command line), `session` (save on quit, restore on start, `nvim .` always shows the explorer,
 plain `nvim` none over a restored session), `tools` (git, markdown, http client, database UI),
-`dap-python`, `dap-go` and `dap-js`. Each one boots its own nvim, so a failure in one area
-cannot leave state behind for the next, and each ends with the same health
-checks (no errors in `:messages`, no hit-enter prompts, a clean quit).
+`dap-python`, `dap-go`, `dap-js`, and `stress` (intensive interleaved use: feature
+combinations and coexistence the per-area scripts miss, like LSP across splits and
+tabs, telescope over a live split, a bigfile beside a live buffer, and a debug
+session next to a user split, in one long session; needs no server or port). Each
+one boots its own nvim, so a failure in one area cannot leave state behind for the
+next, and each ends with the same health checks (no errors in `:messages`, no
+hit-enter prompts, a clean quit).
 
 `e2e-deep.sh` drives a realistic monorepo (django backend, react/typescript
 frontend, go service, one git history, an `.http` file and a sqlite db) that
