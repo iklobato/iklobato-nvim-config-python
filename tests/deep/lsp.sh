@@ -59,6 +59,13 @@ FLOAT_OPEN='(function() for _, w in ipairs(vim.api.nvim_list_wins()) do if vim.a
 open_file backend/core/legacy.py
 wait_lexpr "ruff reports the unused imports in legacy.py" \
   '#vim.diagnostic.get(0) > 0 and 1 or 0' 60
+# a panic kills the server, so ruff still running for legacy.py proves it survived
+lexpr '(function() vim.cmd("enew!") vim.bo.filetype = "python" return 1 end)()' >/dev/null
+sleep 3
+wait_lexpr "ruff skips an unnamed python buffer instead of panicking" \
+  '(#vim.lsp.get_clients({ bufnr = 0, name = "ruff" }) == 0 and #vim.lsp.get_clients({ bufnr = vim.fn.bufnr("legacy.py"), name = "ruff" }) > 0) and 1 or 0' 10
+keys Escape ":bd!" Enter
+open_file backend/core/legacy.py
 # nvim's own [d/]d jump without a float, so only the float proves the config's maps
 goto_line 8
 keys "[" d
