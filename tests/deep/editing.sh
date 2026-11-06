@@ -130,7 +130,6 @@ keys Escape ":only" Enter
 # searchcount, not /: a pattern with no match would leave an E486 behind
 wait_lexpr "ignorecase: a lowercase search matches any case" \
   'vim.fn.searchcount({ pattern = "def double", recompute = true }).total > 0 and vim.fn.searchcount({ pattern = "DEF DOUBLE", recompute = true }).total == 0 and 1 or 0' 10
-# text, not python: ruff panics on an unnamed python buffer
 scratch text '{ "" }'
 keys i "x = (" Escape
 wait_lexpr "mini.pairs closes the bracket it opened" "$(lines_are '{ "x = ()" }')" 10
