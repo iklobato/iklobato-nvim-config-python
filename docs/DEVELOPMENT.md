@@ -12,8 +12,8 @@ lua/
     options.lua
   plugins/                  # Modular plugin configurations
     init.lua                # Plugin loader
-    core.lua                # Core plugins (treesitter, telescope, blink, conform)
-    ui.lua                  # UI plugins (theme, bufferline, lualine, gitsigns, nvim-tree)
+    core.lua                # Core plugins (treesitter, telescope, blink, conform, mini.pairs/surround, todo-comments, neotest)
+    ui.lua                  # UI plugins (theme, bufferline, lualine, gitsigns, nvim-tree, which-key, fidget)
     lsp.lua                 # LSP plugins
     dap.lua                 # Debugging plugins
     tools.lua               # Utility plugins
@@ -23,6 +23,7 @@ lua/
     search.lua              # Telescope and search
     editing.lua             # Formatting and replace
     debug.lua               # Debugging keymaps
+    test.lua                # neotest keymaps (<leader>n)
     git.lua                 # Git operations
     tools.lua               # Various tool keymaps
   lsp/                      # Enhanced LSP configuration
@@ -95,7 +96,7 @@ Ignoring this is how the `*.dbout` autocmd ended up registered twice.
 - lazy.nvim
 - nvim-lspconfig, mason.nvim (loads only on `:Mason*`)
 - blink.cmp (completion, loads on the first buffer; see Performance)
-- telescope.nvim (plenary.nvim, loads on demand)
+- telescope.nvim (plenary.nvim, loads on demand, telescope-fzf-native sorter built with make)
 - nvim-treesitter
   - nvim-treesitter-context (scope context)
   - nvim-treesitter-textobjects (af/if/ac/ic, main branch)
@@ -109,6 +110,12 @@ Ignoring this is how the `*.dbout` autocmd ended up registered twice.
 - vim-dadbod + vim-dadbod-ui (SQL client, column/table completion via
   vim-dadbod-completion wired into blink.cmp in sql/mysql/plsql buffers)
 - markdown-preview.nvim (clock-derived port in 8080-9079)
+- which-key.nvim (leader popup with group names, VeryLazy)
+- fidget.nvim (LSP progress in the corner, loads on LspAttach)
+- mini.pairs (auto-close brackets, InsertEnter) and mini.surround (vim-surround keys:
+  ys/ds/cs, visual S; no visual ys so a visual y never waits)
+- todo-comments.nvim (TODO/FIXME highlight, ]t / [t, <leader>ft)
+- neotest + neotest-python (pytest runner; <leader>nd debugs through nvim-dap)
 
 ## LSP
 
@@ -239,11 +246,12 @@ ONLY=coverage ./tests/run.sh   # only the checks whose name contains "coverage"
 ```
 
 Areas: `ui` (statusline, motions, windows, tabs, explorer, buffers, save and
-quit), `search` (telescope), `lsp` (python and typescript LSP keymaps,
+quit), `search` (telescope, fzf-native, TODO and diagnostics pickers), `lsp` (python and typescript LSP keymaps,
 diagnostics, formatting), `langs` (every other language server attaches, and
 prettier/stylua format), `completion` (blink.cmp in insert mode and on the
 command line), `session` (save on quit, restore on start, `nvim .` always shows the explorer,
 plain `nvim` none over a restored session), `tools` (git, markdown, http client, database UI),
+`testing` (neotest runs, output, summary and a debugged test),
 `dap-python`, `dap-go`, `dap-js`, and `stress` (intensive interleaved use: feature
 combinations and coexistence the per-area scripts miss, like LSP across splits and
 tabs, telescope over a live split, a bigfile beside a live buffer, and a debug

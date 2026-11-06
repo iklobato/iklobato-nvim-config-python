@@ -3,7 +3,7 @@
 set -euo pipefail
 
 # bump on any fixture change: a target stamped with this version is reused as is
-VERSION=12
+VERSION=13
 TARGET=${1:?usage: monorepo.sh <target-dir>}
 STAMP="$TARGET/.stamp"
 
@@ -87,6 +87,16 @@ class TestServices:
     def test_double_negative(self):
         result = double(-3)
         assert result == -6
+EOF
+  cat >core/tasks.py <<'EOF'
+# TODO: retry on timeout
+def fetch():
+    return 1
+
+
+# FIXME: cache the result
+def store():
+    return 2
 EOF
   cat >demo.py <<'EOF'
 from core.services import summarize

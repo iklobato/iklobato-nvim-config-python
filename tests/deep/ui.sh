@@ -13,6 +13,12 @@ deep_boot backend/core/services.py
 wait_lexpr "bufferline draws the open file as a tab" \
   '(vim.api.nvim_eval_statusline(vim.o.tabline, { use_tabline = true }).str:find("services.py", 1, true) and 1 or 0)' 15
 
+keys Space
+wait_lexpr "which-key pops up after Space" "$(win_with_ft wk)" 10
+wait_screen "which-key names the leader groups" "breakpoints" 10
+keys Escape
+wait_lexpr "Escape closes which-key" "(function() return $(win_with_ft wk) == 1 and 0 or 1 end)()" 10
+
 # the "not same(want, other)" half stops the check passing with the map deleted
 remember_cursor() {
   lexpr '(function() _G.__pre = vim.api.nvim_win_get_cursor(0) return 1 end)()' >/dev/null

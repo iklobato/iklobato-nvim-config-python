@@ -12,6 +12,7 @@ deep_boot backend/core/services.py
 # by name: ruff attaches first and has no textDocument/documentSymbol
 wait_lexpr "pyright attaches to the backend file" \
   '#vim.lsp.get_clients({ bufnr = vim.fn.bufnr("services.py"), name = "pyright" }) > 0 and 1 or 0' 40
+wait_lexpr "fidget loads once an LSP attaches, to show its progress" 'package.loaded["fidget"] and 1 or 0' 10
 keys Space f o
 wait_lexpr "keymap <leader>fo opens the symbol picker" "$(win_with_ft TelescopePrompt)" 15
 keys "summarize"
@@ -27,7 +28,7 @@ goto_line 9
 cursor_on double
 keys K
 wait_lexpr "keymap K opens the hover float" \
-  '(function() for _, w in ipairs(vim.api.nvim_list_wins()) do if vim.api.nvim_win_get_config(w).relative ~= "" then return 1 end end return 0 end)()' 15
+  '(function() for _, w in ipairs(vim.api.nvim_list_wins()) do if vim.api.nvim_win_get_config(w).relative ~= "" and vim.api.nvim_win_get_config(w).focusable then return 1 end end return 0 end)()' 15
 keys Escape
 keys g r
 wait_lexpr "keymap gr fills the quickfix with references" '#vim.fn.getqflist() > 0 and 1 or 0' 15
@@ -53,7 +54,8 @@ wait_lexpr "keymap <leader>rn renames the symbol across the buffer" \
   '(function() for _, l in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, false)) do if l:match("renamed_double") then return 1 end end return 0 end)()' 20
 keys Escape "u"
 
-FLOAT_OPEN='(function() for _, w in ipairs(vim.api.nvim_list_wins()) do if vim.api.nvim_win_get_config(w).relative ~= "" then return true end end return false end)()'
+# focusable: fidget's progress window is a float too, and must not pass or fail these
+FLOAT_OPEN='(function() for _, w in ipairs(vim.api.nvim_list_wins()) do if vim.api.nvim_win_get_config(w).relative ~= "" and vim.api.nvim_win_get_config(w).focusable then return true end end return false end)()'
 open_file backend/core/legacy.py
 wait_lexpr "ruff reports the unused imports in legacy.py" \
   '#vim.diagnostic.get(0) > 0 and 1 or 0' 60
