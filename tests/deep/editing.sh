@@ -121,7 +121,7 @@ goto_line 9
 keys 2 "[" d
 # nvim's own [d also takes a count; only the float proves the config's map ran
 wait_lexpr "2[d jumps two diagnostics back, not one, and shows it" \
-  '(function() local float = false for _, w in ipairs(vim.api.nvim_list_wins()) do if vim.api.nvim_win_get_config(w).relative ~= "" then float = true end end return (vim.fn.line(".") == 1 and float) and 1 or 0 end)()' 10
+  '(function() local float = false for _, w in ipairs(vim.api.nvim_list_wins()) do if vim.api.nvim_win_get_config(w).relative ~= "" and vim.api.nvim_win_get_config(w).focusable then float = true end end return (vim.fn.line(".") == 1 and float) and 1 or 0 end)()' 10
 
 open_file backend/core/services.py
 keys Escape ":vsplit" Enter
@@ -130,6 +130,22 @@ keys Escape ":only" Enter
 # searchcount, not /: a pattern with no match would leave an E486 behind
 wait_lexpr "ignorecase: a lowercase search matches any case" \
   'vim.fn.searchcount({ pattern = "def double", recompute = true }).total > 0 and vim.fn.searchcount({ pattern = "DEF DOUBLE", recompute = true }).total == 0 and 1 or 0' 10
+# text, not python: ruff panics on an unnamed python buffer
+scratch text '{ "" }'
+keys i "x = (" Escape
+wait_lexpr "mini.pairs closes the bracket it opened" "$(lines_are '{ "x = ()" }')" 10
+scratch text '{ "say hello now" }'
+keys 0 w y s i w ")"
+wait_lexpr "ys iw ) wraps the word in parentheses" "$(lines_are '{ "say (hello) now" }')" 10
+keys c s ")" "]"
+wait_lexpr "cs ) ] swaps the parentheses for brackets" "$(lines_are '{ "say [hello] now" }')" 10
+keys d s "]"
+wait_lexpr "ds ] removes the brackets" "$(lines_are '{ "say hello now" }')" 10
+keys 0 w v e S ")"
+wait_lexpr "visual S ) surrounds the selection" "$(lines_are '{ "say (hello) now" }')" 10
+wait_lexpr "visual y has no ys map to wait on" 'vim.fn.maparg("ys", "x") == "" and 1 or 0'
+keys Escape ":bd!" Enter
+
 wait_lexpr "mouse is off" 'vim.o.mouse == "" and 1 or 0'
 wait_lexpr "no swapfile is written" 'vim.bo.swapfile == false and 1 or 0'
 

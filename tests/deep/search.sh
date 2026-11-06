@@ -46,4 +46,32 @@ wait_lexpr "fb filters to the typed buffer" \
 keys Enter
 wait_lexpr "picking a buffer switches to it" 'vim.fn.expand("%:t") == "notes.md" and 1 or 0' 15
 
+# the fzf extension swaps telescope's own lua sorters for its C ones
+wait_lexpr "telescope sorts with fzf-native" \
+  'debug.getinfo(require("telescope.config").values.generic_sorter, "S").source:match("fzf") and 1 or 0' 10
+
+open_file backend/core/tasks.py
+goto_line 2
+keys "]" t
+wait_lexpr "keymap ]t jumps to the next TODO comment" 'vim.fn.line(".") == 6 and 1 or 0' 10
+keys "[" t
+wait_lexpr "keymap [t jumps back to the previous TODO comment" 'vim.fn.line(".") == 1 and 1 or 0' 10
+keys Space f t
+wait_lexpr "keymap <leader>ft opens the TODO picker" "$(win_with_ft TelescopePrompt)" 15
+keys "cache the"
+wait_lexpr "ft lists the FIXME in tasks.py" \
+  '(function() local entry = require("telescope.actions.state").get_selected_entry() return (entry and tostring(entry.filename or ""):match("tasks%.py$") and entry.lnum == 6) and 1 or 0 end)()' 20
+keys Escape Escape
+
+open_file backend/core/legacy.py
+wait_lexpr "ruff reports legacy.py's unused imports" '#vim.diagnostic.get(0) >= 2 and 1 or 0' 60
+open_file backend/core/services.py
+keys Space f d
+wait_lexpr "keymap <leader>fd opens the project diagnostics picker" "$(win_with_ft TelescopePrompt)" 15
+keys "legacy"
+# opened from services.py, so a legacy.py entry proves the list spans the project
+wait_lexpr "fd lists diagnostics of another file" \
+  '(function() local entry = require("telescope.actions.state").get_selected_entry() return (entry and tostring(entry.filename or ""):match("legacy%.py$")) and 1 or 0 end)()' 20
+keys Escape Escape
+
 deep_finish

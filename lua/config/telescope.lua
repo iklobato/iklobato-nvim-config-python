@@ -26,6 +26,7 @@ function M.setup()
       },
     },
   })
+  telescope.load_extension("fzf")
 end
 
 return M

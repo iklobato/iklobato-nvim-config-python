@@ -69,7 +69,8 @@ Use `./scripts/brew-import.sh` if you want it.
 ## Leader map
 
 Leader is <kbd>Space</kbd>. Press <kbd>Space</kbd>, the group letter, then the action:
-<kbd>Space</kbd> <kbd>t</kbd> <kbd>n</kbd> is the next tab.
+<kbd>Space</kbd> <kbd>t</kbd> <kbd>n</kbd> is the next tab. Forgot one? Press
+<kbd>Space</kbd> and wait: a popup lists every group and key.
 
 <table>
 <tr>
@@ -100,7 +101,8 @@ Leader is <kbd>Space</kbd>. Press <kbd>Space</kbd>, the group letter, then the a
 
 <kbd>f</kbd> <b>find</b><br>
 <kbd>f</kbd> files · <kbd>g</kbd> grep<br>
-<kbd>o</kbd> symbols · <kbd>b</kbd> buffers
+<kbd>o</kbd> symbols · <kbd>b</kbd> buffers<br>
+<kbd>d</kbd> problems · <kbd>t</kbd> TODOs
 
 </td>
 <td width="33%" valign="top">
@@ -138,6 +140,16 @@ Leader is <kbd>Space</kbd>. Press <kbd>Space</kbd>, the group letter, then the a
 <kbd>b</kbd> database UI
 
 </td>
+<td width="33%" valign="top">
+
+<kbd>n</kbd> <b>tests</b><br>
+<kbd>n</kbd> nearest · <kbd>f</kbd> file<br>
+<kbd>d</kbd> debug nearest<br>
+<kbd>s</kbd> summary · <kbd>o</kbd> output
+
+</td>
+</tr>
+<tr>
 <td width="33%" valign="top">
 
 <b>single keys</b><br>
@@ -312,6 +324,16 @@ In the video:
 | `<leader>ff` | find files, gitignored ones too |
 | `<leader>fg` | grep the project as you type |
 | `<leader>fb` / `<leader>fo` | open buffers / symbols of this file |
+| `<leader>fd` | problems (diagnostics) of every open file |
+| `<leader>ft` / `]t` / `[t` | list `TODO`/`FIXME` comments / next / previous one |
+
+### Tests
+
+| Key | Does |
+|---|---|
+| `<leader>nn` / `<leader>nf` | run the test under the cursor / every test in the file |
+| `<leader>nd` | debug the test under the cursor (stops on breakpoints) |
+| `<leader>ns` / `<leader>no` | test tree with pass/fail / output of the last run |
 
 ### Code
 
@@ -326,6 +348,8 @@ In the video:
 | `<leader>S` | replace the word (or selection) everywhere in the file |
 | `af` `if` / `ac` `ic` | function / class text objects: `daf` deletes a function |
 | `an` / `in` (visual) | grow / shrink the selection by syntax node |
+| `ys{motion}{char}` / `ds{char}` / `cs{old}{new}` | add / delete / change surroundings: `ysiw)` gives `(word)` |
+| `S{char}` (visual) | surround the selection |
 
 ### Tools
 
@@ -419,6 +443,8 @@ Every launch config per language, async python and the known quirks are in
 - **Sessions**: the last session comes back on startup. `nvim .` always opens the
   file explorer next to it; a plain `nvim` opens it only when nothing was restored.
 - **Startup**: about 50 ms, most plugins load on first use.
+- **Typing help**: brackets and quotes close themselves; while a language
+  server works (pyright indexing), its progress shows in the bottom right.
 - **Under the hood**: folder layout, plugins, LSP and treesitter setup,
   formatters, tests and how the GIFs are recorded are in
   [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).

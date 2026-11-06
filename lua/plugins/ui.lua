@@ -44,6 +44,30 @@ return {
     },
   },
   {
+    "folke/which-key.nvim",
+    event = "VeryLazy",
+    opts = {
+      spec = {
+        { "<leader>b", group = "breakpoints" },
+        { "<leader>d", group = "debug" },
+        { "<leader>e", group = "explorer" },
+        { "<leader>f", group = "find" },
+        { "<leader>g", group = "git" },
+        { "<leader>m", group = "markdown" },
+        { "<leader>n", group = "tests" },
+        { "<leader>s", group = "splits" },
+        { "<leader>t", group = "tabs" },
+        { "<leader>w", group = "write" },
+      },
+    },
+  },
+  {
+    -- LSP progress ("pyright: indexing") in the corner, so a slow first rename is visible
+    "j-hui/fidget.nvim",
+    event = "LspAttach",
+    opts = {},
+  },
+  {
     "nvim-tree/nvim-tree.lua",
     event = "VeryLazy",
     dependencies = { "nvim-tree/nvim-web-devicons" },
