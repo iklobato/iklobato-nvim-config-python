@@ -48,7 +48,40 @@ end, { desc = "Maximize split" })
 map("n", "<leader>to", "<cmd>enew<CR>", { desc = "New tab" })
 map("n", "<leader>tn", "<cmd>BufferLineCycleNext<CR>", { desc = "Next tab" })
 map("n", "<leader>tp", "<cmd>BufferLineCyclePrev<CR>", { desc = "Previous tab" })
-map("n", "<leader>td", "<cmd>bdelete<CR>", { desc = "Close tab" })
+-- :bdelete closes every window showing the buffer, so with the tree open only the
+-- tree was left; swap those windows to the last used buffer first, then delete.
+map("n", "<leader>td", function()
+  local buf = vim.api.nvim_get_current_buf()
+  if vim.bo[buf].buftype ~= "" then
+    vim.cmd("bdelete")
+    return
+  end
+  if vim.bo[buf].modified then
+    local prompt = ("Save changes to %q?"):format(vim.fn.bufname(buf))
+    local choice = vim.fn.confirm(prompt, "&Save\n&Discard\n&Cancel", 3)
+    if choice == 1 then
+      vim.cmd.write()
+    elseif choice ~= 2 then
+      return
+    end
+  end
+  local listed = vim.fn.getbufinfo({ buflisted = 1 })
+  table.sort(listed, function(a, b)
+    return a.lastused > b.lastused
+  end)
+  local target
+  for _, info in ipairs(listed) do
+    if info.bufnr ~= buf then
+      target = info.bufnr
+      break
+    end
+  end
+  target = target or vim.api.nvim_create_buf(true, false)
+  for _, win in ipairs(vim.fn.win_findbuf(buf)) do
+    vim.api.nvim_win_set_buf(win, target)
+  end
+  vim.cmd.bdelete({ args = { tostring(buf) }, bang = true })
+end, { desc = "Close tab" })
 
 map("n", "<leader>ww", "<cmd>w<CR>", { desc = "Save file" })
 map("n", "<leader>wq", "<cmd>wq<CR>", { desc = "Save and quit" })
