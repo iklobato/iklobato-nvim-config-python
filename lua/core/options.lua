@@ -45,7 +45,14 @@ opt.autoread = false
 -- one global rounded border for every float: hover, signature, rename, code action
 opt.winborder = "rounded"
 -- hide the ~ past end of buffer; cleaner fold gutter and diff fill
-opt.fillchars = { eob = " ", fold = " ", diff = "╱" }
+opt.fillchars = {
+  eob = " ",
+  fold = " ",
+  diff = "╱",
+  foldopen = "▾",
+  foldclose = "▸",
+  foldsep = " ",
+}
 -- slight depth on the completion menu; floats stay opaque so hover text keeps contrast
 opt.pumblend = 10
 opt.winblend = 0

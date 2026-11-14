@@ -105,4 +105,14 @@ wait_lexpr "sql completion offers the table from the database" \
   '(function() for _, item in ipairs(require("blink.cmp.completion.list").items or {}) do if item.label == "totals" and item.source_id == "dadbod" then return 1 end end return 0 end)()' 30
 keys Escape
 
+CLOAK_MARKS='#vim.api.nvim_buf_get_extmarks(0, vim.api.nvim_create_namespace("cloak"), 0, -1, {})'
+keys Escape ":enew!" Enter ":e cloak.env" Enter i "TOKEN=hunter2" Escape
+wait_lexpr "cloak masks the value of an env file" "($CLOAK_MARKS == 1 and 1 or 0)" 10
+keys Space c h
+wait_lexpr "keymap <leader>ch shows the secret value again" \
+  "($CLOAK_MARKS == 0 and 1 or 0)" 10
+keys Space c h
+wait_lexpr "keymap <leader>ch hides the secret value again" "($CLOAK_MARKS == 1 and 1 or 0)" 10
+keys Escape ":silent! bwipeout!" Enter
+
 deep_finish

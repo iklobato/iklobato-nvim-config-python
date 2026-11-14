@@ -65,6 +65,16 @@ function M.setup()
   local dap = require("dap")
   dap.set_log_level("ERROR")
 
+  for name, sign in pairs({
+    DapBreakpoint = { "\u{f111}", "DiagnosticError" },
+    DapBreakpointCondition = { "\u{f059}", "DiagnosticWarn" },
+    DapLogPoint = { "\u{f05a}", "DiagnosticInfo" },
+    DapBreakpointRejected = { "\u{f00d}", "DiagnosticHint" },
+    DapStopped = { "\u{f054}", "DiagnosticOk" },
+  }) do
+    vim.fn.sign_define(name, { text = sign[1], texthl = sign[2] })
+  end
+
   -- plain find, not a lua pattern: "my-app" must not treat "-" as magic
   local function pick_process_by_name()
     local part = vim.fn.input("Process name contains (empty lists all): ")

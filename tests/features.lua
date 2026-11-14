@@ -728,6 +728,68 @@ local checks = {
     end,
   },
   {
+    "ui: dap signs are icons, not the default letters",
+    function()
+      require("config.dap").setup()
+      local sign = vim.fn.sign_getdefined("DapBreakpoint")[1]
+      expect(sign and sign.text:find("\u{f111}", 1, true), "DapBreakpoint sign not the icon")
+      expect(vim.fn.sign_getdefined("DapStopped")[1], "DapStopped sign missing")
+    end,
+  },
+  {
+    "ui: winbar starts with a file icon",
+    function()
+      edit("a.lua", { "x" })
+      local bar = _G.user_winbar()
+      expect(bar:find("%%#WinBar# %S+ %%f%%m"), "no icon before the file name: " .. bar)
+    end,
+  },
+  {
+    "ui: illuminate loads and is configured",
+    function()
+      local ok, err = pcall(require, "illuminate")
+      expect(ok, tostring(err))
+      expect(vim.fn.exists(":IlluminatePause") == 2, ":IlluminatePause not defined")
+    end,
+  },
+  {
+    "ui: cursorline only in the focused window",
+    function()
+      edit("a.lua", { "x" })
+      local first = vim.api.nvim_get_current_win()
+      vim.cmd("vsplit")
+      local second = vim.api.nvim_get_current_win()
+      expect(vim.wo[second].cursorline, "focused window has no cursorline")
+      expect(not vim.wo[first].cursorline, "unfocused window still has cursorline")
+      vim.cmd("only")
+    end,
+  },
+  {
+    "ui: inactive windows are dimmed apart from the active one",
+    function()
+      local normal = vim.api.nvim_get_hl(0, { name = "Normal" })
+      local inactive = vim.api.nvim_get_hl(0, { name = "NormalNC" })
+      expect(normal.bg ~= inactive.bg, "NormalNC bg equals Normal bg")
+    end,
+  },
+  {
+    "ui: new plugins load (rainbow, render-markdown, ufo, neoscroll)",
+    function()
+      for _, mod in ipairs({ "rainbow-delimiters", "render-markdown", "ufo", "neoscroll" }) do
+        local ok, err = pcall(require, mod)
+        expect(ok, mod .. ": " .. tostring(err))
+      end
+    end,
+  },
+  {
+    "ui: ufo keeps every fold open at start",
+    function()
+      require("lazy").load({ plugins = { "nvim-ufo" } })
+      expect(vim.o.foldlevelstart == 99, "foldlevelstart=" .. vim.o.foldlevelstart)
+      expect(vim.o.foldcolumn == "1", "foldcolumn=" .. vim.o.foldcolumn)
+    end,
+  },
+  {
     "cloak: only env files are secret files",
     function()
       local cloak = require("config.cloak")
