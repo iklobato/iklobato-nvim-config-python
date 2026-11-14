@@ -34,13 +34,48 @@ end
 vim.api.nvim_create_autocmd("ColorScheme", { group = group, callback = style_context })
 style_context()
 
+-- the highlighted line follows the focus: on in the active window, off in the others.
+-- Floats are skipped: they pick their own cursorline.
+vim.api.nvim_create_autocmd({ "WinEnter", "BufWinEnter" }, {
+  group = group,
+  callback = function()
+    if vim.api.nvim_win_get_config(0).relative == "" then
+      vim.wo.cursorline = true
+    end
+  end,
+})
+vim.api.nvim_create_autocmd("WinLeave", {
+  group = group,
+  callback = function()
+    if vim.api.nvim_win_get_config(0).relative == "" then
+      vim.wo.cursorline = false
+    end
+  end,
+})
+
+-- dim the windows without focus: the theme sets NormalNC equal to Normal, so splits look alike.
+-- reapplied on ColorScheme so a theme reload keeps it.
+local DIMMED = {
+  dark = { fg = "#A1A1AA", bg = "#080809" },
+  light = { fg = "#5E5A53", bg = "#F3F1EC" },
+}
+local function dim_inactive()
+  vim.api.nvim_set_hl(0, "NormalNC", DIMMED[vim.o.background == "light" and "light" or "dark"])
+end
+vim.api.nvim_create_autocmd("ColorScheme", { group = group, callback = dim_inactive })
+dim_inactive()
+
 -- a thin breadcrumb at the top of normal windows: filename + modified flag.
 -- empty on nvim-tree/telescope/dapui (non-empty buftype) so they stay clean.
 local function winbar()
   if vim.bo.buftype ~= "" then
     return ""
   end
-  return "%#WinBar# %f%m "
+  local ok, devicons = pcall(require, "nvim-web-devicons")
+  local icon = ok
+      and devicons.get_icon(vim.fn.expand("%:t"), vim.fn.expand("%:e"), { default = true })
+    or ""
+  return "%#WinBar# " .. icon .. " %f%m "
 end
 _G.user_winbar = winbar
 vim.o.winbar = "%{%v:lua.user_winbar()%}"

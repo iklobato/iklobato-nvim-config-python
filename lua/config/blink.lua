@@ -7,6 +7,8 @@ function M.setup()
     },
     appearance = {
       use_nvim_cmp_as_default = true,
+      -- iTerm uses JetBrainsMono Nerd Font Mono: icons are one cell wide
+      nerd_font_variant = "mono",
     },
     fuzzy = {
       implementation = "prefer_rust",
@@ -15,7 +17,7 @@ function M.setup()
       list = {
         max_items = 15,
       },
-      menu = { border = "rounded" },
+      menu = { border = "rounded", draw = { treesitter = { "lsp" } } },
       documentation = {
         auto_show = true,
         auto_show_delay_ms = 200,
