@@ -4,3 +4,4 @@ require("autocmds.ui")
 require("autocmds.reload")
 
 require("config.python_hl").setup()
+require("config.cloak").setup()

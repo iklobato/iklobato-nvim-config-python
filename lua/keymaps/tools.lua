@@ -31,4 +31,8 @@ map(
   { desc = "Run HTTP request under cursor" }
 )
 
+map("n", "<leader>ch", function()
+  require("config.cloak").toggle()
+end, { desc = "Hide/show secret values (.env)" })
+
 map("n", "<leader>db", "<cmd>DBUIToggle<CR>", { desc = "Toggle DB UI" })

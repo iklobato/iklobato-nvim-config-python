@@ -4,7 +4,10 @@ map("n", "<leader>ff", function()
   require("telescope.builtin").find_files({ no_ignore = true })
 end, { desc = "Find files" })
 map("n", "<leader>fg", function()
-  require("telescope.builtin").live_grep()
+  -- a grep hit prints the whole line, so env files are skipped to keep values hidden
+  require("telescope.builtin").live_grep({
+    additional_args = { "--glob=!.env", "--glob=!.env.*", "--glob=!*.env", "--glob=!.envrc" },
+  })
 end, { desc = "Live grep" })
 map("n", "<leader>fb", function()
   require("telescope.builtin").buffers()
