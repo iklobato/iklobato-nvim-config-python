@@ -702,6 +702,40 @@ local checks = {
       expect(vim.fn.getline(1) == "keep me", "buffer changed to: " .. vim.fn.getline(1))
     end,
   },
+  {
+    "cloak: .env values covered, keys and comments left alone",
+    function()
+      edit(".env", { "# note=keep", "API_KEY=abc123", "export TOKEN = xyz", "EMPTY=" })
+      local marks =
+        vim.api.nvim_buf_get_extmarks(0, vim.api.nvim_create_namespace("cloak"), 0, -1, {
+          details = true,
+        })
+      expect(#marks == 2, "expected 2 masked values, got " .. #marks)
+      expect(marks[1][2] == 1 and marks[1][3] == 8, "API_KEY value not masked from col 8")
+      expect(marks[1][4].virt_text[1][1] == "******", "mask is not 6 stars")
+      expect(marks[2][2] == 2, "export line not masked")
+    end,
+  },
+  {
+    "cloak: toggle reveals and hides again",
+    function()
+      edit(".env", { "A=secret" })
+      local ns = vim.api.nvim_create_namespace("cloak")
+      require("config.cloak").toggle()
+      expect(#vim.api.nvim_buf_get_extmarks(0, ns, 0, -1, {}) == 0, "still masked after toggle")
+      require("config.cloak").toggle()
+      expect(#vim.api.nvim_buf_get_extmarks(0, ns, 0, -1, {}) == 1, "not masked after 2nd toggle")
+    end,
+  },
+  {
+    "cloak: only env files are secret files",
+    function()
+      local cloak = require("config.cloak")
+      expect(cloak.is_secret_file("/x/.env.local"), ".env.local not secret")
+      expect(cloak.is_secret_file("/x/prod.env"), "prod.env not secret")
+      expect(not cloak.is_secret_file("/x/environment.lua"), "environment.lua wrongly secret")
+    end,
+  },
 }
 
 -- ONLY=<text> ./tests/run.sh runs just the checks whose name contains <text>

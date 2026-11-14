@@ -6,6 +6,17 @@ function M.setup()
     defaults = {
       -- prompt_prefix stays the default "> ": tests/e2e.sh asserts "> app" to prove the
       -- prompt itself rendered (the bufferline tab would pass a bare "app" match)
+      -- the preview would print an env file in clear text, undoing config.cloak
+      buffer_previewer_maker = function(filepath, bufnr, opts)
+        if require("config.cloak").is_secret_file(filepath) then
+          return require("telescope.previewers.utils").set_preview_message(
+            bufnr,
+            opts.winid,
+            "secret file: preview hidden"
+          )
+        end
+        require("telescope.previewers").buffer_previewer_maker(filepath, bufnr, opts)
+      end,
       selection_caret = "❯ ",
       entry_prefix = "  ",
       winblend = 10,
