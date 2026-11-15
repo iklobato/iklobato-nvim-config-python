@@ -429,6 +429,38 @@ local checks = {
     end,
   },
   {
+    "lsp: ty gets the pyenv interpreter only when there is no venv",
+    function()
+      local before_init = vim.lsp.config.ty.before_init
+      local saved_venv = vim.env.VIRTUAL_ENV
+      vim.env.VIRTUAL_ENV = nil
+      local function python_for(root)
+        local params = {}
+        before_init(params, { root_dir = root })
+        return vim.tbl_get(
+          params,
+          "initializationOptions",
+          "configuration",
+          "environment",
+          "python"
+        )
+      end
+      local bare = scratch .. "/no-venv"
+      vim.fn.mkdir(bare, "p")
+      vim.fn.writefile({ "3.11.7" }, bare .. "/.python-version")
+      local with_venv = scratch .. "/with-venv"
+      vim.fn.mkdir(with_venv .. "/.venv", "p")
+      local got_bare, got_venv = python_for(bare), python_for(with_venv)
+      vim.env.VIRTUAL_ENV = saved_venv
+      local want =
+        vim.fs.joinpath(vim.env.PYENV_ROOT or (vim.env.HOME .. "/.pyenv"), "versions", "3.11.7")
+      if vim.fn.isdirectory(want) == 1 then
+        expect(got_bare == want, "no venv: python=" .. tostring(got_bare) .. ", want " .. want)
+      end
+      expect(got_venv == nil, "a root with .venv still got python=" .. tostring(got_venv))
+    end,
+  },
+  {
     "lsp: NVIM_PY_LSP picks exactly one python type server",
     function()
       local probe = "lua require('lsp'); io.stdout:write('PY=', vim.lsp.is_enabled('ty') and 'ty' or '-',"

@@ -37,6 +37,12 @@ Snapshot: `main` @ `fe40ecc` (2026-11-15). Every number below was measured in th
 | 19 | Delivery | One PR in the nvim repo; iTerm2 tuning in a separate PR in the dotfiles repo | user; the plist lives in dotfiles | 14 |
 | 20 | Done for the nvim PR | Boot < 80 ms (median of 5), `tests/run.sh` and e2e pass, ty works on a real `.py` (hover, definition, diagnostics; toggle back to pyright works) | user | 4, 8 |
 
+## Outcome (2026-11-15, after building)
+
+- The baseline above (~138 ms boot) was measured on a loaded machine. Interleaved A/B against `main` (median of 7) shows `main` already booted in ~50 ms, so decision 4 (< 80 ms) held before any change. Measured gain: empty start 50.1 -> 43.1 ms, first python file 247.3 -> 220.5 ms (time to first frame; blink.cmp still loads in a UI, just after the first frame).
+- ty with no venv in the project resolved no third-party imports (pyright falls back to the python on PATH). Fixed: ty gets the pyenv prefix (`.python-version` or the global version) when there is no `VIRTUAL_ENV` and no `.venv`.
+- Per-keystroke cost (decision 18), CPU per key in a tmux UI on a 3296-line python file: `j` 6.3-6.6 ms (indent-blankline about half of it), typing 34-37 ms, `<C-d>` 40 ms (neoscroll about half). Reported in chat only; no plugin changed.
+
 ## Assumptions (cheap to change)
 
 - Toggle name for the Python LSP: env var `NVIM_PY_LSP=pyright` switches back from ty.

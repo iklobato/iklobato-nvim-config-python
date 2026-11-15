@@ -28,6 +28,7 @@ Earlier single runs in the same session read 102 ms (empty) and 456 ms (file) fo
 
 - ty 0.0.104 (Mason) is the default, pyright with `NVIM_PY_LSP=pyright`. Exactly one is enabled; a missing binary falls back to the other.
 - Probe on `monorepo/backend/core/views.py` (deep fixture), cold start: ty initialize 26-40 ms vs pyright 401-405 ms; first hover 165 ms vs 1511 ms; definition 1 ms vs 43 ms. Both report the same unused-arg and type-assignment diagnostics.
+- No venv in the project: pyright falls back to the python on PATH, ty only to its bundled stdlib, so every third-party import was unresolved (arena-ui-backend: 4 errors vs pyright 1). `lua/lsp/servers/python.lua` now passes ty `initializationOptions.configuration.environment.python` = the pyenv prefix (`.python-version` up the tree, else `~/.pyenv/version`) when there is no `VIRTUAL_ENV` and no `.venv`; after that both report the same single `sqlmodel` error. Read from disk on purpose: asking the pyenv shim for `sys.prefix` takes ~270 ms, and ty rejects the shim path itself.
 - ty is still 0.0.x: pyright-specific settings (`diagnosticMode`, `typeCheckingMode`) do not apply to it.
 
 ## Telescope
