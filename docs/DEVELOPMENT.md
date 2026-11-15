@@ -307,3 +307,31 @@ for t in docs/demos/workflows/*.tape; do vhs "$t"; done   # run from the repo ro
   That is why there is no Go GIF.
 - Check a new GIF by its frames before committing it:
   `ffmpeg -i docs/demos/workflows/c2-navigate.gif -vf fps=1/3 /tmp/frame-%02d.png`
+- `keycast.lua` also shows the `desc` of the mapping the keys finished, on a
+  second line (`<Space>bc` / `Conditional breakpoint`).
+
+## Narrated videos
+
+`docs/demos/narrated/` holds tutorial videos with a voice track. Only chapter 5
+exists so far. Each chapter has a `.tape` (the keys), a `.json` (one narration line
+per step, plus the second each step shows on screen) and the rendered silent `.mp4`.
+
+```bash
+vhs docs/demos/narrated/c5-debug-python.tape        # silent video, from the repo root
+python3 -I docs/demos/narrated/narrate.py docs/demos/narrated/c5-debug-python.json /tmp/c5-voice.wav
+python3 -I docs/demos/narrated/align.py docs/demos/narrated/c5-debug-python.json \
+  /tmp/c5-voice.wav docs/demos/narrated/c5-debug-python.silent.mp4 /tmp/c5.mp4
+```
+
+- `narrate.py` makes one `openai/gpt-audio` call (voice `marin`) through
+  OpenRouter for the whole chapter, so the voice stays the same. It needs
+  `OPENROUTER_API_KEY`, checks the take and records it again when it fails.
+- `align.py` finds where each line is spoken (word times from `whisper-cli` and
+  `~/.cache/whisper-cpp/ggml-base.en.bin`), cuts in real pauses, and starts each
+  line 0.3 s before its step. It writes the mp4 and an `.srt`.
+- A narrated tape needs `Set Framerate 15`. At the default 50 fps VHS drops frames
+  at this size, and the video runs at about 0.4x real time, different each run.
+- Keep every `Wait` inside `Hide`: hidden time is cut from the video, so only
+  fixed `Type`/`Sleep` time is left. Then measure the real step times from the
+  rendered video (the orange key box) and put them in the `.json` `onsets`.
+- Tests: `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest docs/demos/narrated`.

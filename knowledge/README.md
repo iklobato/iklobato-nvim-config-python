@@ -12,7 +12,9 @@ Snapshot: `main` @ `1b564a6` (2026-11-14). Only this session was written here; t
 ## Topics
 - `cloak.md`: how the masking works, leak paths closed, gotchas.
 - `ui.md`: icon and comfort changes (DAP signs, lualine, winbar, gitsigns, illuminate), lockfile and test gotchas.
+- `demos-narrated.md`: narrated tutorial videos: keycast with mapping names, 15 fps rule, voice sync, OpenRouter blocker.
 
 ## Session log
+- 2026-11-15 (narrated demos): branch `feat/narrated-demos` (worktree `~/.config/nvim-narrated`). keycast shows the mapping `desc`; c5 re-recorded at 15 fps with hidden waits; voice sync proven with a throwaway voice; real voice blocked on the OpenRouter key. See `demos-narrated.md`.
 - 2026-11-14 (2nd): UI icons package A plus vim-illuminate on branch `feat/ui-icons-comfort`; also added the missing `<leader>ch` deep test. See `ui.md`.
 - 2026-11-14: added `lua/config/cloak.lua`, keymap `<leader>ch`, Telescope previewer guard, live_grep glob exclusions, 3 checks in `tests/features.lua`. See `cloak.md`; earlier history in `../docs/KNOWLEDGE.md`.

@@ -1,0 +1,26 @@
+{
+ "sentences": [
+  "Let's debug a small Python program in Neovim, step by step.",
+  "Space B C adds a conditional breakpoint. It only stops when number equals three.",
+  "Space B L adds a logpoint. It prints the value of doubled each time the line runs, without stopping.",
+  "Space B A lists both breakpoints.",
+  "Space D C starts the program. Pick Launch file.",
+  "It stops when number is three. The variables are on the left, and the logpoint output is on the right.",
+  "Space D K steps into the double function.",
+  "Space D O steps back out.",
+  "Space D J runs the next line.",
+  "Space D C runs to the end, and Space D T stops the debugger."
+ ],
+ "onsets": [
+  0.0,
+  5.0,
+  11.48,
+  19.88,
+  23.32,
+  27.1,
+  35.12,
+  38.88,
+  42.08,
+  45.28
+ ]
+}
