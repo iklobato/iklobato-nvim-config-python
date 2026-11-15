@@ -29,7 +29,7 @@ lua/
   lsp/                      # Enhanced LSP configuration
     init.lua                # Main LSP setup
     servers/                # Server-specific configurations
-      python.lua            # pyright + ruff (native `ruff server`)
+      python.lua            # ty or pyright (one at a time) + ruff (native `ruff server`)
       lua.lua               # lua_ls
       typescript.lua        # ts_ls
       terraform.lua         # terraformls 0.11 compat shim
@@ -123,7 +123,14 @@ Ignoring this is how the `*.dbout` autocmd ended up registered twice.
   `vim.lsp.enable()`. A server whose binary is not on PATH is skipped, so an
   allowlisted server you have not installed stays quiet. Add one there to use it.
 - No mason-lspconfig: mason loads only on `:Mason*`, and `init.lua` puts
-  `mason/bin` on PATH itself. install.sh installs pyright, ruff, lua_ls, ts_ls
+  `mason/bin` on PATH itself. install.sh installs ty, pyright, ruff, lua_ls, ts_ls
+- Python type server: ty (Rust) by default, pyright with `NVIM_PY_LSP=pyright`.
+  Only one is enabled (both would duplicate hover and diagnostics); if the chosen
+  binary is missing the other one is used. `require("lsp").PY_TYPE_SERVER` names
+  the active one (the tests read it)
+- Completion capabilities are a static table in `lua/lsp/init.lua`, so blink.cmp
+  is not loaded on the first file (its setup spawns git and shasum, ~80ms). A test
+  compares the table with blink's own `get_lsp_capabilities()`
 - pyright `diagnosticMode = "openFilesOnly"`: "workspace" type-checks the whole
   repo in the background, which is heavy in a monorepo
 - `lua/lsp/servers/*.lua` must be required *before* `vim.lsp.enable()`:

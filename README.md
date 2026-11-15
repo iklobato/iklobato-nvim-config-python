@@ -44,7 +44,7 @@ untouched.
 - **Dotfiles**: `system/zshrc` → `~/.zshrc` and `system/lazygit.yml` → the
   platform lazygit path, plus oh-my-zsh and the zsh-syntax-highlighting plugin
   the zshrc expects
-- **Plugins**: `Lazy! sync` headless, then mason installs pyright, ruff, lua_ls,
+- **Plugins**: `Lazy! sync` headless, then mason installs ty, pyright, ruff, lua_ls,
   ts_ls, stylua, prettier, debugpy, delve and js-debug-adapter. The other
   language servers the config enables (yamlls, jsonls, bashls, dockerls,
   terraformls, tflint, clangd, html, cssls, tailwindcss, eslint, marksman) are
@@ -444,7 +444,7 @@ Every launch config per language, async python and the known quirks are in
   file explorer next to it; a plain `nvim` opens it only when nothing was restored.
 - **Startup**: about 50 ms, most plugins load on first use.
 - **Typing help**: brackets and quotes close themselves; while a language
-  server works (pyright indexing), its progress shows in the bottom right.
+  server works (ty or pyright indexing), its progress shows in the bottom right.
 - **Under the hood**: folder layout, plugins, LSP and treesitter setup,
   formatters, tests and how the GIFs are recorded are in
   [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).

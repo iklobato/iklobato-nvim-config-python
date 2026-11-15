@@ -10,8 +10,8 @@ deep_setup lsp
 deep_boot backend/core/services.py
 
 # by name: ruff attaches first and has no textDocument/documentSymbol
-wait_lexpr "pyright attaches to the backend file" \
-  '#vim.lsp.get_clients({ bufnr = vim.fn.bufnr("services.py"), name = "pyright" }) > 0 and 1 or 0' 40
+wait_lexpr "python type server attaches to the backend file" \
+  '#vim.lsp.get_clients({ bufnr = vim.fn.bufnr("services.py"), name = require("lsp").PY_TYPE_SERVER }) > 0 and 1 or 0' 40
 wait_lexpr "fidget loads once an LSP attaches, to show its progress" 'package.loaded["fidget"] and 1 or 0' 10
 keys Space f o
 wait_lexpr "keymap <leader>fo opens the symbol picker" "$(win_with_ft TelescopePrompt)" 15
@@ -49,6 +49,9 @@ open_file backend/core/services.py
 goto_line 1
 cursor_on double
 keys Space r n
+# rename asks the server (prepareRename) before it opens the prompt; text typed earlier
+# lands in normal mode instead of the prompt
+wait_lexpr "the rename prompt is open" 'vim.fn.mode() == "c" and 1 or 0' 15
 keys "renamed_double" Enter
 wait_lexpr "keymap <leader>rn renames the symbol across the buffer" \
   '(function() for _, l in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, false)) do if l:match("renamed_double") then return 1 end end return 0 end)()' 20
@@ -66,6 +69,9 @@ wait_lexpr "ruff skips an unnamed python buffer instead of panicking" \
   '(#vim.lsp.get_clients({ bufnr = 0, name = "ruff" }) == 0 and #vim.lsp.get_clients({ bufnr = vim.fn.bufnr("legacy.py"), name = "ruff" }) > 0) and 1 or 0' 10
 keys Escape ":bd!" Enter
 open_file backend/core/legacy.py
+# the reopened buffer gets ruff's diagnostics ~50-90ms after :e; a [d sent before that
+# has nothing to jump to and leaves the cursor on line 8
+wait_lexpr "diagnostics are back on the reopened legacy.py" '#vim.diagnostic.get(0) > 0 and 1 or 0' 30
 # nvim's own [d/]d jump without a float, so only the float proves the config's maps
 goto_line 8
 keys "[" d

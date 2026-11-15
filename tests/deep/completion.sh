@@ -17,8 +17,8 @@ menu_has() {
   echo "(require(\"blink.cmp\").is_menu_visible() and $(list_has "$1" "$2") == 1) and 1 or 0"
 }
 
-wait_lexpr "pyright attaches" \
-  '#vim.lsp.get_clients({ bufnr = 0, name = "pyright" }) > 0 and 1 or 0' 40
+wait_lexpr "python type server attaches" \
+  '#vim.lsp.get_clients({ bufnr = 0, name = require("lsp").PY_TYPE_SERVER }) > 0 and 1 or 0' 40
 
 keys G o "    print(summ"
 wait_lexpr "the menu offers summarize from the language server" "$(menu_has summarize lsp)" 20
