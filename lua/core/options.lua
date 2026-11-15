@@ -26,8 +26,20 @@ opt.updatetime = 300
 opt.timeoutlen = 300
 opt.ttimeoutlen = 50
 opt.redrawtime = 1500
--- trim shada: fewer marks/registers/files to read on boot (~2-3ms)
-opt.shada = "'100,<50,s10,h"
+-- ':200,/100,@50' cap history ('history' is 10000): a 185KB file read in ~11ms became 53KB in ~5.5ms.
+-- Empty here so startup skips the read; VimEnter restores it and reads after the first frame.
+local SHADA = "'100,<50,s10,h,:200,/100,@50"
+opt.shada = ""
+vim.api.nvim_create_autocmd("VimEnter", {
+  once = true,
+  callback = function()
+    vim.schedule(function()
+      vim.o.shada = SHADA
+      -- no bang: marks and v:oldfiles already set (a restored session) are kept
+      vim.cmd.rshada()
+    end)
+  end,
+})
 
 opt.cursorline = true
 opt.cursorcolumn = false

@@ -9,7 +9,7 @@ NVIM_MIN_MINOR=12
 NODE_MIN_MAJOR=22
 
 # Lazy delve/js-debug install timed out 1st debug session; prettier has no other installer
-MASON_TOOLS=(lua-language-server pyright ruff typescript-language-server stylua debugpy delve js-debug-adapter prettier)
+MASON_TOOLS=(lua-language-server ty pyright ruff typescript-language-server stylua debugpy delve js-debug-adapter prettier)
 
 INSTALL_DOTFILES=true
 if [[ "${1:-}" == "--no-dotfiles" ]]; then
@@ -173,7 +173,6 @@ install_dotfiles() {
   link_claude "$system_dir"
   if [[ "$(uname -s)" == Darwin ]]; then
     link_file "$system_dir/lazygit.yml" "$HOME/Library/Application Support/lazygit/config.yml"
-    install_iterm "$system_dir/iterm2"
   else
     link_file "$system_dir/lazygit.yml" "${XDG_CONFIG_HOME:-$HOME/.config}/lazygit/config.yml"
   fi
@@ -214,14 +213,6 @@ link_claude() {
   link_file "$system_dir/claude/agents" "$claude_dir/agents"
   link_file "$system_dir/claude/skills" "$claude_dir/skills"
   link_file "$system_dir/claude/commands" "$claude_dir/commands"
-}
-
-install_iterm() {
-  local iterm_dir="$1"
-  [[ -f "$iterm_dir/com.googlecode.iterm2.plist" ]] || return 0
-  defaults write com.googlecode.iterm2 PrefsCustomFolder -string "$iterm_dir"
-  defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true
-  say "iTerm2 prefs -> $iterm_dir (restart iTerm2 to apply)"
 }
 
 bootstrap_plugins() {

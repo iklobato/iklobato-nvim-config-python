@@ -20,8 +20,8 @@ wait_lexpr "combo: views.py opens in a vsplit beside services.py" \
 keys Escape ":tabnew frontend/src/lib/shape.ts" Enter
 wait_lexpr "combo: shape.ts opens in a second tab" \
   'vim.fn.expand("%:t") == "shape.ts" and vim.fn.tabpagenr("$") == 2 and 1 or 0' 15
-wait_lexpr "combo: pyright, ruff and ts_ls are all live in one session" \
-  '(function() local n = {} for _, c in ipairs(vim.lsp.get_clients()) do n[c.name] = true end return (n.pyright and n.ruff and n.ts_ls) and 1 or 0 end)()' 45
+wait_lexpr "combo: python type server, ruff and ts_ls are all live in one session" \
+  '(function() local n = {} for _, c in ipairs(vim.lsp.get_clients()) do n[c.name] = true end return (n[require("lsp").PY_TYPE_SERVER] and n.ruff and n.ts_ls) and 1 or 0 end)()' 45
 
 # --- 2. matchit % and matchparen (re-enabled in this config) -----------------
 keys Escape ":tabonly" Enter
@@ -69,8 +69,8 @@ wait_lexpr "ruff reports the unused import in legacy.py" \
   '(function() for _, d in ipairs(vim.diagnostic.get(0)) do if tostring(d.message):find("unused") then return 1 end end return 0 end)()' 45
 keys Escape ":vsplit backend/core/services.py" Enter
 wait_lexpr "services.py opens beside legacy.py" 'vim.fn.expand("%:t") == "services.py" and 1 or 0' 20
-wait_lexpr "pyright attaches to the services.py split before the rename" \
-  '(function() for _, c in ipairs(vim.lsp.get_clients({ bufnr = 0 })) do if c.name == "pyright" then return 1 end end return 0 end)()' 40
+wait_lexpr "python type server attaches to the services.py split before the rename" \
+  '(function() for _, c in ipairs(vim.lsp.get_clients({ bufnr = 0 })) do if c.name == require("lsp").PY_TYPE_SERVER then return 1 end end return 0 end)()' 40
 cursor_on double
 keys Space r n
 sleep 1
@@ -91,8 +91,8 @@ keys Escape ":vsplit $BIG" Enter
 wait_lexpr "bigfile: a >1MB file in a split gets ft=bigfile and no LSP" \
   '(function() return (vim.bo.filetype == "bigfile" and #vim.lsp.get_clients({ bufnr = 0 }) == 0) and 1 or 0 end)()' 15
 keys C-w p
-wait_lexpr "bigfile: the python split beside it keeps pyright" \
-  '(function() for _, c in ipairs(vim.lsp.get_clients({ bufnr = 0 })) do if c.name == "pyright" then return 1 end end return 0 end)()' 15
+wait_lexpr "bigfile: the python split beside it keeps its type server" \
+  '(function() for _, c in ipairs(vim.lsp.get_clients({ bufnr = 0 })) do if c.name == require("lsp").PY_TYPE_SERVER then return 1 end end return 0 end)()' 15
 
 # --- 7. git blame toggled while an edit turns into a hunk -------------------
 keys Escape ":tabonly" Enter
@@ -162,8 +162,8 @@ wait_lexpr "churn: eight files across languages open at once" \
 keys Escape ":silent! %bd!" Enter
 sleep 1
 open_file backend/core/services.py
-wait_lexpr "churn: pyright reattaches after %bd wipes every buffer" \
-  '(function() for _, c in ipairs(vim.lsp.get_clients({ bufnr = 0 })) do if c.name == "pyright" then return 1 end end return 0 end)()' 30
+wait_lexpr "churn: python type server reattaches after %bd wipes every buffer" \
+  '(function() for _, c in ipairs(vim.lsp.get_clients({ bufnr = 0 })) do if c.name == require("lsp").PY_TYPE_SERVER then return 1 end end return 0 end)()' 30
 wait_lexpr "churn: no LSP client leak after the churn (<=12 live)" \
   '#vim.lsp.get_clients() <= 12 and 1 or 0' 10
 

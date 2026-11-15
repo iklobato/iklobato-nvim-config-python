@@ -132,13 +132,36 @@ local checks = {
       end)
       expect(package.loaded["lsp"] ~= nil, "lua/lsp never loaded on BufReadPost")
       expect(package.loaded["mason"] == nil, "mason loaded at file open, it should wait for :Mason")
-      expect(vim.lsp.is_enabled("pyright"), "pyright not enabled")
+      local py = require("lsp").PY_TYPE_SERVER
+      expect(vim.lsp.is_enabled(py), py .. " not enabled")
+    end,
+  },
+  {
+    "perf: opening a file does not load blink.cmp",
+    function()
+      -- runs right after the first file open above; headless never fires VeryLazy
+      local blink = require("lazy.core.config").plugins["blink.cmp"]
+      expect(blink._.loaded == nil, "blink.cmp loaded at file open, its setup costs ~80ms")
     end,
   },
   {
     "perf: mason binaries reachable on PATH without mason loaded",
     function()
       expect(vim.fn.executable("pyright-langserver") == 1, "mason/bin is not on PATH")
+      expect(vim.fn.executable("ty") == 1, "ty not on PATH")
+    end,
+  },
+  {
+    "perf: shada read is deferred and history is capped",
+    function()
+      expect(vim.o.shada:find(":200", 1, true), "shada=" .. vim.o.shada)
+      expect(vim.o.shada:find("/100", 1, true), "shada=" .. vim.o.shada)
+      local log = scratch .. "/startup.log"
+      local copy = scratch .. "/startup.shada"
+      vim.fn.writefile({}, copy)
+      vim.fn.system({ "nvim", "--headless", "-i", copy, "--startuptime", log, "-c", "qa!" })
+      local text = table.concat(vim.fn.readfile(log), "\n")
+      expect(not text:find("reading ShaDa", 1, true), "ShaDa is still read before the first frame")
     end,
   },
 
@@ -380,10 +403,47 @@ local checks = {
   },
 
   {
-    "lsp: pyright binary installed",
+    "lsp: ty and pyright binaries installed (the toggle needs both)",
     function()
-      local bin = vim.fn.stdpath("data") .. "/mason/bin/pyright-langserver"
-      expect(vim.fn.executable(bin) == 1, bin .. " not executable")
+      for _, name in ipairs({ "ty", "pyright-langserver" }) do
+        local bin = vim.fn.stdpath("data") .. "/mason/bin/" .. name
+        expect(vim.fn.executable(bin) == 1, bin .. " not executable")
+      end
+    end,
+  },
+  {
+    "lsp: static completion capabilities match blink.cmp",
+    function()
+      local static = vim.tbl_deep_extend(
+        "force",
+        vim.lsp.protocol.make_client_capabilities(),
+        require("lsp").COMPLETION_CAPABILITIES
+      )
+      require("lazy").load({ plugins = { "blink.cmp" } })
+      local blink = require("blink.cmp").get_lsp_capabilities({}, true)
+      expect(
+        vim.deep_equal(static.textDocument.completion, blink.textDocument.completion),
+        "blink.cmp capabilities changed, update COMPLETION_CAPABILITIES in lua/lsp/init.lua: "
+          .. vim.inspect(blink.textDocument.completion)
+      )
+    end,
+  },
+  {
+    "lsp: NVIM_PY_LSP picks exactly one python type server",
+    function()
+      local probe = "lua require('lsp'); io.stdout:write('PY=', vim.lsp.is_enabled('ty') and 'ty' or '-',"
+        .. " ' ', vim.lsp.is_enabled('pyright') and 'pyright' or '-')"
+      local function enabled_with(value)
+        local env = value and ("NVIM_PY_LSP=" .. value .. " ") or "env -u NVIM_PY_LSP "
+        local out = vim.fn.system(
+          env .. "nvim --headless -i NONE -c " .. vim.fn.shellescape(probe) .. " -c 'qa!'"
+        )
+        return out:match("PY=(%S+ %S+)") or out
+      end
+      local default = enabled_with(nil)
+      expect(default == "ty -", "default enabled=" .. default)
+      local switched = enabled_with("pyright")
+      expect(switched == "- pyright", "NVIM_PY_LSP=pyright enabled=" .. switched)
     end,
   },
   {
@@ -437,9 +497,12 @@ local checks = {
       expect(vim.fn.filereadable(result) == 1, "late-open probe wrote nothing")
 
       local got = vim.json.decode(vim.fn.readfile(result)[1])
-      expect(got.pyright ~= nil, "pyright did not attach on a late open")
-      local mode = vim.tbl_get(got, "pyright", "settings", "python", "analysis", "diagnosticMode")
-      expect(mode == "openFilesOnly", "pyright diagnosticMode=" .. tostring(mode))
+      local py = require("lsp").PY_TYPE_SERVER
+      expect(got[py] ~= nil, py .. " did not attach on a late open")
+      if py == "pyright" then
+        local mode = vim.tbl_get(got, "pyright", "settings", "python", "analysis", "diagnosticMode")
+        expect(mode == "openFilesOnly", "pyright diagnosticMode=" .. tostring(mode))
+      end
       expect(got.ruff ~= nil, "ruff did not attach on a late open")
       local len = vim.tbl_get(got, "ruff", "init_options", "settings", "lineLength")
       expect(len == 88, "ruff lineLength=" .. tostring(len))

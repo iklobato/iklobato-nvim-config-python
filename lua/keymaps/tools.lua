@@ -8,7 +8,10 @@ local function diagnostic_jump(count)
 end
 
 -- "gf" not "e": "<leader>e" prefixes the <leader>e{e,f} explorer maps
-map("n", "<leader>gf", vim.diagnostic.open_float, { desc = "Diagnostic float" })
+-- wrapped: naming vim.diagnostic.open_float here loads vim.diagnostic (~3ms) on every boot
+map("n", "<leader>gf", function()
+  vim.diagnostic.open_float()
+end, { desc = "Diagnostic float" })
 map("n", "[d", diagnostic_jump(-1), { desc = "Prev diagnostic" })
 map("n", "]d", diagnostic_jump(1), { desc = "Next diagnostic" })
 map("n", "<leader>gp", diagnostic_jump(-1), { desc = "Prev diagnostic" })

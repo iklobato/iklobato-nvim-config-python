@@ -91,8 +91,8 @@ wait_lexpr "keymap <leader>dd disconnects the session" "$(no_session)" 25
 keys Space b r
 
 open_file backend/tests/test_services.py
-wait_lexpr "pyright attaches to the test file" \
-  '#vim.lsp.get_clients({ bufnr = vim.fn.bufnr("test_services.py"), name = "pyright" }) > 0 and 1 or 0' 40
+wait_lexpr "python type server attaches to the test file" \
+  '#vim.lsp.get_clients({ bufnr = vim.fn.bufnr("test_services.py"), name = require("lsp").PY_TYPE_SERVER }) > 0 and 1 or 0' 40
 # only the TestServices::test_double_negative target reaches line 16
 goto_line 16
 keys Space b b

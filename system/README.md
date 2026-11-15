@@ -3,7 +3,6 @@
 - `zshrc` - Shell configuration
 - `Brewfile` - Homebrew packages
 - `lazygit.yml` - Lazygit configuration
-- `iterm2/com.googlecode.iterm2.plist` - iTerm2 preferences (colors, fonts, Minimum Contrast, etc.)
 - `git/` - global gitconfig, the bluerivertech include, and the global git ignore
 - `shell/` - `.zshenv` and `.zprofile` (shell bootstrap that runs before `zshrc`)
 - `claude/` - Claude Code config: settings, CLAUDE.md, hooks, agents, skills, commands
@@ -11,8 +10,7 @@
 - `tor/`, `privoxy/`, `launchagents/` - reference copies (not auto-linked, see below)
 
 `scripts/install.sh` links `zshrc` and `lazygit.yml` automatically (and installs
-oh-my-zsh plus the zsh-syntax-highlighting plugin the zshrc needs). On macOS it
-also points iTerm2 at the versioned prefs folder. `link_dotfiles` and
+oh-my-zsh plus the zsh-syntax-highlighting plugin the zshrc needs). `link_dotfiles` and
 `link_claude` symlink the git, shell, dev-tool, and Claude configs above.
 
 ## Not auto-linked (run by hand)
@@ -32,20 +30,10 @@ gitignored: only authored config is versioned, not regenerable state.
 
 ## iTerm2 (macOS)
 
-`install.sh` runs the equivalent of:
-```bash
-defaults write com.googlecode.iterm2 PrefsCustomFolder -string ~/.config/nvim/system/iterm2
-defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true
-```
-iTerm2 then reads its prefs from this folder on launch and writes them back on
-quit, so every change you make in the UI stays versioned. Restart iTerm2 to
-apply. This carries the color scheme, font, and `Minimum Contrast` (set to 0.15
-for readable dim ANSI colors on a limited-range external panel).
-
-Thin strokes are a UI toggle (Settings -> Profiles -> Text -> "Use thin strokes
-for anti-aliased text"); flip it once and it saves into this folder like anything
-else. To reset iTerm back to its own prefs: set `LoadPrefsFromCustomFolder` to
-`false`.
+iTerm2 prefs and the Terminal Noir profile are not in this repo any more. They live in
+the dotfiles repo (`~/iterm2-dotfiles`, github.com/iklobato/dotfiles): iTerm2 reads
+`PrefsCustomFolder=~/iterm2-dotfiles` and writes its prefs back there on quit. The old
+copy here (2026-07-21) was stale and `install.sh` would have pointed iTerm2 back to it.
 
 ## Display color (Samsung C49HG9x)
 

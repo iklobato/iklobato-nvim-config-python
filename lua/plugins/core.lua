@@ -144,9 +144,10 @@ return {
   {
     "saghen/blink.cmp",
     version = "*",
-    -- lsp/init's require("blink.cmp") loads it on the first buffer anyway; these only cover
-    -- a scratch buffer with no LSP. Dropped BufReadPost/BufNewFile as redundant with that.
-    event = { "InsertEnter", "CmdlineEnter" },
+    -- VeryLazy: its ~80ms setup lands after the first frame, not on the first keypress in
+    -- insert. Headless never fires VeryLazy, so InsertEnter/CmdlineEnter stay for tests.
+    -- LSP capabilities do not wait for it: lua/lsp/init.lua sets them statically.
+    event = { "VeryLazy", "InsertEnter", "CmdlineEnter" },
     config = function()
       require("config.blink").setup()
     end,
