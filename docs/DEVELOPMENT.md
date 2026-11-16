@@ -307,3 +307,53 @@ for t in docs/demos/workflows/*.tape; do vhs "$t"; done   # run from the repo ro
   That is why there is no Go GIF.
 - Check a new GIF by its frames before committing it:
   `ffmpeg -i docs/demos/workflows/c2-navigate.gif -vf fps=1/3 /tmp/frame-%02d.png`
+- `keycast.lua` also shows the `desc` of the mapping the keys finished, on a
+  second line (`<Space>bc` / `Conditional breakpoint`).
+
+## Narrated videos
+
+`docs/demos/narrated/` holds tutorial videos with a voice track: chapters 2
+(moving around), 4 (warnings), 5 (debugging), 6 (Django), 7 (API and database),
+9 (tests) and a 70 s trailer. Each chapter has a `.tape` (the keys), a
+`.json` (one narration line per step, the second each step shows on screen, the zoom
+per step and the card text) and the rendered silent `.mp4`. The plan behind them is
+in `docs/decisions/2026-11-15-narrated-videos-pro.md`.
+
+```bash
+vhs docs/demos/narrated/c5-debug-python.tape        # silent video, from the repo root
+python3 -I docs/demos/narrated/narrate.py docs/demos/narrated/c5-debug-python.json /tmp/c5-voice.wav
+python3 -I docs/demos/narrated/align.py docs/demos/narrated/c5-debug-python.json \
+  /tmp/c5-voice.wav docs/demos/narrated/c5-debug-python.silent.mp4 /tmp/c5-aligned.mp4
+python3 -I docs/demos/narrated/polish.py docs/demos/narrated/c5-debug-python.json \
+  /tmp/c5-aligned.mp4 /path/to/music.mp3 /tmp/c5.mp4
+```
+
+- `narrate.py` makes one `openai/gpt-audio` call (voice `cedar`) through
+  OpenRouter for the whole chapter, so the voice stays the same. It needs
+  `OPENROUTER_API_KEY` set to an inference key (a management key answers
+  "User not found"), checks the take, records it again when it fails, and stops
+  reading a runaway take once it passes the longest allowed length.
+- `align.py` finds where each line is spoken (word times from `whisper-cli` and
+  `~/.cache/whisper-cpp/ggml-base.en.bin`), cuts in real pauses, and starts each
+  line 0.3 s before its step. It writes the mp4 only, no subtitles.
+- `polish.py` adds the title and end cards (SVG drawn with `rsvg-convert`: this
+  ffmpeg has no `drawtext`), zooms on each step `focus`, pastes the key box back on
+  top of the zoom, and mixes the music under the voice. The music is one track made
+  with `google/lyria-3-pro-preview` (needs `"stream": true`), not in the repo yet.
+- The key box (`docs/demos/keycast.lua`) has a fixed size (46x5 cells) because
+  `polish.py` uses its pixel place (`BOX_X`, `BOX_Y`); change both together.
+- A narrated tape needs `Set Framerate 15`. At the default 50 fps VHS drops frames
+  at this size, and the video runs at about 0.4x real time, different each run.
+- Keep every `Wait` inside `Hide`: hidden time is cut from the video, so only
+  fixed `Type`/`Sleep` time is left. Steps move by up to 1 s between renders, so
+  measure the step times again after every render (`polish.BoxWatcher.spans` lists
+  when the key box shows) and put them in the `.json` `onsets`.
+- `trailer.json` has no tape: its `clips` list `[chapter, start, end]` cuts of the
+  chapter `.silent.mp4` files, joined in order (one `trim`+`concat` ffmpeg call) into
+  `trailer.silent.mp4`. Its `onsets` are where each clip starts. Cut a clip just
+  before the key press, or the key box is missing from the trailer.
+- A step is ready for its voice when its tape was rendered and its frames read:
+  hidden waits longer than the 1.8 s fade hide the key box, so wait at most about
+  1.2 s hidden after a key the viewer should see.
+- `polish.py` refuses a card title over 32 characters (one line at 60 px).
+- Tests: `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest docs/demos/narrated`.

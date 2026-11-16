@@ -1,0 +1,97 @@
+{
+ "sentences": [
+  "You write Python every day. Here is the same work in Neovim, without reaching for the mouse.",
+  "Move through code by meaning: whole blocks, words, and the exact line you want.",
+  "Warnings show up as you type, and one key fixes them.",
+  "Run your tests from the file, and see each failure on the line that failed.",
+  "Debug with conditional breakpoints, and every variable in view.",
+  "Stop a live Django request right inside your view.",
+  "Call your API and query the database, without leaving the editor.",
+  "Each of these has its own short chapter below. One command installs it."
+ ],
+ "clips": [
+  [
+   "c5-debug-python",
+   0.0,
+   6.2
+  ],
+  [
+   "c2-move-around",
+   30.0,
+   38.5
+  ],
+  [
+   "c4-fix-warnings",
+   14.8,
+   20.8
+  ],
+  [
+   "c9-run-tests",
+   13.9,
+   21.0
+  ],
+  [
+   "c5-debug-python",
+   45.7,
+   53.0
+  ],
+  [
+   "c6-debug-django",
+   19.7,
+   27.4
+  ],
+  [
+   "c7-api-and-db",
+   9.0,
+   15.8
+  ],
+  [
+   "c7-api-and-db",
+   27.4,
+   38.5
+  ]
+ ],
+ "onsets": [
+  0.0,
+  6.2,
+  14.7,
+  20.7,
+  27.8,
+  35.1,
+  42.8,
+  49.6
+ ],
+ "focus": [
+  null,
+  [
+   420,
+   240,
+   1.6
+  ],
+  null,
+  [
+   430,
+   280,
+   1.45
+  ],
+  null,
+  [
+   450,
+   300,
+   1.4
+  ],
+  [
+   880,
+   220,
+   1.45
+  ],
+  null
+ ],
+ "cards": {
+  "label": "Neovim for Python developers",
+  "title": "Code, test and debug by keyboard",
+  "problem": "A Neovim setup for people who write Python every day: language server, tests, debugger, API calls and SQL, one key each.",
+  "before": "An editor, a terminal, Postman and a database client, and the mouse to move between them.",
+  "after": "One editor for code, tests, debugging, API calls and SQL. Every action on a key, with its name on screen."
+ }
+}

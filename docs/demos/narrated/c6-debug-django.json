@@ -1,0 +1,51 @@
+{
+ "sentences": [
+  "Your Django endpoint returns the wrong total, but only while the server is running. Print statements and restarting the server get old fast.",
+  "Put a breakpoint in the view that builds the response.",
+  "Start Django under the debugger. Pick Django runserver from the list, and that is it. No launch file to write.",
+  "Send the request from the editor. The server stops right inside your view, with the request and every local variable in view.",
+  "Continue, and the response comes back to the editor, next to the request.",
+  "Async code is worse: an exception inside a task can vanish without a trace. So tell the debugger to stop on every exception your code does not handle.",
+  "Run the script, and it stops on the exact line that raised, with the value that caused it.",
+  "A live request and a lost async error, both caught in the editor, without a single print."
+ ],
+ "onsets": [
+  0.0,
+  8.32,
+  12.08,
+  19.84,
+  27.56,
+  32.68,
+  42.24,
+  48.19
+ ],
+ "focus": [
+  null,
+  [
+   500,
+   400,
+   1.5
+  ],
+  null,
+  [
+   450,
+   300,
+   1.4
+  ],
+  null,
+  null,
+  [
+   550,
+   330,
+   1.4
+  ],
+  null
+ ],
+ "cards": {
+  "label": "Chapter 6 · Debugging Django",
+  "title": "Catch it while the server runs",
+  "problem": "A Django view returns the wrong total, and an async task loses its error. Catch both live, in the editor.",
+  "before": "Write a launch.json for Django, send the request from another tool, and add a print to find the async error.",
+  "after": "Space d c starts Django under the debugger, Space r r sends the request, Space b e stops on unhandled exceptions."
+ }
+}

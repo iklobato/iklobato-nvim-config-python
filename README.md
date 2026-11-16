@@ -15,7 +15,11 @@ and a database UI. Debugging also covers Go, Node, TypeScript and React.
 
 *A Python debug session: a breakpoint that only stops when `number == 3`, a
 logpoint that prints without stopping, then step into, out and over. The orange
-box shows each key as it is pressed. Seven more videos in [Demos](#demos).*
+box shows each key as it is pressed. Eight more videos in [Demos](#demos).*
+
+**[Watch the 70 s narrated tour](docs/demos/narrated/trailer.mp4)** (with voice): moving
+around, fixing warnings, tests, debugging, Django and the database, one
+moment each. Most chapters below also have a narrated version.
 
 ## Install
 
@@ -164,7 +168,7 @@ Leader is <kbd>Space</kbd>. Press <kbd>Space</kbd>, the group letter, then the a
 
 ## Demos
 
-Eight real tasks, start to finish, on a small Django + React + Go project.
+Nine real tasks, start to finish, on a small Django + React + Go project.
 `<leader>` is Space. The orange box at the bottom of each video shows every key
 the moment it is pressed.
 
@@ -201,6 +205,8 @@ In the video:
 5. `<leader>fo` lists the functions in the file.
 6. `<leader>rn` renames `double` to `scale`, and every use in the file changes too.
 
+[Watch with narration](docs/demos/narrated/c2-move-around.mp4): the same task, explained step by step.
+
 ### 3. Write code
 
 Completion, selecting code by its structure, and deleting a whole function.
@@ -228,6 +234,8 @@ In the video:
 4. `<leader>rn` renames `legacy_total` to `running_total`.
 5. `<leader>F` formats the file.
 
+[Watch with narration](docs/demos/narrated/c4-fix-warnings.mp4): the same task, explained step by step.
+
 ### 5. Debug Python, step by step
 
 Stop the program at the right moment and watch the values change.
@@ -246,6 +254,8 @@ In the video:
 5. `<leader>dk` steps into `double()`, `<leader>do` steps back out, and
    `<leader>dj` runs the next line.
 6. `<leader>dc` runs to the end, and `<leader>dt` stops the debugger.
+
+[Watch with narration](docs/demos/narrated/c5-debug-python.mp4): the same task, explained step by step.
 
 ### 6. Debug a live request and an async bug
 
@@ -267,6 +277,8 @@ In the video:
    on errors like this one.
 6. `<leader>dc` runs the file (`1`), and it stops on the `raise` inside the task.
 
+[Watch with narration](docs/demos/narrated/c6-debug-django.mp4): the same task, explained step by step.
+
 ### 7. Work with data
 
 Call the API, then look at the database behind it. The Django server is already
@@ -283,6 +295,8 @@ In the video:
 3. The query `select label, value from totals where value > 30;` runs with
    `<leader>S`, and only the row with `40` comes back.
 
+[Watch with narration](docs/demos/narrated/c7-api-and-db.mp4): the same task, explained step by step.
+
 ### 8. Git in the editor
 
 See who changed a line and what you changed yourself, without leaving the file.
@@ -295,6 +309,25 @@ In the video:
    `<leader>gb` hides them.
 2. Changing a line marks it in the left margin, and a new line gets its own mark.
 3. `<leader>gb` shows the author and date again.
+
+### 9. Run and debug tests
+
+A change broke a test. Find which one, read why, and debug it, without a second
+terminal.
+
+![run the nearest test, the whole file with one failure, the summary, then debug the failing test](docs/demos/workflows/c9-run-tests.gif)
+
+In the video:
+
+1. `<leader>nn` runs the test under the cursor, and a mark next to it shows it
+   passed.
+2. `<leader>nf` runs the whole file. `test_summarize` fails, and `assert 8 == 6`
+   shows on the line that failed.
+3. `<leader>ns` opens the summary with every test and its result.
+4. `<leader>bb` puts a breakpoint on the assert, and `<leader>nd` debugs that one
+   test: it stops there with its variables on the left.
+
+[Watch with narration](docs/demos/narrated/c9-run-tests.mp4): the same task, explained step by step.
 
 ## All keys
 

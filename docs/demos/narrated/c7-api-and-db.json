@@ -1,0 +1,41 @@
+{
+ "sentences": [
+  "Your API returns a total, and you want to check it against the data behind it. That usually means Postman in one window and a database client in another.",
+  "Send the request straight from a plain text file. The response opens right next to it, already formatted.",
+  "Now open the database, in the same editor.",
+  "Browse to the totals table and list its rows. You move around it with the same keys you use for code.",
+  "Need something more specific? Write the query and run it. The result opens in a split below.",
+  "API and data checked side by side, without Postman, without another client, without leaving the editor."
+ ],
+ "onsets": [
+  0.0,
+  9.12,
+  16.32,
+  20.04,
+  27.56,
+  38.66
+ ],
+ "focus": [
+  null,
+  [
+   880,
+   220,
+   1.45
+  ],
+  null,
+  [
+   450,
+   300,
+   1.5
+  ],
+  null,
+  null
+ ],
+ "cards": {
+  "label": "Chapter 7 · API and database",
+  "title": "Check the API and its data",
+  "problem": "Your endpoint returns a total. Is it right? Check the response and the rows behind it in one place.",
+  "before": "Send the request from Postman, then switch to a database client, connect, find the table and run the query there.",
+  "after": "Space r r sends the request in a .http file, Space d b opens the database, Space S runs the query. All in the editor."
+ }
+}

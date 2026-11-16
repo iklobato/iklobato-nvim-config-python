@@ -1,0 +1,62 @@
+{
+ "sentences": [
+  "Say a teammate tells you the total printed by this script looks wrong, and you have never seen this code before. Before you fix anything, you need to find your way around it, fast, and without touching the mouse.",
+  "This file only calls summarize. To read the real code, jump straight to where it is defined, even when it lives in another file.",
+  "Done reading? One key takes you right back to where you were.",
+  "You can also open any file by typing a few letters of its name. No folder tree to click through.",
+  "Inside a file, stop holding the arrow keys. Jump to the top, skip a whole block of code, then move line by line and word by word, and hop to either end of the line.",
+  "Looking for one name? Search for it, and keep hopping to the next match until you land on the one you want.",
+  "And when you need every place that touches total, in every file, search the whole project. Each hit shows its file and line, so you open the right one.",
+  "Spotted a value to change? Replace the whole word in one move and type the new one. Wrong guess? Undo puts it right back.",
+  "Jump to the code, move by blocks and words, search, and come back. That is most of your day, and your hands never leave the keyboard."
+ ],
+ "onsets": [
+  0.0,
+  11.48,
+  19.68,
+  23.84,
+  30.24,
+  40.6,
+  47.2,
+  56.52,
+  64.62
+ ],
+ "focus": [
+  null,
+  [
+   420,
+   240,
+   1.6
+  ],
+  [
+   420,
+   200,
+   1.6
+  ],
+  null,
+  [
+   420,
+   240,
+   1.6
+  ],
+  [
+   420,
+   240,
+   1.6
+  ],
+  null,
+  [
+   420,
+   200,
+   1.7
+  ],
+  null
+ ],
+ "cards": {
+  "label": "Chapter 2 · Moving around",
+  "title": "Find your way in new code",
+  "problem": "A teammate says the total is wrong, in code you have never read. Get around it fast, without the mouse.",
+  "before": "Scroll with the mouse or hold the arrow keys to move inside a file, then grab the mouse again to select a word before you change it.",
+  "after": "Jump by block, word and search with gg, }, w and /. ciw changes a whole word in one move, u undoes it."
+ }
+}

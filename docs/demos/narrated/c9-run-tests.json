@@ -1,0 +1,51 @@
+{
+ "sentences": [
+  "You just changed some code. Did you break anything? You should not need a second terminal, or a wall of pytest output, to find out.",
+  "Run the test under your cursor. A moment later, a mark next to it says it passed.",
+  "Now run every test in the file. One fails, and the error shows up right on the line that failed.",
+  "Open its output to read the full message, without leaving the file.",
+  "The summary lists every test and its result, so you see the whole picture at once.",
+  "Still not sure why? Put a breakpoint on the assert and debug that one test. It stops right there.",
+  "Ask the debugger for result. It is eight, not six.",
+  "So the bug is in summarize, and you found it without leaving the editor."
+ ],
+ "onsets": [
+  0.0,
+  7.88,
+  14.08,
+  20.84,
+  25.28,
+  30.96,
+  39.0,
+  43.75
+ ],
+ "focus": [
+  null,
+  [
+   430,
+   280,
+   1.45
+  ],
+  [
+   430,
+   280,
+   1.45
+  ],
+  null,
+  null,
+  null,
+  [
+   1130,
+   360,
+   1.6
+  ],
+  null
+ ],
+ "cards": {
+  "label": "Chapter 9 · Testing",
+  "title": "Did I break anything?",
+  "problem": "You changed some code. Run the tests, read the failure and debug it, without a second terminal.",
+  "before": "Open the Testing panel, find the test in the tree, run it, then open the output panel to read the failure.",
+  "after": "Space n n runs the test under the cursor, Space n d debugs it. The failure shows on the line that failed."
+ }
+}
