@@ -19,8 +19,8 @@ local MAX_LHS_TOKENS = 4
 local MAX_CAPS = 6
 local MAX_TEXT = 14 -- a typed text chip keeps its last characters
 -- Fixed size, so the video tools know the box pixels: after a zoom the original
--- box is pasted back on top at the same place. 6 caps + a 14-char chip fit in 42.
-local BOX_WIDTH = 42
+-- box is pasted back on top at the same place. Space, 2 letters, a 14-char chip and Enter fit in 46.
+local BOX_WIDTH = 46
 local BOX_HEIGHT = 5
 local FADE_MS = 1800
 
@@ -133,7 +133,11 @@ local function push_cap(text, kind)
 end
 
 -- letters typed into a prompt grow one text chip; special keys stay key caps
+-- keytrans names some plain characters: in typed text they are just characters
+local TYPED_CHARS = { ["<Space>"] = " ", ["<lt>"] = "<", ["<Bslash>"] = "\\", ["<Bar>"] = "|" }
+
 local function push_typed(tok)
+  tok = TYPED_CHARS[tok] or tok
   local last = state.caps[#state.caps]
   if tok:match("^<.+>$") then
     push_cap(pretty(tok), "cap")
@@ -186,8 +190,8 @@ local function caps_line()
     parts[#parts + 1] = chunk
     col = col + #chunk
     if i < #state.caps then
-      parts[#parts + 1] = "  "
-      col = col + 2
+      parts[#parts + 1] = " "
+      col = col + 1
     end
   end
   return table.concat(parts), marks

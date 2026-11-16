@@ -33,10 +33,10 @@ TITLE_SECONDS = 3.5
 END_SECONDS = 6.5
 FADE = 0.4
 MS_PER_SECOND = 1000
-# the key box of docs/demos/keycast.lua (42x5 cells) on a 1400x820 frame, measured
-BOX_X, BOX_Y, BOX_W, BOX_H = 846, 542, 496, 166
+# the key box of docs/demos/keycast.lua (46x5 cells) on a 1400x820 frame, measured
+BOX_X, BOX_Y, BOX_W, BOX_H = 801, 542, 541, 166
 # a pixel row inside the box, above its border: all box background while it shows
-PROBE_X, PROBE_Y, PROBE_W = 860, 548, 470
+PROBE_X, PROBE_Y, PROBE_W = 815, 548, 515
 BOX_BG = (23, 23, 26)
 # ffmpeg 9 refuses a 1-row crop of yuv420 video ("Invalid too big or non positive size")
 PROBE_ROWS = 2

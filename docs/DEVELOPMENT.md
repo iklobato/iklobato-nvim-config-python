@@ -339,7 +339,7 @@ python3 -I docs/demos/narrated/polish.py docs/demos/narrated/c5-debug-python.jso
   ffmpeg has no `drawtext`), zooms on each step `focus`, pastes the key box back on
   top of the zoom, and mixes the music under the voice. The music is one track made
   with `google/lyria-3-pro-preview` (needs `"stream": true`), not in the repo yet.
-- The key box (`docs/demos/keycast.lua`) has a fixed size (42x5 cells) because
+- The key box (`docs/demos/keycast.lua`) has a fixed size (46x5 cells) because
   `polish.py` uses its pixel place (`BOX_X`, `BOX_Y`); change both together.
 - A narrated tape needs `Set Framerate 15`. At the default 50 fps VHS drops frames
   at this size, and the video runs at about 0.4x real time, different each run.
