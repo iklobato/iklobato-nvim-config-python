@@ -312,8 +312,9 @@ for t in docs/demos/workflows/*.tape; do vhs "$t"; done   # run from the repo ro
 
 ## Narrated videos
 
-`docs/demos/narrated/` holds tutorial videos with a voice track: chapter 2 (moving
-around) and chapter 5 (debugging) so far. Each chapter has a `.tape` (the keys), a
+`docs/demos/narrated/` holds tutorial videos with a voice track: chapters 2
+(moving around), 4 (warnings), 5 (debugging), 6 (Django), 7 (API and database),
+9 (tests) and a 70 s trailer. Each chapter has a `.tape` (the keys), a
 `.json` (one narration line per step, the second each step shows on screen, the zoom
 per step and the card text) and the rendered silent `.mp4`. The plan behind them is
 in `docs/decisions/2026-11-15-narrated-videos-pro.md`.
@@ -347,4 +348,12 @@ python3 -I docs/demos/narrated/polish.py docs/demos/narrated/c5-debug-python.jso
   fixed `Type`/`Sleep` time is left. Steps move by up to 1 s between renders, so
   measure the step times again after every render (`polish.BoxWatcher.spans` lists
   when the key box shows) and put them in the `.json` `onsets`.
+- `trailer.json` has no tape: its `clips` list `[chapter, start, end]` cuts of the
+  chapter `.silent.mp4` files, joined in order (one `trim`+`concat` ffmpeg call) into
+  `trailer.silent.mp4`. Its `onsets` are where each clip starts. Cut a clip just
+  before the key press, or the key box is missing from the trailer.
+- A step is ready for its voice when its tape was rendered and its frames read:
+  hidden waits longer than the 1.8 s fade hide the key box, so wait at most about
+  1.2 s hidden after a key the viewer should see.
+- `polish.py` refuses a card title over 32 characters (one line at 60 px).
 - Tests: `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest docs/demos/narrated`.

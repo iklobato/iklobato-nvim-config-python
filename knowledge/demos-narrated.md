@@ -1,6 +1,6 @@
 # nvim config: narrated demo videos
 
-Snapshot: `feat/narrated-demos` @ `fe40ecc` + uncommitted work (2026-11-15). Verified by rendering
+Snapshot: `feat/narrated-demos` @ `a6e5d63` (2026-11-16, earlier sections from 2026-11-15). Verified by rendering
 `docs/demos/narrated/c5-debug-python.tape` twice, reading frames, and transcribing the final mp4.
 The real voice was NOT generated (OpenRouter key broken, see below); the sync was proven with a
 throwaway macOS `say` voice that was never kept as a deliverable.
@@ -111,3 +111,23 @@ throwaway macOS `say` voice that was never kept as a deliverable.
   (ID3, 44.1 kHz) of about 92 s, cost 0.08 USD. Track mean -20 dB, voice -21 dB, so the music
   gain is 0.4. The track lives only in the scratchpad so far.
 - Key spend after the pilot: limit raised to 8 USD (`usage` 3.62 before Lyria).
+
+## v5 (2026-11-16): all decided chapters, trailer, README
+- Done and committed on `feat/narrated-demos` (not pushed): narrated c2, c4, c5, c6, c7, c9 and a
+  70.8 s trailer (3.6 MB) in `docs/demos/narrated/*.mp4`; tests GIF `workflows/c9-run-tests.gif`;
+  README links the trailer and each narrated chapter. Every final mp4 was transcribed with
+  whisper-cli (all lines heard) and its frames read.
+- Final sizes: c2 82.6 s / 3.5 MB, c4 56.8 s / 2.3 MB, c5 92.1 s / 3.4 MB, c6 64.6 s / 3.8 MB,
+  c7 56.0 s / 2.3 MB, c9 59.4 s / 3.0 MB. OpenRouter key `nvim-demos`: `usage` 4.01 of 8 USD.
+- Not verified: whether GitHub plays a committed mp4 inline. The README links the files; an
+  inline player in the README needs the mp4 dragged into the GitHub web editor (user-attachments),
+  which is a manual step for the user.
+- Gotchas found this round:
+  - which-key maps prefixes with desc `which-key-trigger`; typed `<Space>` inside a prompt must
+    stay a character in the key box, or the box overflows.
+  - neotest output window does not close with `q` in VHS; `:close` does. Running `<leader>nd`
+    from that window says "No tests found".
+  - A hidden wait longer than the 1.8 s box fade removes the key box from the video.
+  - The DAP locals panel is too narrow to show a value; ask the REPL instead (c9 step 6).
+  - Card title max 32 chars at 60 px; `polish.py` raises `CardError` past that.
+  - Step times move by up to 1 s between renders: always measure onsets on the final render.
