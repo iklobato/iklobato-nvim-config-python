@@ -54,7 +54,7 @@
  ],
  "cards": {
   "label": "Chapter 2 · Moving around",
-  "title": "Find your way in code you never saw",
+  "title": "Find your way in new code",
   "problem": "A teammate says the total is wrong, in code you have never read. Get around it fast, without the mouse.",
   "before": "Scroll with the mouse or hold the arrow keys to move inside a file, then grab the mouse again to select a word before you change it.",
   "after": "Jump by block, word and search with gg, }, w and /. ciw changes a whole word in one move, u undoes it."
