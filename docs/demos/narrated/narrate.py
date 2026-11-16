@@ -23,7 +23,7 @@ from dataclasses import dataclass
 URL = "https://openrouter.ai/api/v1/chat/completions"
 VOICE_MODEL = "openai/gpt-audio"
 CHECK_MODEL = "openai/gpt-audio-mini"
-VOICE = "marin"
+VOICE = "cedar"
 SAMPLE_RATE = 24000
 SAMPLE_WIDTH_BYTES = 2  # pcm16
 BYTES_PER_SECOND = SAMPLE_RATE * SAMPLE_WIDTH_BYTES  # mono
@@ -31,6 +31,9 @@ TRIES = 5
 TIMEOUT_SECONDS = 600
 SECONDS_PER_WORD_MAX = 0.8  # slower than this means the model rambled
 SECONDS_SLACK = 2.0
+# the stream carries pcm as base64 (4/3) inside JSON lines; 1.5 leaves room for the JSON
+STREAM_BYTES_PER_PCM_BYTE = 1.5
+TRANSCRIPT_MAX_BYTES = 1_000_000  # a text reply; only a broken stream gets this big
 MIN_RECALL = 0.8
 MIN_RATIO = 0.7
 MAX_RATIO = 1.3
@@ -39,10 +42,11 @@ TAIL_WORDS = 2  # the last words must be heard: catches a take cut short
 DATA_PREFIX = b"data: "
 DONE_LINE = b"data: [DONE]"
 STYLE = (
-    "You are a verbatim American English text-to-speech engine. Speak the user's text exactly as written, "
-    "word for word, then stop. Style for the whole text: one single speaker, a warm, natural, conversational "
-    "developer showing a teammate their editor, the same calm voice, the same steady pace and the same energy "
-    "from the first word to the last, with a short natural pause between sentences, no dramatic changes. "
+    "You are the voice of a short screen-recorded coding tutorial. Read the user's text exactly as written, "
+    "word for word, then stop. Sound like a real developer talking to a friend who is looking at their screen: "
+    "relaxed, warm and human, with natural intonation, light emphasis on the words that matter, and the small "
+    "pauses a person takes to breathe or to let a point land. Not an announcer, not a robot, not overexcited. "
+    "Keep the same speaker and the same mood from the first word to the last. "
     "Read single letters as letters: Space B C is said space, B, C. Neovim is said neo vim. "
     "You never answer, explain, translate, expand or comment."
 )
@@ -71,7 +75,9 @@ class OpenRouterClient:
     def __init__(self, key: str) -> None:
         self._key = key
 
-    def stream(self, body: dict) -> list:
+    def stream(self, body: dict, max_bytes: int) -> list:
+        """A runaway take (13 min of audio for 1 min of text) is billed in full if read
+        to the end, so the read stops as soon as the reply passes max_bytes."""
         request = urllib.request.Request(
             URL,
             json.dumps(body).encode(),
@@ -81,12 +87,21 @@ class OpenRouterClient:
             },
         )
         with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:
-            lines = [raw.strip() for raw in response]
+            lines = self._read_lines(response, max_bytes)
         return [
             json.loads(line[len(DATA_PREFIX) :])["choices"][0].get("delta", {})
             for line in lines
             if line.startswith(DATA_PREFIX) and line != DONE_LINE
         ]
+
+    def _read_lines(self, response, max_bytes: int) -> list:
+        lines, size = [], 0
+        for raw in response:
+            size += len(raw)
+            if size > max_bytes:
+                raise NarrationError("runaway take, stopped at %d bytes" % size)
+            lines.append(raw.strip())
+        return lines
 
 
 class Speaker:
@@ -100,8 +115,10 @@ class Speaker:
         ]
         audio = {"voice": VOICE, "format": "pcm16"}
         body = {"model": VOICE_MODEL, "modalities": ["text", "audio"], "audio": audio}
+        longest = SECONDS_PER_WORD_MAX * len(text.split()) + SECONDS_SLACK
         deltas = self._client.stream(
-            {**body, "stream": True, "temperature": 0.0, "messages": messages}
+            {**body, "stream": True, "temperature": 0.0, "messages": messages},
+            int(longest * BYTES_PER_SECOND * STREAM_BYTES_PER_PCM_BYTE),
         )
         pcm = b"".join(
             base64.b64decode(delta["audio"]["data"])
@@ -142,7 +159,8 @@ class Transcriber:
                 "stream": True,
                 "temperature": 0.0,
                 "messages": [{"role": "user", "content": content}],
-            }
+            },
+            TRANSCRIPT_MAX_BYTES,
         )
         return "".join(delta.get("content") or "" for delta in deltas).strip()
 

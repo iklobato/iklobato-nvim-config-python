@@ -312,26 +312,39 @@ for t in docs/demos/workflows/*.tape; do vhs "$t"; done   # run from the repo ro
 
 ## Narrated videos
 
-`docs/demos/narrated/` holds tutorial videos with a voice track. Only chapter 5
-exists so far. Each chapter has a `.tape` (the keys), a `.json` (one narration line
-per step, plus the second each step shows on screen) and the rendered silent `.mp4`.
+`docs/demos/narrated/` holds tutorial videos with a voice track: chapter 2 (moving
+around) and chapter 5 (debugging) so far. Each chapter has a `.tape` (the keys), a
+`.json` (one narration line per step, the second each step shows on screen, the zoom
+per step and the card text) and the rendered silent `.mp4`. The plan behind them is
+in `docs/decisions/2026-11-15-narrated-videos-pro.md`.
 
 ```bash
 vhs docs/demos/narrated/c5-debug-python.tape        # silent video, from the repo root
 python3 -I docs/demos/narrated/narrate.py docs/demos/narrated/c5-debug-python.json /tmp/c5-voice.wav
 python3 -I docs/demos/narrated/align.py docs/demos/narrated/c5-debug-python.json \
-  /tmp/c5-voice.wav docs/demos/narrated/c5-debug-python.silent.mp4 /tmp/c5.mp4
+  /tmp/c5-voice.wav docs/demos/narrated/c5-debug-python.silent.mp4 /tmp/c5-aligned.mp4
+python3 -I docs/demos/narrated/polish.py docs/demos/narrated/c5-debug-python.json \
+  /tmp/c5-aligned.mp4 /path/to/music.mp3 /tmp/c5.mp4
 ```
 
-- `narrate.py` makes one `openai/gpt-audio` call (voice `marin`) through
+- `narrate.py` makes one `openai/gpt-audio` call (voice `cedar`) through
   OpenRouter for the whole chapter, so the voice stays the same. It needs
-  `OPENROUTER_API_KEY`, checks the take and records it again when it fails.
+  `OPENROUTER_API_KEY` set to an inference key (a management key answers
+  "User not found"), checks the take, records it again when it fails, and stops
+  reading a runaway take once it passes the longest allowed length.
 - `align.py` finds where each line is spoken (word times from `whisper-cli` and
   `~/.cache/whisper-cpp/ggml-base.en.bin`), cuts in real pauses, and starts each
-  line 0.3 s before its step. It writes the mp4 and an `.srt`.
+  line 0.3 s before its step. It writes the mp4 only, no subtitles.
+- `polish.py` adds the title and end cards (SVG drawn with `rsvg-convert`: this
+  ffmpeg has no `drawtext`), zooms on each step `focus`, pastes the key box back on
+  top of the zoom, and mixes the music under the voice. The music is one track made
+  with `google/lyria-3-pro-preview` (needs `"stream": true`), not in the repo yet.
+- The key box (`docs/demos/keycast.lua`) has a fixed size (42x5 cells) because
+  `polish.py` uses its pixel place (`BOX_X`, `BOX_Y`); change both together.
 - A narrated tape needs `Set Framerate 15`. At the default 50 fps VHS drops frames
   at this size, and the video runs at about 0.4x real time, different each run.
 - Keep every `Wait` inside `Hide`: hidden time is cut from the video, so only
-  fixed `Type`/`Sleep` time is left. Then measure the real step times from the
-  rendered video (the orange key box) and put them in the `.json` `onsets`.
+  fixed `Type`/`Sleep` time is left. Steps move by up to 1 s between renders, so
+  measure the step times again after every render (`polish.BoxWatcher.spans` lists
+  when the key box shows) and put them in the `.json` `onsets`.
 - Tests: `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest docs/demos/narrated`.

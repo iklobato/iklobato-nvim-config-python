@@ -3,7 +3,7 @@
 narrate.py records one take for the whole chapter. whisper.cpp gives the time of every
 spoken word; the words are matched to the script to find where each line is spoken, and
 each cut is moved into the nearest real pause. Line i is then delayed so it starts LEAD
-seconds before step i shows on screen. Writes <out>.srt and <out> (mp4, voice + video).
+seconds before step i shows on screen. Writes <out> (mp4, voice + video), no subtitles.
 
 Usage: python3 -I align.py <chapter.json> <voice.wav> <silent.mp4> <out.mp4>
 chapter.json: {"sentences": [one line per step], "onsets": [second each step shows]}
@@ -26,8 +26,6 @@ SNAP = 0.4  # how far from the word-time gap a real pause may sit
 LATE_REPORT = 0.05
 TAIL_HOLD = 1.0  # last frame held after the last line
 MS_PER_SECOND = 1000
-SECONDS_PER_MINUTE = 60
-MINUTES_PER_HOUR = 60
 HALVES = 2
 ERROR_TAIL_CHARS = 800
 REPORT_TEXT_CHARS = 48
@@ -256,30 +254,6 @@ class Placer:
         return placed
 
 
-class SrtWriter:
-    def stamp(self, seconds: float) -> str:
-        ms = int(round(seconds * MS_PER_SECOND))
-        whole_seconds = ms // MS_PER_SECOND
-        minutes = whole_seconds // SECONDS_PER_MINUTE
-        hours = minutes // MINUTES_PER_HOUR
-        clock = (
-            hours,
-            minutes % MINUTES_PER_HOUR,
-            whole_seconds % SECONDS_PER_MINUTE,
-            ms % MS_PER_SECOND,
-        )
-        return "%02d:%02d:%02d,%03d" % clock
-
-    def write(self, path: str, plan: Plan) -> None:
-        blocks = [
-            "%d\n%s --> %s\n%s\n"
-            % (number, self.stamp(span.start), self.stamp(span.end), line)
-            for number, (line, span) in enumerate(zip(plan.lines, plan.placed), start=1)
-        ]
-        with open(path, "w") as out:
-            out.write("\n".join(blocks))
-
-
 class FilterGraph:
     """Cut each line out of the take, delay it to its slot, mix, pad voice and video to one length."""
 
@@ -353,14 +327,13 @@ class Aligner:
         self._placer = placer
         self._muxer = muxer
 
-    def align(self, job: AlignJob, srt: SrtWriter, report: Report) -> None:
+    def align(self, job: AlignJob, report: Report) -> None:
         lines, onsets = job.chapter["sentences"], job.chapter["onsets"]
         if len(lines) != len(onsets):
             raise AlignError("%d lines but %d onsets" % (len(lines), len(onsets)))
         spans = self._splitter.spans(job.wav, lines, CutChooser())
         plan = Plan(lines, spans, self._placer.plan(spans, onsets), onsets)
         report.show(plan)
-        srt.write(os.path.splitext(job.out)[0] + ".srt", plan)
         video_len = self._muxer.duration(job.video)
         total = Span(video_len, max(video_len, plan.placed[-1].end + TAIL_HOLD))
         self._muxer.mux(
@@ -379,7 +352,7 @@ class CompositionRoot:
         with open(chapter_path) as handle:
             job = AlignJob(json.load(handle), wav, video, out)
         Aligner(line_splitter, Placer(), Muxer(shell)).align(
-            job, SrtWriter(), Report(logging.getLogger("align"))
+            job, Report(logging.getLogger("align"))
         )
 
 

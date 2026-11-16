@@ -1,6 +1,6 @@
 """Checks for the parts of align.py that decide where a line of voice lands."""
 
-from align import LEAD, MIN_GAP, CutChooser, Placer, Span, SrtWriter
+from align import LEAD, MIN_GAP, CutChooser, Placer, Span
 
 FIRST_LINE_END = 4.0
 SECOND_LINE_END = 6.0
@@ -11,7 +11,6 @@ LONG_PAUSE = (1.3, 1.7)
 FAR_PAUSE = (9.0, 9.9)
 GAP_NEAR_PAUSES = (1.2, 1.4)
 GAP_WITHOUT_PAUSE = (5.0, 5.2)
-ONE_HOUR_TWO_MIN_FIVE_SEC = 3725.5
 
 
 def test_a_line_that_would_overlap_waits_for_the_previous_one() -> None:
@@ -45,7 +44,3 @@ def test_with_no_pause_near_the_gap_the_cut_goes_in_its_middle() -> None:
     cut = CutChooser().cut(Span(*GAP_WITHOUT_PAUSE), pauses)
 
     assert cut == Span(*GAP_WITHOUT_PAUSE).middle()
-
-
-def test_srt_time_carries_hours_minutes_seconds_and_ms() -> None:
-    assert SrtWriter().stamp(ONE_HOUR_TWO_MIN_FIVE_SEC) == "01:02:05,500"
