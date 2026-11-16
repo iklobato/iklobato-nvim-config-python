@@ -1,0 +1,48 @@
+{
+ "sentences": [
+  "You open an old file, and the editor already flags what is wrong with it: two imports nobody uses, and code that looks a bit rushed.",
+  "Jump straight to the next problem. No scrolling, no scanning the file line by line.",
+  "Ask for a fix. Ruff offers to remove the import, and one key applies it.",
+  "Same for the second one. Jump, fix, done.",
+  "The name legacy total says nothing. Rename it through the language server, so every place that uses it changes too, not just this line.",
+  "And the squeezed spacing? One key formats the whole file.",
+  "Two warnings gone, a better name and a clean file, in a few seconds, without reaching for the mouse."
+ ],
+ "onsets": [
+  0.0,
+  8.92,
+  15.0,
+  20.92,
+  26.48,
+  35.12,
+  39.72
+ ],
+ "focus": [
+  null,
+  [
+   420,
+   220,
+   1.7
+  ],
+  null,
+  null,
+  [
+   420,
+   220,
+   1.7
+  ],
+  [
+   420,
+   220,
+   1.7
+  ],
+  null
+ ],
+ "cards": {
+  "label": "Chapter 4 · Fixing warnings",
+  "title": "Clean up an old file in seconds",
+  "problem": "Unused imports, a vague name and squeezed spacing. Fix all of it without hunting for each one.",
+  "before": "Find each squiggle in the file, open the light bulb menu, pick the fix, then press F2 to rename and run the formatter from the menu.",
+  "after": "] d jumps to the next problem, Space c a fixes it, Space r n renames, Space F formats. Same keys in every file."
+ }
+}
