@@ -1,26 +1,68 @@
 {
  "sentences": [
-  "Let's debug a small Python program in Neovim, step by step.",
-  "Space B C adds a conditional breakpoint. It only stops when number equals three.",
-  "Space B L adds a logpoint. It prints the value of doubled each time the line runs, without stopping.",
-  "Space B A lists both breakpoints.",
-  "Space D C starts the program. Pick Launch file.",
-  "It stops when number is three. The variables are on the left, and the logpoint output is on the right.",
-  "Space D K steps into the double function.",
-  "Space D O steps back out.",
-  "Space D J runs the next line.",
-  "Space D C runs to the end, and Space D T stops the debugger."
+  "Here is a bug you will run into all the time. The total comes out wrong, but only for one value in the loop. So instead of sprinkling print calls and running the script again and again, we catch it right here in Neovim.",
+  "You do not want to stop on every pass of the loop, only when number is three. So the breakpoint gets a condition, and it skips everything else.",
+  "You also want to see what double returns each time, without stopping. A logpoint prints it for you, and there are no print calls to clean up later.",
+  "Lost track of where you put them? List every breakpoint, and jump back to any of them.",
+  "Now run it under the debugger. Pick Launch file, and that is it. No config to write.",
+  "And it stops right where number is three. Your variables are on the left, and the logpoint output is on the right. No prints, no rerun.",
+  "Not sure what double really does with the value? Step inside it and watch.",
+  "Seen enough? Step back out to the loop.",
+  "Then run one line at a time, and watch total change.",
+  "Found it? Let the program finish, and close the debugger.",
+  "And that is the bug, found in a few keystrokes, without adding a single line to your code."
  ],
  "onsets": [
   0.0,
-  5.0,
-  11.48,
-  19.88,
-  23.32,
-  27.1,
-  35.12,
-  38.88,
-  42.08,
-  45.28
- ]
+  14.0,
+  23.48,
+  32.88,
+  39.0,
+  46.0,
+  55.8,
+  61.32,
+  64.92,
+  69.4,
+  76.25
+ ],
+ "focus": [
+  null,
+  [
+   420,
+   240,
+   1.6
+  ],
+  [
+   420,
+   240,
+   1.6
+  ],
+  null,
+  null,
+  null,
+  [
+   520,
+   250,
+   1.45
+  ],
+  [
+   520,
+   250,
+   1.45
+  ],
+  [
+   520,
+   250,
+   1.45
+  ],
+  null,
+  null
+ ],
+ "cards": {
+  "label": "Chapter 5 · Debugging Python",
+  "title": "Debug it without print()",
+  "problem": "The total comes out wrong, but only for one value in the loop. Find out why, without touching the code.",
+  "before": "Right-click the gutter, pick Add Conditional Breakpoint, type the condition, then do it all again for a logpoint.",
+  "after": "Space b c and Space b l, type the condition. Start, step in, step out and stop, all from the keyboard."
+ }
 }

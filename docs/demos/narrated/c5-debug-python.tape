@@ -5,7 +5,8 @@
 # - Every Wait sits inside Hide, so only fixed Type/Sleep time reaches the video.
 # - Cursor moves (:9, :3) run hidden, followed by a hidden pause so the key box
 #   fades before Show: the viewer only sees the shortcuts the voice names.
-# Each "# step N" matches sentence N of c5-debug-python.txt.
+# Each "# step N" matches sentence N of c5-debug-python.json. Sleeps are sized from the
+# measured spoken length of each line (cedar take + 0.9 s).
 Output "docs/demos/narrated/c5-debug-python.silent.mp4"
 Source docs/demos/settings.tape
 Set Framerate 15
@@ -19,7 +20,7 @@ Sleep 3s
 Show
 
 # step 0: intro
-Sleep 5s
+Sleep 14.1s
 
 # step 1: conditional breakpoint
 Hide
@@ -31,7 +32,7 @@ Type " bc"
 Sleep 1.5s
 Type@150ms "number == 3"
 Enter
-Sleep 2.75s
+Sleep 5.7s
 
 # step 2: logpoint
 Hide
@@ -42,14 +43,14 @@ Type " bl"
 Sleep 1.5s
 Type@150ms "doubled={doubled}"
 Enter
-Sleep 3.85s
+Sleep 4.7s
 
 # step 3: breakpoint list
 Type " ba"
 Hide
 Wait+Screen@15s /services.py/
 Show
-Sleep 3s
+Sleep 5.75s
 Hide
 Type@1ms ":cclose" Enter
 Type@1ms ":b demo.py" Enter
@@ -62,7 +63,7 @@ Type " dc"
 Hide
 Wait+Screen@20s /Launch file/
 Show
-Sleep 2s
+Sleep 5.5s
 Type "1"
 Sleep 1s
 Enter
@@ -72,28 +73,31 @@ Show
 Sleep 0.25s
 
 # step 5: stopped at number == 3
-Sleep 8s
+Sleep 9.4s
 
 # step 6: step into
 Type " dk"
 Hide
 Wait+Screen@15s /def double/
 Show
-Sleep 3.3s
+Sleep 5.1s
 
 # step 7: step out
 Type " do"
-Sleep 2.8s
+Sleep 3.2s
 
 # step 8: step over
 Type " dj"
-Sleep 2.8s
+Sleep 4s
 
 # step 9: continue to the end, terminate
 Type " dc"
 Sleep 3s
 Type " dt"
 Sleep 3s
+
+# step 10: outro
+Sleep 6s
 
 Hide
 Type@1ms ":qa!" Enter
