@@ -86,6 +86,9 @@ END_BODY = """<text x="120" y="160" font-family="{font}" font-size="22" letter-s
 <text x="120" y="700" font-family="{font}" font-size="24" fill="#A1A1AA">{repo}</text>"""
 END_LINE = '<tspan x="120" dy="1.4em">{}</tspan>'
 WRAP_TITLE_TEXT = 62
+# the title is one line at 60 px (36 px per mono char) starting at x=156 in a
+# 1376 px window: 32 characters fit, a longer one runs off the card
+TITLE_MAX_CHARS = 32
 WRAP_END_TEXT = 70
 ENCODE = (
     "-c:v",
@@ -104,6 +107,10 @@ ENCODE = (
 
 
 class ShellError(RuntimeError):
+    pass
+
+
+class CardError(ValueError):
     pass
 
 
@@ -158,6 +165,11 @@ class SvgCard:
     """Cards drawn like the VHS window: same frame color, same font, orange accent."""
 
     def title(self, cards: dict) -> str:
+        if len(cards["title"]) > TITLE_MAX_CHARS:
+            raise CardError(
+                "card title has %d characters, at most %d fit: %r"
+                % (len(cards["title"]), TITLE_MAX_CHARS, cards["title"])
+            )
         body = TITLE_BODY.format(
             font=FONT,
             label=escape(cards["label"].upper()),
