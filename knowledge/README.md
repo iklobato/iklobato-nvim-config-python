@@ -15,6 +15,7 @@ Snapshot: `main` @ `5188f2d` (2026-11-16). Status below is the narrated-videos s
 - `demos-narrated.md`: narrated tutorial videos: what exists, how a chapter is made, contracts between files, gotchas (VHS, which-key, ffmpeg, voice), keys and cost.
 
 ## Session log
+- 2026-11-16 (shortcuts GIF): new tape `docs/demos/workflows/shortcuts-navigation.tape` + its GIF (31 s, 1.8 MB), linked in README chapter 2: `<leader>fo`, `gd` + `<C-o>`, `<leader>gr`, `<leader>ff`, `<leader>fg`, `<leader>tp/tn/td`. Recorded from the `perf/faster-boot-ty` checkout (ty LSP, default 50 fps, keycast shows raw keys, not the `desc` version now on `main`); re-record from `main` with `Set Framerate 15` if it should match the narrated chapters. Frames checked with ffmpeg: every step lands on the expected file.
 - 2026-11-16 (narrated demos, cont.): inference key from the management key; cedar voice; grill decisions in `../docs/decisions/2026-11-15-narrated-videos-pro.md`; `polish.py`; chapters c2, c4, c5, c6, c7, c9, trailer, tests GIF, README links; PR #19 merged. See `demos-narrated.md`.
 - 2026-11-15 (narrated demos): branch `feat/narrated-demos` (worktree `~/.config/nvim-narrated`). keycast shows the mapping `desc`; c5 re-recorded at 15 fps with hidden waits; voice sync proven with a throwaway voice; real voice blocked on the OpenRouter key. See `demos-narrated.md`.
 - 2026-11-14 (2nd): UI icons package A plus vim-illuminate on branch `feat/ui-icons-comfort`; also added the missing `<leader>ch` deep test. See `ui.md`.
