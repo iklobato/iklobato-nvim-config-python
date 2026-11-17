@@ -219,6 +219,15 @@ A shorter tour of the keys used most to move between files:
 
 The bar at the top of the window shows which file is open after each jump.
 
+Everyday keys the other videos skip:
+
+![comment lines, definition in a side split and maximize it, grep hits in the quickfix list, hide the values of a .env file](docs/demos/workflows/everyday-keys.gif)
+
+1. `gcc` comments one line and `gcc` again uncomments it; `gc` on a visual selection comments the whole block.
+2. `<leader>gd` opens the definition in a split on the side, and `<leader>sm` maximizes that split and gives the old layout back.
+3. `<leader>fg` searches the project, `<C-q>` sends every hit to the quickfix list, and `]q` / `[q` walk it file by file.
+4. A `.env` file opens with its values hidden; `<leader>ch` shows them and hides them again. The values in the video are fake.
+
 ### 3. Write code
 
 Completion, selecting code by its structure, and deleting a whole function.
