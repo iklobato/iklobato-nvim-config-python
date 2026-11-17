@@ -207,6 +207,18 @@ In the video:
 
 [Watch with narration](docs/demos/narrated/c2-move-around.mp4): the same task, explained step by step.
 
+A shorter tour of the keys used most to move between files:
+
+![list symbols, go to definition and back, references, find files, grep, switch and close tabs](docs/demos/workflows/shortcuts-navigation.gif)
+
+1. `<leader>fo` lists the classes and functions of the file: typing `summ` jumps to `summarize`.
+2. `gd` on `double(...)` jumps to its definition, and `<C-o>` jumps back.
+3. `<leader>gr` lists every place that uses `summarize`, in every file.
+4. `<leader>ff` opens `views.py`, and `<leader>fg` finds `def test_double` and opens that file.
+5. `<leader>tp` and `<leader>tn` move between the tabs on top, and `<leader>td` closes one.
+
+The bar at the top of the window shows which file is open after each jump.
+
 ### 3. Write code
 
 Completion, selecting code by its structure, and deleting a whole function.
